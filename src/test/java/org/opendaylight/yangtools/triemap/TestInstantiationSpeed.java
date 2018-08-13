@@ -15,8 +15,6 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import com.google.common.base.Stopwatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -28,22 +26,20 @@ public class TestInstantiationSpeed {
     private static final int ITERATIONS = 10;
     private static final int WARMUP = 10;
 
-    private static Stopwatch runIteration() {
+    private static long runIteration() {
         final TrieMap<?, ?>[] maps = new TrieMap<?, ?>[COUNT];
-
-        final Stopwatch watch = Stopwatch.createStarted();
+        long startTime = System.nanoTime();
         for (int i = 0; i < COUNT; ++i) {
             maps[i] = TrieMap.create();
         }
-        watch.stop();
+        long elapsedTime = System.nanoTime() - startTime;
 
-        // Do not allow optimizations
         LOG.trace("Maps: {}", (Object) maps);
-        return watch;
+        return elapsedTime;
     }
 
-    private static long elapsedToNs(final Stopwatch watch) {
-        return watch.elapsed(TimeUnit.NANOSECONDS) / COUNT;
+    private static long elapsedToNs(final long elapsedTime) {
+        return elapsedTime / COUNT;
     }
 
     @Ignore
@@ -51,15 +47,16 @@ public class TestInstantiationSpeed {
     public void testInstantiation() {
 
         for (int i = 0; i < WARMUP; ++i) {
-            final Stopwatch time = runIteration();
+            final long time = runIteration();
             LOG.debug("Warmup {} took {} ({} ns)", i, time, elapsedToNs(time));
         }
 
         long acc = 0;
         for (int i = 0; i < ITERATIONS; ++i) {
-            final Stopwatch time = runIteration();
+            final long time = runIteration();
             LOG.debug("Iteration {} took {} ({} ns)", i, time, elapsedToNs(time));
-            acc += time.elapsed(TimeUnit.NANOSECONDS);
+
+            acc += time;
         }
 
         LOG.info("Instantiation cost {} ns", acc / ITERATIONS / COUNT);

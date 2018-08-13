@@ -17,10 +17,9 @@ package org.opendaylight.yangtools.triemap;
 
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.collect.Iterators;
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map.Entry;
 import java.util.Spliterator;
 import java.util.Spliterators;
 
@@ -73,8 +72,10 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
     @Override
     public final Spliterator<K> spliterator() {
         // TODO: this is backed by an Iterator, we should be able to do better
-        return Spliterators.spliterator(Iterators.transform(map().immutableIterator(), Entry::getKey), Long.MAX_VALUE,
-            spliteratorCharacteristics());
+        ArrayList<K> keyList = new ArrayList<>();
+        map().immutableIterator().forEachRemaining(a-> keyList.add(a.getKey()));
+
+        return Spliterators.spliterator(keyList, spliteratorCharacteristics());
     }
 
     abstract int spliteratorCharacteristics();

@@ -15,10 +15,8 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.base.Verify;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -64,11 +62,11 @@ final class SerializationProxy implements Externalizable {
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         @SuppressWarnings("unchecked")
         final Equivalence<Object> equiv = (Equivalence<Object>) in.readObject();
-        checkArgument(equiv != null);
+        if (equiv == null) { throw new IllegalArgumentException(); }
 
         final MutableTrieMap<Object, Object> tmp = new MutableTrieMap<>(equiv);
         final int size = in.readInt();
-        checkArgument(size >= 0);
+        if (size < 0) { throw new IllegalArgumentException(); }
 
         for (int i = 0; i < size; ++i) {
             tmp.add(in.readObject(), in.readObject());
@@ -78,6 +76,10 @@ final class SerializationProxy implements Externalizable {
     }
 
     private Object readResolve() throws ObjectStreamException {
-        return Verify.verifyNotNull(map);
+        if (map == null) {
+            throw new IllegalStateException();
+        } else {
+            return map;
+        }
     }
 }

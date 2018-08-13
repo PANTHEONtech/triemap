@@ -15,8 +15,6 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Spliterator;
@@ -36,9 +34,9 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
     @SuppressWarnings("checkstyle:parameterName")
     public boolean add(final Entry<K, V> e) {
         final K k = e.getKey();
-        checkArgument(k != null);
+        if (k == null) { throw new IllegalArgumentException(); }
         final V v = e.getValue();
-        checkArgument(v != null);
+        if (v == null) { throw new IllegalArgumentException(); }
 
         final V prev = map().putIfAbsent(k, v);
         return prev == null || !v.equals(prev);
