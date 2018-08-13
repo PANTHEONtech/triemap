@@ -15,7 +15,7 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import static com.google.common.base.Preconditions.checkState;
+import static org.opendaylight.yangtools.triemap.CheckUtil.nonNullState;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map.Entry;
@@ -40,8 +40,7 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
 
     @Override
     public void remove() {
-        checkState(lastReturned != null);
-        mutable.remove(lastReturned.getKey());
+        mutable.remove(nonNullState(lastReturned).getKey());
         lastReturned = null;
     }
 

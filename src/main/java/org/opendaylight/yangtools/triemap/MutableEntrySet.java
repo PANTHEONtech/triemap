@@ -15,7 +15,7 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static org.opendaylight.yangtools.triemap.CheckUtil.nonNullArgument;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -35,10 +35,8 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public boolean add(final Entry<K, V> e) {
-        final K k = e.getKey();
-        checkArgument(k != null);
-        final V v = e.getValue();
-        checkArgument(v != null);
+        final K k = nonNullArgument(e.getKey());
+        final V v = nonNullArgument(e.getValue());
 
         final V prev = map().putIfAbsent(k, v);
         return prev == null || !v.equals(prev);

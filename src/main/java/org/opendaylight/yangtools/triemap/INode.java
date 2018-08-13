@@ -20,7 +20,6 @@ import static org.opendaylight.yangtools.triemap.LookupResult.RESTART;
 import static org.opendaylight.yangtools.triemap.PresencePredicate.ABSENT;
 import static org.opendaylight.yangtools.triemap.PresencePredicate.PRESENT;
 
-import com.google.common.base.VerifyException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -139,7 +138,7 @@ final class INode<K, V> extends BasicNode {
             if (m instanceof CNode) {
                 // 1) a multiway node
                 final CNode<K, V> cn = (CNode<K, V>) m;
-                final int idx = (hc >>> lev) & 0x1f;
+                final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
                 final int mask = flag - 1;
@@ -165,7 +164,7 @@ final class INode<K, V> extends BasicNode {
                             return GCAS(cn, cn.updatedAt(pos, new SNode<>(k, v, hc), gen), ct);
                         }
 
-                        final CNode<K, V> rn = (cn.gen == gen) ? cn : cn.renewed(gen, ct);
+                        final CNode<K, V> rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
                         final MainNode<K, V> nn = rn.updatedAt(pos, inode(
                             CNode.dual(sn, k, v, hc, lev + LEVEL_BITS, gen)), gen);
                         return GCAS(cn, nn, ct);
@@ -174,7 +173,7 @@ final class INode<K, V> extends BasicNode {
                     }
                 }
 
-                final CNode<K, V> rn = (cn.gen == gen) ? cn : cn.renewed(gen, ct);
+                final CNode<K, V> rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
                 final MainNode<K, V> ncnode = rn.insertedAt(pos, flag, new SNode<>(k, v, hc), gen);
                 return GCAS(cn, ncnode, ct);
             } else if (m instanceof TNode) {
@@ -191,14 +190,14 @@ final class INode<K, V> extends BasicNode {
     }
 
     private static VerifyException invalidElement(final BasicNode elem) {
-        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
+        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not %s", elem);
     }
 
     @SuppressFBWarnings(value = "NP_OPTIONAL_RETURN_NULL",
             justification = "Returning null Optional indicates the need to restart.")
     private Optional<V> insertDual(final TrieMap<K, V> ct, final CNode<K, V> cn, final int pos, final SNode<K, V> sn,
             final K k, final V v, final int hc, final int lev) {
-        final CNode<K, V> rn = (cn.gen == gen) ? cn : cn.renewed(gen, ct);
+        final CNode<K, V> rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
         final MainNode<K, V> nn = rn.updatedAt(pos, inode(CNode.dual(sn, k, v, hc, lev + LEVEL_BITS, gen)), gen);
         return GCAS(cn, nn, ct) ? Optional.empty() : null;
     }
@@ -229,7 +228,7 @@ final class INode<K, V> extends BasicNode {
             if (m instanceof CNode) {
                 // 1) a multiway node
                 final CNode<K, V> cn = (CNode<K, V>) m;
-                final int idx = (hc >>> lev) & 0x1f;
+                final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
                 final int mask = flag - 1;
@@ -292,7 +291,7 @@ final class INode<K, V> extends BasicNode {
                         throw CNode.invalidElement(cnAtPos);
                     }
                 } else if (cond == null || cond == ABSENT) {
-                    final CNode<K, V> rn = (cn.gen == gen) ? cn : cn.renewed(gen, ct);
+                    final CNode<K, V> rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
                     final CNode<K, V> ncnode = rn.insertedAt(pos, flag, new SNode<>(k, v, hc), gen);
                     if (GCAS(cn, ncnode, ct)) {
                         return Optional.empty();
@@ -367,7 +366,7 @@ final class INode<K, V> extends BasicNode {
             if (m instanceof CNode) {
                 // 1) a multinode
                 final CNode<K, V> cn = (CNode<K, V>) m;
-                final int idx = (hc >>> lev) & 0x1f;
+                final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
 
@@ -377,11 +376,11 @@ final class INode<K, V> extends BasicNode {
                 }
 
                 // 1b) bitmap contains a value - descend
-                final int pos = (bmp == 0xffffffff) ? idx : Integer.bitCount(bmp & (flag - 1));
+                final int pos = bmp == 0xffffffff ? idx : Integer.bitCount(bmp & flag - 1);
                 final BasicNode sub = cn.array[pos];
                 if (sub instanceof INode) {
                     final INode<K, V> in = (INode<K, V>) sub;
-                    if (ct.isReadOnly() || (startgen == in.gen)) {
+                    if (ct.isReadOnly() || startgen == in.gen) {
                         return in.recLookup(k, hc, lev + LEVEL_BITS, this, startgen, ct);
                     }
 
@@ -452,14 +451,14 @@ final class INode<K, V> extends BasicNode {
 
         if (m instanceof CNode) {
             final CNode<K, V> cn = (CNode<K, V>) m;
-            final int idx = (hc >>> lev) & 0x1f;
+            final int idx = hc >>> lev & 0x1f;
             final int bmp = cn.bitmap;
             final int flag = 1 << idx;
             if ((bmp & flag) == 0) {
                 return Optional.empty();
             }
 
-            final int pos = Integer.bitCount(bmp & (flag - 1));
+            final int pos = Integer.bitCount(bmp & flag - 1);
             final BasicNode sub = cn.array[pos];
             final Optional<V> res;
             if (sub instanceof INode) {
@@ -529,13 +528,13 @@ final class INode<K, V> extends BasicNode {
             final int lev, final Gen startgen) {
         while (true) {
             final MainNode<K, V> pm = parent.GCAS_READ(ct);
-            if ((!(pm instanceof CNode))) {
+            if (!(pm instanceof CNode)) {
                 // parent is no longer a cnode, we're done
                 return;
             }
 
             final CNode<K, V> cn = (CNode<K, V>) pm;
-            final int idx = (hc >>> (lev - LEVEL_BITS)) & 0x1f;
+            final int idx = hc >>> lev - LEVEL_BITS & 0x1f;
             final int bmp = cn.bitmap;
             final int flag = 1 << idx;
             if ((bmp & flag) == 0) {
@@ -543,7 +542,7 @@ final class INode<K, V> extends BasicNode {
                 return;
             }
 
-            final int pos = Integer.bitCount(bmp & (flag - 1));
+            final int pos = Integer.bitCount(bmp & flag - 1);
             final BasicNode sub = cn.array[pos];
             if (sub == this && nonlive instanceof TNode) {
                 final TNode<?, ?> tn = (TNode<?, ?>) nonlive;

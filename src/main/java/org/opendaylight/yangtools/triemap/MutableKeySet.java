@@ -32,8 +32,9 @@ final class MutableKeySet<K> extends AbstractKeySet<K> {
 
     @Override
     public Iterator<K> iterator() {
-        final AbstractIterator<K, ?> itr = map().iterator();
         return new Iterator<K>() {
+            private final AbstractIterator<K, ?> itr = map().iterator();
+
             @Override
             public boolean hasNext() {
                 return itr.hasNext();

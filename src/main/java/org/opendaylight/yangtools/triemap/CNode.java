@@ -18,8 +18,6 @@ package org.opendaylight.yangtools.triemap;
 import static org.opendaylight.yangtools.triemap.Constants.HASH_BITS;
 import static org.opendaylight.yangtools.triemap.Constants.LEVEL_BITS;
 
-import com.google.common.base.Verify;
-import com.google.common.base.VerifyException;
 import java.util.concurrent.ThreadLocalRandom;
 
 final class CNode<K, V> extends MainNode<K, V> {
@@ -53,9 +51,9 @@ final class CNode<K, V> extends MainNode<K, V> {
             return new LNode<>(x.key, x.value, y.key, y.value);
         }
 
-        final int xidx = (xhc >>> lev) & 0x1f;
-        final int yidx = (yhc >>> lev) & 0x1f;
-        final int bmp = (1 << xidx) | (1 << yidx);
+        final int xidx = xhc >>> lev & 0x1f;
+        final int yidx = yhc >>> lev & 0x1f;
+        final int bmp = 1 << xidx | 1 << yidx;
 
         if (xidx == yidx) {
             return new CNode<>(gen, bmp, new INode<>(gen, dual(x, xhc, y, yhc, lev + LEVEL_BITS, gen)));
@@ -76,7 +74,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     static VerifyException invalidElement(final BasicNode elem) {
-        throw new VerifyException("A CNode can contain only CNodes and SNodes, not " + elem);
+        throw new VerifyException("A CNode can contain only CNodes and SNodes, not %s", elem);
     }
 
     // lends itself towards being parallelizable by choosing
@@ -187,7 +185,7 @@ final class CNode<K, V> extends MainNode<K, V> {
             BasicNode sub = arr[i];
             if (sub instanceof INode) {
                 final INode<?, ?> in = (INode<?, ?>) sub;
-                final MainNode<?, ?> inodemain = Verify.verifyNotNull(in.gcasRead(ct));
+                final MainNode<?, ?> inodemain = VerifyException.throwIfNull(in.gcasRead(ct));
                 tmparray [i] = resurrect(in, inodemain);
             } else if (sub instanceof SNode) {
                 tmparray [i] = sub;

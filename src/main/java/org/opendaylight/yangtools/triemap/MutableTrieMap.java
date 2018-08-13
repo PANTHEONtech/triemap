@@ -15,13 +15,11 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
+import static org.opendaylight.yangtools.triemap.CheckUtil.checkState;
 import static org.opendaylight.yangtools.triemap.PresencePredicate.ABSENT;
 import static org.opendaylight.yangtools.triemap.PresencePredicate.PRESENT;
 
-import com.google.common.annotations.Beta;
-import com.google.common.base.Verify;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -34,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-@Beta
 public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private static final long serialVersionUID = 1L;
 
@@ -173,7 +170,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
         final boolean success = RDCSS_READ_ROOT().recInsert(key, value, hc, 0, null, this);
-        Verify.verify(success, "Concurrent modification during serialization of map %s", this);
+        VerifyException.throwIf(!success, "Concurrent modification during serialization of map %s", this);
     }
 
     private Optional<V> insertifhc(final K key, final int hc, final V value, final Object cond) {
