@@ -19,7 +19,7 @@ import java.io.Serializable;
 import javax.annotation.Nonnull;
 
 /**
- * Internal equivalence class, similar to {@link com.google.common.base.Equivalence}, but explicitly not handling
+ * Internal equivalence class, similar to com.google.common.base.Equivalence, but explicitly not handling
  * nulls. We use equivalence only for keys, which are guaranteed to be non-null.
  *
  * @author Robert Varga
