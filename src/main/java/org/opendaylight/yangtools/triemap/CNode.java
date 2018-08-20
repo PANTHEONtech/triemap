@@ -74,8 +74,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         return (sz = csize) != NO_SIZE ? sz : (csize = computeSize(ct));
     }
 
-    static IllegalArgumentException invalidElement(final BasicNode elem) {
-        throw new IllegalArgumentException("A CNode can contain only CNodes and SNodes, not " + elem);
+    static IllegalStateException invalidElement(final BasicNode elem) {
+        throw new IllegalStateException("A CNode can contain only CNodes and SNodes, not " + elem);
     }
 
     // lends itself towards being parallelizable by choosing
@@ -186,8 +186,7 @@ final class CNode<K, V> extends MainNode<K, V> {
             BasicNode sub = arr[i];
             if (sub instanceof INode) {
                 final INode<?, ?> in = (INode<?, ?>) sub;
-                final MainNode<?, ?> inodemain = Optional.ofNullable(in.gcasRead(ct))
-                        .orElseThrow(()-> new IllegalArgumentException("expected a non-null reference"));
+                final MainNode<?, ?> inodemain = CheckUtil.verifyNotNull(in.gcasRead(ct));
                 tmparray [i] = resurrect(in, inodemain);
             } else if (sub instanceof SNode) {
                 tmparray [i] = sub;

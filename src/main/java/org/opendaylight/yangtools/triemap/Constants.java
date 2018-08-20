@@ -46,7 +46,7 @@ final class Constants {
     static final int MAX_DEPTH = 7;
 
     static {
-        if (LEVEL_BITS != (int) (Math.log(BITMAP_BITS)/Math.log(2))){ throw new IllegalStateException(); }
-        if (MAX_DEPTH != (int) Math.ceil((double)HASH_BITS / LEVEL_BITS)){ throw new IllegalStateException(); }
+        CheckUtil.verify(LEVEL_BITS == (int) (Math.log(BITMAP_BITS)/Math.log(2)));
+        CheckUtil.verify(MAX_DEPTH == (int) Math.ceil((double)HASH_BITS / LEVEL_BITS));
     }
 }

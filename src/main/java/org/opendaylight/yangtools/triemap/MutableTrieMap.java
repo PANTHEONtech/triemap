@@ -152,7 +152,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
 
         if (!(r instanceof RDCSS_Descriptor)) {
-            throw new IllegalStateException(String.format("Unhandled root %s", r));
+            throw new IllegalStateException("Unhandled root " + r);
         }
         return RDCSS_Complete(abort);
     }
@@ -171,7 +171,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
         final boolean success = RDCSS_READ_ROOT().recInsert(key, value, hc, 0, null, this);
-        if (success == false) {
+        if (!success) {
             throw new IllegalStateException(String.format("Concurrent modification during "+
                                                             "serialization of map %s", this));
         }

@@ -20,6 +20,7 @@ import static org.opendaylight.yangtools.triemap.ImmutableTrieMap.unsupported;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Spliterator;
 
 /**
@@ -36,10 +37,7 @@ final class ImmutableKeySet<K> extends AbstractKeySet<K> {
 
     @Override
     public Iterator<K> iterator() {
-        ImmutableIterator<K, ?> iterator = map().immutableIterator();
-        ArrayList<K> keyList = new ArrayList();
-        iterator.forEachRemaining(a -> keyList.add(a.getKey()));
-        return keyList.iterator();
+        return IteratorUtil.transformIterator(map().immutableIterator(), Map.Entry::getKey);
     }
 
     @Override

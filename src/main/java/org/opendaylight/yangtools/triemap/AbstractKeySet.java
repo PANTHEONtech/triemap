@@ -20,6 +20,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
 
@@ -72,10 +73,8 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
     @Override
     public final Spliterator<K> spliterator() {
         // TODO: this is backed by an Iterator, we should be able to do better
-        ArrayList<K> keyList = new ArrayList<>();
-        map().immutableIterator().forEachRemaining(a-> keyList.add(a.getKey()));
-
-        return Spliterators.spliterator(keyList, spliteratorCharacteristics());
+        return Spliterators.spliterator(IteratorUtil.transformIterator(map().immutableIterator(), Map.Entry::getKey), Long.MAX_VALUE,
+                spliteratorCharacteristics());
     }
 
     abstract int spliteratorCharacteristics();
