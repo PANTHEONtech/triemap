@@ -15,7 +15,7 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import com.google.common.base.MoreObjects;
+import java.util.StringJoiner;
 
 /**
  * Utility key/value class which attacks the hasing function, causing all objects to be put into a single bucket.
@@ -41,6 +41,9 @@ final class ZeroHashInt {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("i", i).add("identity", System.identityHashCode(this)).toString();
+        return new StringJoiner(", ", ZeroHashInt.class.getSimpleName() + "{", "}")
+                .add("i=" + i)
+                .add("identity=" + System.identityHashCode(ZeroHashInt.class))
+                .toString();
     }
 }

@@ -17,7 +17,6 @@ package org.opendaylight.yangtools.triemap;
 
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -31,7 +30,6 @@ import java.util.function.Function;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-@Beta
 public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     private static final long serialVersionUID = 1L;
 

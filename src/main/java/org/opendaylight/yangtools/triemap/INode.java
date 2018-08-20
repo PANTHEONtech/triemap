@@ -20,7 +20,6 @@ import static org.opendaylight.yangtools.triemap.LookupResult.RESTART;
 import static org.opendaylight.yangtools.triemap.PresencePredicate.ABSENT;
 import static org.opendaylight.yangtools.triemap.PresencePredicate.PRESENT;
 
-import com.google.common.base.VerifyException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -190,8 +189,8 @@ final class INode<K, V> extends BasicNode {
         }
     }
 
-    private static VerifyException invalidElement(final BasicNode elem) {
-        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
+    private static IllegalArgumentException invalidElement(final BasicNode elem) {
+        throw new IllegalArgumentException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 
     @SuppressFBWarnings(value = "NP_OPTIONAL_RETURN_NULL",

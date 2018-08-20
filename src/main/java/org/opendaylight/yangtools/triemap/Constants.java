@@ -15,11 +15,6 @@
  */
 package org.opendaylight.yangtools.triemap;
 
-import static com.google.common.base.Verify.verify;
-
-import com.google.common.math.IntMath;
-import java.math.RoundingMode;
-
 /**
  * Various implementation-specific constants shared across classes.
  *
@@ -51,7 +46,7 @@ final class Constants {
     static final int MAX_DEPTH = 7;
 
     static {
-        verify(LEVEL_BITS == IntMath.log2(BITMAP_BITS, RoundingMode.UNNECESSARY));
-        verify(MAX_DEPTH == IntMath.divide(HASH_BITS, LEVEL_BITS, RoundingMode.CEILING));
+        CheckUtil.verify(LEVEL_BITS == (int) (Math.log(BITMAP_BITS)/Math.log(2)));
+        CheckUtil.verify(MAX_DEPTH == (int) Math.ceil((double)HASH_BITS / LEVEL_BITS));
     }
 }

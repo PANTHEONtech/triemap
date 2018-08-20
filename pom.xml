@@ -32,13 +32,6 @@
 
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>

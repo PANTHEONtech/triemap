@@ -18,7 +18,6 @@ package org.opendaylight.yangtools.triemap;
 import static java.util.Objects.requireNonNull;
 import static org.opendaylight.yangtools.triemap.LookupResult.RESTART;
 
-import com.google.common.annotations.Beta;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -37,7 +36,6 @@ import java.util.concurrent.ConcurrentMap;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-@Beta
 public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 1L;
 
