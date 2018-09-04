@@ -1,6 +1,21 @@
 language: java
 jdk:
- - oraclejdk8
+  - oraclejdk8
 before_install:
- - wget https://raw.githubusercontent.com/opendaylight/odlparent/master/settings.xml; cp ./settings.xml $HOME/.m2/settings.xml
+  - wget https://raw.githubusercontent.com/opendaylight/odlparent/master/settings.xml; cp ./settings.xml $HOME/.m2/settings.xml
+before_deploy:
+  - mvn help:evaluate -N -Dexpression=project.version | grep -v '\['
+  - export project_version=$(mvn help:evaluate -N -Dexpression=project.version | grep -v '\[')
 script: mvn clean install
+deploy:
+  provider: releases
+  api_key:
+    secure: UYIc86RcVfqm1xJbX6TSyZ3lG7+0Ih5hLTSdabKjmfTrvM26VZlbcDmGFD4sguRci0il1ULln7P3pFo5zqNnWY9chTCFAPdj9zl+mynHwgIFfs2yK+I5l9oHg/thRK+DE937YUOcNrXBrwiDlb6r8h2oILPJwhPDZUHe27yC5FzusA8FflrJupwD7IQdAEdGlcIWBR9BKv/cljNBYxhrc8p8EM4VP5nihdDVxWD52kelEpllDJIY6sj9sE/pxLoxMHYgbvnta/MG038h6u1yMqXl37XR2SjSkmq7aAeIPr2+FhDy3MM6raxb7xeGScAlFmeVuPIdYMvoLsEMY+GAAUABWYPx5oG8wDx61SyM1P7Mm8dvXKIkk8UfrRbqWtnHmNjFcU1Nz6WdyGg4VjPjRAxK1vYMuU4dNh4nVdmYBFSFgosUjGw2Hd6TWeioEbvzVXjqLek6hf6FRtazF9y4qbb3qqassyzpUm3IqNjJOGH9klFUFHJM7sKmRdltZj3XLoqU7VYkfx1du5EJnViaPSEX2ygJ7jxzxKGbPH9JucJuGUavRivDCG08lP4J677xM0RQxR89t4CHX6lH2l103HwcWoO+jAS/egAKLR8G+sVPa7OJj6Emj1kTbOvVMzxlWjR18UIFtNW5FPL91NN9o+mLwVQ1Yn4sesv+oTT3I+0=
+  file:
+    - triemap/target/triemap-$project_version.jar
+    - triemap/target/triemap-$project_version-javadoc.jar
+    - triemap/target/triemap-$project_version-sources.jar
+  skip_cleanup: true
+  on:
+    repo: PantheonTechnologies/triemap
+  name: $project_version
