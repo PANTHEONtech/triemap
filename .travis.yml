@@ -1,16 +1,26 @@
 language: java
 sudo: false
 
+addons:
+  sonarcloud:
+    organization: "pantheon-tech"
+    token:
+       secure: "LAMXkndALmtaMlOrSnx9OzPT23M9mxCLCZs0/Mxh4BD4Q0Zww3q3OuNsNTTKTrxyrv1dMSAslxiqIouWuQxC+4eIIuyi9QSGh6FuHLUE/WoynlkoxdTsmzjEW4gYmt/f1oe03ycrZyzq0lv3Zqpjv5pbVv+ABX+2fSB80X1Y+ELnsojvJ8i1QoTYQzPu+1YywpLW7hcq8zcrcKbrnXJcMmAu3W1Km9Y7ue6xEM5u+KKEZqXVIAvvjxqqDV2hEArmU62BjZmngZ/AT1HtRK84LFhfHhc1wQnH/aj9MTxoDp+e4LzgB9lXA/iFQNl4h/FYLuG7ra9hOutdVd6BQrlrFZxYE0khlsV2NZFB3G7Gkht0chM4Fa0P9yxf0Kh3+74uqaGXMQOfwcStceVF09ZEfFFHAxubD5QWZCwyhCOGCtAm5+5zGMmjp1OZek8gFU97HNitzf8aVx76X6OBY8VhaB3UE2S86VL77lL8H1jx2TtfQNPw5BPqedTOZGlNordE5FlvgYAZh7HMTHJwZ/twtKnWF6Q2s/qTS+lOZvutCklodzCCGvcNmkYXqldW2ag9rVRzsO9FsiH+FaeuY9fM4JqcYShdgZtBWOzSy91kOSbSrKmK3TGplfD0hhIeOmnqey+YwY3VehJE71aU9HFiOBTJDvWZnuw4OpWO3kUWmnA="
+#      secure: "fArJTxsPIiffE2OX+n8kc5ExbrwfCMh1QoANfi9FDoHrAHOzqsvOZlHUE4k4q5tKJguf+U9/GKw3J8ND0TfGeH9kg6SrtwgY+jya5Ot3SL/nEU6/TOA6+PDKlmE515OIk9B/dLYBzYh/GPr2psDN8YXE0VSGm6SIJwDI/t4tpm9vGvi+Jc3J3qk05zgp8TOcPfawn5C4wLpih7paBtteY1Q+AQds+VzUU4FIENnopEE19J/Prg7QrFNsrp0ckyfFg3luoMjTjIddnZ1VNxYG6R1o42Y086yNGmY91AIY0wKivAYeImZRlPs5icSOJMuO6uuZaNIDgjs8W3mprvEW1XKOjedapavuATGA/tdKnr27L+/JM22ECh89nTrBMeWWE+yGg3jt6MeAlMGJXjPXKF9nzrzjopcP2zqW/uWLRdjGmKmKjrarYHk3HilO/wwkbrzGri4h6f5TJmXBpAvSoJ35IDc3rf736csyklhyp6Fpkk9tD2JHWeViP2HItmYGWjsx0W5AqX2AJo+OYpS1IX7mKPM1lSrzfcdstE73AH4qCcUxayy7sZEjrJA52Mx7WnauMBq9EjNKsd8U4pCzdDjMO36CUCniBV9vH6ofIatYRHNhOCmFU+rqwj3KsViC72Dmhvtvg0rkceMZBoczpSRUSXoVdLvcGU0l48iT0RU="
+
 jdk:
   - openjdk8
   - oraclejdk8
   - oraclejdk11
+
 script:
   - mvn clean install
+  - mvn sonar:sonar
 
 cache:
   directories:
     - '$HOME/.m2/repository'
+    - '$HOME/.sonar/cache'
 
 after_success:
   - mvn org.eluder.coveralls:coveralls-maven-plugin:report

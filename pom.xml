@@ -33,6 +33,11 @@
     <description>Project top-level aggregator POM</description>
     <url>https://github.com/PantheonTechnologies/triemap</url>
 
+    <properties>
+        <sonar.jacoco.reportPaths>${project.build.directory}/code-coverage/jacoco.exec</sonar.jacoco.reportPaths>
+        <sonar.jacoco.itReportPaths>${project.build.directory}/code-coverage/jacoco-it.exec</sonar.jacoco.itReportPaths>
+    </properties>
+
     <modules>
         <module>bom</module>
         <module>dependency-check</module>
