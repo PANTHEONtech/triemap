@@ -32,7 +32,6 @@
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
 
     <modules>
-        <module>features-triemap</module>
         <module>pt-triemap</module>
         <module>triemap</module>
     </modules>
