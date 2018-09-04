@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/PantheonTechnologies/triemap.svg?branch=master)](https://travis-ci.org/PantheonTechnologies/triemap)
 [![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=master)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=master)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2172/badge)](https://bestpractices.coreinfrastructure.org/projects/2172)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_shield)
 
 About
 =============================
@@ -85,3 +86,7 @@ External dependencies
 This library is self-contained. It does not depend on any additional libraries. In particular, it does not require the rather big Scala's 
 standard library to be used.
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_large)
