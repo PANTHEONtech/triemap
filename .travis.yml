@@ -1,12 +1,28 @@
 language: java
+sudo: false
+
+addons:
+  sonarcloud:
+    organization: "pantheon-tech"
+    token:
+      secure: "fArJTxsPIiffE2OX+n8kc5ExbrwfCMh1QoANfi9FDoHrAHOzqsvOZlHUE4k4q5tKJguf+U9/GKw3J8ND0TfGeH9kg6SrtwgY+jya5Ot3SL/nEU6/TOA6+PDKlmE515OIk9B/dLYBzYh/GPr2psDN8YXE0VSGm6SIJwDI/t4tpm9vGvi+Jc3J3qk05zgp8TOcPfawn5C4wLpih7paBtteY1Q+AQds+VzUU4FIENnopEE19J/Prg7QrFNsrp0ckyfFg3luoMjTjIddnZ1VNxYG6R1o42Y086yNGmY91AIY0wKivAYeImZRlPs5icSOJMuO6uuZaNIDgjs8W3mprvEW1XKOjedapavuATGA/tdKnr27L+/JM22ECh89nTrBMeWWE+yGg3jt6MeAlMGJXjPXKF9nzrzjopcP2zqW/uWLRdjGmKmKjrarYHk3HilO/wwkbrzGri4h6f5TJmXBpAvSoJ35IDc3rf736csyklhyp6Fpkk9tD2JHWeViP2HItmYGWjsx0W5AqX2AJo+OYpS1IX7mKPM1lSrzfcdstE73AH4qCcUxayy7sZEjrJA52Mx7WnauMBq9EjNKsd8U4pCzdDjMO36CUCniBV9vH6ofIatYRHNhOCmFU+rqwj3KsViC72Dmhvtvg0rkceMZBoczpSRUSXoVdLvcGU0l48iT0RU="
+
 jdk:
   - oraclejdk8
+
 before_install:
   - wget https://raw.githubusercontent.com/opendaylight/odlparent/master/settings.xml; cp ./settings.xml $HOME/.m2/settings.xml
 before_deploy:
   - mvn help:evaluate -N -Dexpression=project.version | grep -v '\['
   - export project_version=$(mvn help:evaluate -N -Dexpression=project.version | grep -v '\[')
-script: mvn clean install
+script:
+  - mvn clean install sonar:sonar
+
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+    - '$HOME/.sonar/cache'
+
 deploy:
   provider: releases
   api_key:
