@@ -71,11 +71,11 @@ Using the library with Maven projects
 =====================================
 The prebuilt binaries of the library are available from Maven central. Please use the following dependency in your POM files:
 
-		<dependency>
-			<groupId>com.github.romix</groupId>
-			<artifactId>java-concurrent-hash-trie-map</artifactId>
-			<version>0.2.1</version>
-		</dependency>
+    <dependency>
+        <groupId>tech.pantheon.triemap</groupId>
+        <artifactId>triemap</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </dependency>
 
 
 External dependencies
