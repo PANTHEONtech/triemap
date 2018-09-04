@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/PantheonTechnologies/triemap.svg?branch=master)](https://travis-ci.org/PantheonTechnologies/triemap)
 [![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=master)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=master)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2172/badge)](https://bestpractices.coreinfrastructure.org/projects/2172)
 
 About
 =============================
