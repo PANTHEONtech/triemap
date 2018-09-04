@@ -24,7 +24,7 @@ import java.util.Map.Entry;
  */
 final class EntryUtil {
     private EntryUtil() {
-        throw new UnsupportedOperationException();
+
     }
 
     /**
@@ -35,8 +35,8 @@ final class EntryUtil {
             return false;
         }
 
-        final Entry<?,?> e = (Entry<?,?>)obj;
-        return key.equals(e.getKey()) && value.equals(e.getValue());
+        final Entry<?, ?> entry = (Entry<?, ?>)obj;
+        return key.equals(entry.getKey()) && value.equals(entry.getValue());
     }
 
     /**
