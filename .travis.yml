@@ -17,3 +17,5 @@ deploy:
   on:
     repo: PantheonTechnologies/triemap
   name: $project_version
+after_success:
+  - mvn org.eluder.coveralls:coveralls-maven-plugin:report
