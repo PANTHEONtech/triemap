@@ -189,7 +189,7 @@ final class INode<K, V> extends BasicNode {
         }
     }
 
-    private static VerifyException invalidElement(final BasicNode elem) {
+    static VerifyException invalidElement(final BasicNode elem) {
         throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not %s", elem);
     }
 

@@ -28,16 +28,8 @@ final class SNode<K, V> extends BasicNode implements EntryNode<K, V> {
         this.hc = hc;
     }
 
-    SNode<K, V> copy() {
-        return new SNode<>(key, value, hc);
-    }
-
     TNode<K, V> copyTombed() {
         return new TNode<>(key, value, hc);
-    }
-
-    SNode<K, V> copyUntombed() {
-        return new SNode<>(key, value, hc);
     }
 
     @Override

@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ public class TestInsert {
     public void testInsert() {
         final TrieMap<Object, Object> bt = TrieMap.create();
         assertNull(bt.put("a", "a"));
+        assertTrue(bt.containsValue("a"));
         assertNull(bt.put("b", "b"));
         assertNull(bt.put("c", "b"));
         assertNull(bt.put("d", "b"));
