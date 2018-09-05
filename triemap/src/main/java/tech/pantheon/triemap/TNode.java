@@ -28,14 +28,6 @@ final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
         this.hc = hc;
     }
 
-    TNode<K, V> copy() {
-        return new TNode<>(key, value, hc);
-    }
-
-    TNode<K, V> copyTombed() {
-        return new TNode<>(key, value, hc);
-    }
-
     SNode<K, V> copyUntombed() {
         return new SNode<>(key, value, hc);
     }

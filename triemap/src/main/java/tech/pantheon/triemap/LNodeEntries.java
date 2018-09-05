@@ -25,7 +25,8 @@ package tech.pantheon.triemap;
  * @param <V> the type of values
  */
 abstract class LNodeEntries<K, V> extends LNodeEntry<K, V> {
-    private static final class Single<K, V> extends LNodeEntries<K, V> {
+    // Visible for testing
+    static final class Single<K, V> extends LNodeEntries<K, V> {
         Single(final K key, final V value) {
             super(key, value);
         }

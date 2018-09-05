@@ -15,8 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import static tech.pantheon.triemap.CheckUtil.nonNullArgument;
-
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Spliterator;
@@ -30,16 +28,6 @@ import java.util.Spliterator;
 final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
     MutableEntrySet(final TrieMap<K, V> map) {
         super(map);
-    }
-
-    @Override
-    @SuppressWarnings("checkstyle:parameterName")
-    public boolean add(final Entry<K, V> e) {
-        final K k = nonNullArgument(e.getKey());
-        final V v = nonNullArgument(e.getValue());
-
-        final V prev = map().putIfAbsent(k, v);
-        return prev == null || !v.equals(prev);
     }
 
     @Override
