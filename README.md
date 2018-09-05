@@ -51,13 +51,13 @@ More info about Ctries:
 
 
 ## Usage
-Usage of this library is very simple. Simply import the class com.romix.scala.collection.concurrent.TrieMap and use it as a usual Map.
-    
-    import com.romix.scala.collection.concurrent.TrieMap;
-    
-    Map myMap = new TrieMap <Object, Object> ();
+Usage of this library is very simple. Simply import the class tech.pantheon.triemap.TrieMap and use it as a usual Map.
+
+    import tech.pantheon.triemap.TrieMap;
+
+    Map<String, String> myMap = TrieMap.create();
     myMap.put("key", "value");
-    
+
 
 ## Building the library
 
