@@ -59,7 +59,7 @@ Usage of this library is very simple. Simply import the class com.romix.scala.co
     myMap.put("key", "value");
     
 
-##Building the library
+## Building the library
 
 Use a usual `mvn clean install`
 
