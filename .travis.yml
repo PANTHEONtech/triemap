@@ -1,11 +1,20 @@
 language: java
+sudo: false
+
 jdk:
   - oraclejdk8
 before_install:
   - wget https://raw.githubusercontent.com/opendaylight/odlparent/master/settings.xml; cp ./settings.xml $HOME/.m2/settings.xml
-script: mvn clean install
+script:
+  - mvn clean install
+
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+
 after_success:
   - mvn org.eluder.coveralls:coveralls-maven-plugin:report
+
 #before_deploy:
 #  - mvn help:evaluate -N -Dexpression=project.version | grep -v '\['
 #  - export project_version=$(mvn help:evaluate -N -Dexpression=project.version | grep -v '\[')
