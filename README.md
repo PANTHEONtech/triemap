@@ -4,9 +4,7 @@
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_shield)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-About
-=============================
-
+## About
 This is a Java port of a concurrent trie hash map implementation from the Scala collections library. It is almost a line-by-line 
 conversion from Scala to Java.
 
@@ -29,8 +27,7 @@ Implementation status :
        for usual Java maps, including ConcurrentHashMap.
 
 
-What is a concurrent trie hash map also known as ctrie?
-========================================================
+## What is a concurrent trie hash map also known as ctrie?
 ctrie is a lock-Free Concurrent Hash Array Mapped Trie.
 
 A concurrent hash-trie or Ctrie is a concurrent thread-safe lock-free implementation of a hash array mapped trie.
@@ -53,9 +50,7 @@ More info about Ctries:
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_large)
 
 
-Usage
-===============================
-
+## Usage
 Usage of this library is very simple. Simply import the class com.romix.scala.collection.concurrent.TrieMap and use it as a usual Map.
     
     import com.romix.scala.collection.concurrent.TrieMap;
@@ -64,13 +59,11 @@ Usage of this library is very simple. Simply import the class com.romix.scala.co
     myMap.put("key", "value");
     
 
-Building the library
-===============================
+##Building the library
 
 Use a usual `mvn clean install`
 
-Using the library with Maven projects
-=====================================
+## Using the library with Maven projects
 The prebuilt binaries of the library are available from Maven central. Please use the following dependency in your POM files:
 
     <dependency>
@@ -80,8 +73,7 @@ The prebuilt binaries of the library are available from Maven central. Please us
     </dependency>
 
 
-External dependencies
-=====================================
+## External dependencies
 This library is self-contained. It does not depend on any additional libraries. In particular, it does not require the rather big Scala's 
 standard library to be used.
 
