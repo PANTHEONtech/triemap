@@ -66,7 +66,7 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
      *
      * @return A read-write TrieMap containing the contents of this map.
      */
-    public abstract TrieMap<K, V> mutableSnapshot();
+    public abstract MutableTrieMap<K, V> mutableSnapshot();
 
     /**
      * Returns a read-only snapshot of this TrieMap. This operation is lock-free
