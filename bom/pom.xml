@@ -19,37 +19,31 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.opendaylight.odlparent</groupId>
-        <artifactId>single-feature-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
-        <relativePath/>
+      <groupId>org.opendaylight.odlparent</groupId>
+      <artifactId>odlparent-lite</artifactId>
+      <version>4.0.0-SNAPSHOT</version>
+      <relativePath/>
     </parent>
 
     <groupId>tech.pantheon.triemap</groupId>
-    <artifactId>pt-triemap</artifactId>
+    <artifactId>bom</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>feature</packaging>
-
-    <name>Pantheon Technologies :: TrieMap :: Feature</name>
-    <description>Concurrent Hash-trie Map</description>
+    <packaging>pom</packaging>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>tech.pantheon.triemap</groupId>
-                <artifactId>bom</artifactId>
+                <artifactId>triemap</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
-                <scope>import</scope>
-                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>tech.pantheon.triemap</groupId>
+                <artifactId>triemap</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <type>xml</type>
+                <classifier>features</classifier>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-
-    <dependencies>
-        <dependency>
-            <groupId>tech.pantheon.triemap</groupId>
-            <artifactId>triemap</artifactId>
-        </dependency>
-    </dependencies>
 </project>
