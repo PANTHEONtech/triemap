@@ -16,11 +16,11 @@
 package tech.pantheon.triemap;
 
 final class FailedNode<K, V> extends MainNode<K, V> {
-    private final MainNode<K, V> p;
+    private final MainNode<K, V> prev;
 
-    FailedNode(final MainNode<K, V> p) {
-        super(p);
-        this.p = p;
+    FailedNode(final MainNode<K, V> prev) {
+        super(prev);
+        this.prev = prev;
     }
 
     @Override
@@ -35,7 +35,7 @@ final class FailedNode<K, V> extends MainNode<K, V> {
 
     @Override
     public String toString() {
-        return "FailedNode(" + p + ")";
+        return "FailedNode(" + prev + ")";
     }
 
 }

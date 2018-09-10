@@ -40,7 +40,7 @@ abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
 
     AbstractIterator(final ImmutableTrieMap<K, V> map) {
         this.map = map;
-        readin(map.RDCSS_READ_ROOT());
+        readin(map.readRoot());
     }
 
     @Override
@@ -102,6 +102,7 @@ abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void advance() {
         if (depth >= 0) {
             int npos = positionStack[depth] + 1;

@@ -40,26 +40,27 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, EMPTY_ARRAY);
     }
 
-    static <K, V> MainNode<K,V> dual(final SNode<K, V> x, final K key, final V value, final int hc, final int lev,
+    static <K, V> MainNode<K,V> dual(final SNode<K, V> snode, final K key, final V value, final int hc, final int lev,
             final Gen gen) {
-        return dual(x, x.hc, new SNode<>(key, value, hc), hc, lev, gen);
+        return dual(snode, snode.hc, new SNode<>(key, value, hc), hc, lev, gen);
     }
 
-    private static <K, V> MainNode<K,V> dual(final SNode<K, V> x, final int xhc, final SNode<K, V> y, final int yhc,
-            final int lev, final Gen gen) {
+    private static <K, V> MainNode<K,V> dual(final SNode<K, V> first, final int firstHash, final SNode<K, V> second,
+            final int secondHash, final int lev, final Gen gen) {
         if (lev >= HASH_BITS) {
-            return new LNode<>(x.key, x.value, y.key, y.value);
+            return new LNode<>(first.key, first.value, second.key, second.value);
         }
 
-        final int xidx = xhc >>> lev & 0x1f;
-        final int yidx = yhc >>> lev & 0x1f;
+        final int xidx = firstHash >>> lev & 0x1f;
+        final int yidx = secondHash >>> lev & 0x1f;
         final int bmp = 1 << xidx | 1 << yidx;
 
         if (xidx == yidx) {
-            return new CNode<>(gen, bmp, new INode<>(gen, dual(x, xhc, y, yhc, lev + LEVEL_BITS, gen)));
+            return new CNode<>(gen, bmp, new INode<>(gen, dual(first, firstHash, second, secondHash, lev + LEVEL_BITS,
+                gen)));
         }
 
-        return xidx < yidx ? new CNode<>(gen, bmp, x, y) : new CNode<>(gen, bmp, y, x);
+        return xidx < yidx ? new CNode<>(gen, bmp, first, second) : new CNode<>(gen, bmp, second, first);
     }
 
     @Override
@@ -112,30 +113,30 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    CNode<K, V> updatedAt(final int pos, final BasicNode nn, final Gen gen) {
+    CNode<K, V> updatedAt(final int pos, final BasicNode nn, final Gen newGen) {
         int len = array.length;
         BasicNode[] narr = new BasicNode[len];
         System.arraycopy(array, 0, narr, 0, len);
         narr[pos] = nn;
-        return new CNode<>(gen, bitmap, narr);
+        return new CNode<>(newGen, bitmap, narr);
     }
 
-    CNode<K, V> removedAt(final int pos, final int flag, final Gen gen) {
+    CNode<K, V> removedAt(final int pos, final int flag, final Gen newGen) {
         BasicNode[] arr = array;
         int len = arr.length;
         BasicNode[] narr = new BasicNode[len - 1];
         System.arraycopy(arr, 0, narr, 0, pos);
         System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
-        return new CNode<>(gen, bitmap ^ flag, narr);
+        return new CNode<>(newGen, bitmap ^ flag, narr);
     }
 
-    CNode<K, V> insertedAt(final int pos, final int flag, final BasicNode nn, final Gen gen) {
+    CNode<K, V> insertedAt(final int pos, final int flag, final BasicNode nn, final Gen newGen) {
         int len = array.length;
         BasicNode[] narr = new BasicNode[len + 1];
         System.arraycopy(array, 0, narr, 0, pos);
         narr [pos] = nn;
         System.arraycopy(array, pos, narr, pos + 1, len - pos);
-        return new CNode<>(gen, bitmap | flag, narr);
+        return new CNode<>(newGen, bitmap | flag, narr);
     }
 
     /**
@@ -143,22 +144,23 @@ final class CNode<K, V> extends MainNode<K, V> {
      * copied to the specified generation `ngen`.
      */
     CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
-        int i = 0;
+        int idx = 0;
         final BasicNode[] arr = array;
         final int len = arr.length;
         final BasicNode[] narr = new BasicNode[len];
-        while (i < len) {
-            final BasicNode elem = arr[i];
+        while (idx < len) {
+            final BasicNode elem = arr[idx];
             if (elem instanceof INode) {
-                narr[i] = ((INode<?, ?>) elem).copyToGen(ngen, ct);
+                narr[idx] = ((INode<?, ?>) elem).copyToGen(ngen, ct);
             } else if (elem != null) {
-                narr[i] = elem;
+                narr[idx] = elem;
             }
-            i += 1;
+            idx += 1;
         }
         return new CNode<>(ngen, bitmap, narr);
     }
 
+    @SuppressWarnings("unchecked")
     MainNode<K, V> toContracted(final int lev) {
         if (array.length == 1 && lev > 0) {
             if (array[0] instanceof SNode) {
@@ -170,30 +172,28 @@ final class CNode<K, V> extends MainNode<K, V> {
         return this;
     }
 
-    // - if the branching factor is 1 for this CNode, and the child
-    // is a tombed SNode, returns its tombed version
-    // - otherwise, if there is at least one non-null node below,
-    // returns the version of this node with at least some null-inodes
-    // removed (those existing when the op began)
+    // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
+    // - otherwise, if there is at least one non-null node below, returns the version of this node with at least some
+    //   null-inodes removed (those existing when the op began)
     // - if there are only null-i-nodes below, returns null
-    MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen gen) {
+    MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen newGen) {
         int bmp = bitmap;
-        int i = 0;
+        int idx = 0;
         BasicNode[] arr = array;
         BasicNode[] tmparray = new BasicNode[arr.length];
-        while (i < arr.length) { // construct new bitmap
-            BasicNode sub = arr[i];
+        while (idx < arr.length) { // construct new bitmap
+            BasicNode sub = arr[idx];
             if (sub instanceof INode) {
                 final INode<?, ?> in = (INode<?, ?>) sub;
                 final MainNode<?, ?> inodemain = VerifyException.throwIfNull(in.gcasRead(ct));
-                tmparray [i] = resurrect(in, inodemain);
+                tmparray [idx] = resurrect(in, inodemain);
             } else if (sub instanceof SNode) {
-                tmparray [i] = sub;
+                tmparray [idx] = sub;
             }
-            i += 1;
+            idx += 1;
         }
 
-        return new CNode<K, V>(gen, bmp, tmparray).toContracted(lev);
+        return new CNode<K, V>(newGen, bmp, tmparray).toContracted(lev);
     }
 
     private static BasicNode resurrect(final INode<?, ?> inode, final MainNode<?, ?> inodemain) {

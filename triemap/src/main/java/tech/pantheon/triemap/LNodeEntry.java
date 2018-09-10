@@ -47,6 +47,7 @@ abstract class LNodeEntry<K, V> implements Entry<K, V> {
     }
 
     @Override
+    @SuppressWarnings("checkstyle:hiddenField")
     public final V setValue(final V value) {
         throw new UnsupportedOperationException();
     }

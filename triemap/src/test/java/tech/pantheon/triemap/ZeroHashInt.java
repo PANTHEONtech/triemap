@@ -23,10 +23,10 @@ import java.util.StringJoiner;
  * @author Robert Varga
  */
 final class ZeroHashInt {
-    private final int i;
+    private final int value;
 
-    ZeroHashInt(final int i) {
-        this.i = i;
+    ZeroHashInt(final int value) {
+        this.value = value;
     }
 
     @Override
@@ -35,14 +35,14 @@ final class ZeroHashInt {
     }
 
     @Override
-    public boolean equals(final Object o) {
-        return o instanceof ZeroHashInt && i == ((ZeroHashInt) o).i;
+    public boolean equals(final Object obj) {
+        return obj instanceof ZeroHashInt && value == ((ZeroHashInt) obj).value;
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", ZeroHashInt.class.getSimpleName() + "{", "}")
-                .add("i=" + i)
+                .add("value=" + value)
                 .add("identity=" + System.identityHashCode(ZeroHashInt.class))
                 .toString();
     }

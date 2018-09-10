@@ -52,10 +52,10 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public void clear() {
-        INode<K, V> r;
+        INode<K, V> localRoot;
         do {
-            r = RDCSS_READ_ROOT();
-        } while (!RDCSS_ROOT(r, r.gcasRead(this), newRootNode()));
+            localRoot = readRoot();
+        } while (!rdcssRoot(localRoot, localRoot.gcasRead(this), newRootNode()));
     }
 
     @Override
@@ -104,12 +104,12 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     private INode<K, V> snapshot() {
-        INode<K, V> r;
+        INode<K, V> localRoot;
         do {
-            r = RDCSS_READ_ROOT();
-        } while (!RDCSS_ROOT(r, r.gcasRead(this), r.copyToGen(new Gen(), this)));
+            localRoot = readRoot();
+        } while (!rdcssRoot(localRoot, localRoot.gcasRead(this), localRoot.copyToGen(new Gen(), this)));
 
-        return r;
+        return localRoot;
     }
 
     @Override
@@ -146,14 +146,14 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     @SuppressWarnings("unchecked")
-    INode<K, V> RDCSS_READ_ROOT(final boolean abort) {
+    INode<K, V> rdcssReadRoot(final boolean abort) {
         final Object r = /* READ */ root;
         if (r instanceof INode) {
             return (INode<K, V>) r;
         }
 
         checkState(r instanceof RDCSS_Descriptor, "Unhandled root %s", r);
-        return RDCSS_Complete(abort);
+        return rdcssComplete(abort);
     }
 
     void add(final K key, final V value) {
@@ -169,7 +169,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private void inserthc(final K key, final int hc, final V value) {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
-        final boolean success = RDCSS_READ_ROOT().recInsert(key, value, hc, 0, null, this);
+        final boolean success = readRoot().recInsert(key, value, hc, 0, null, this);
         VerifyException.throwIf(!success, "Concurrent modification during serialization of map %s", this);
     }
 
@@ -177,7 +177,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Optional<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = RDCSS_READ_ROOT().recInsertIf(key, value, hc, cond, 0, null, this);
+            res = readRoot().recInsertIf(key, value, hc, cond, 0, null, this);
         } while (res == null);
 
         return res;
@@ -187,20 +187,20 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Optional<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = RDCSS_READ_ROOT().recRemove(key, cond, hc, 0, null, this);
+            res = readRoot().recRemove(key, cond, hc, 0, null, this);
         } while (res == null);
 
         return res;
     }
 
-    private boolean CAS_ROOT(final Object ov, final Object nv) {
+    private boolean casRoot(final Object ov, final Object nv) {
         return ROOT_UPDATER.compareAndSet(this, ov, nv);
     }
 
-    private boolean RDCSS_ROOT(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
+    private boolean rdcssRoot(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
         final RDCSS_Descriptor<K, V> desc = new RDCSS_Descriptor<>(ov, expectedmain, nv);
-        if (CAS_ROOT(ov, desc)) {
-            RDCSS_Complete(false);
+        if (casRoot(ov, desc)) {
+            rdcssComplete(false);
             return /* READ */desc.committed;
         }
 
@@ -208,7 +208,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @SuppressWarnings("unchecked")
-    private INode<K, V> RDCSS_Complete(final boolean abort) {
+    private INode<K, V> rdcssComplete(final boolean abort) {
         while (true) {
             final Object r = /* READ */ root;
             if (r instanceof INode) {
@@ -222,7 +222,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             final INode<K, V> nv = desc.nv;
 
             if (abort) {
-                if (CAS_ROOT(desc, ov)) {
+                if (casRoot(desc, ov)) {
                     return ov;
                 }
 
@@ -232,7 +232,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
             final MainNode<K, V> oldmain = ov.gcasRead(this);
             if (oldmain == exp) {
-                if (CAS_ROOT(desc, nv)) {
+                if (casRoot(desc, nv)) {
                     desc.committed = true;
                     return nv;
                 }
@@ -241,7 +241,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 continue;
             }
 
-            if (CAS_ROOT(desc, ov)) {
+            if (casRoot(desc, ov)) {
                 return ov;
             }
 
@@ -249,6 +249,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
+    @SuppressWarnings("checkstyle:typeName")
     private static final class RDCSS_Descriptor<K, V> {
         final INode<K, V> old;
         final MainNode<K, V> expectedmain;

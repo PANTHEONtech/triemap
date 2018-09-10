@@ -37,7 +37,7 @@
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
-                    <propertyExpansion>checkstyle.violationSeverity=warning</propertyExpansion>
+                    <propertyExpansion>checkstyle.violationSeverity=error</propertyExpansion>
                 </configuration>
                 <executions>
                     <execution>

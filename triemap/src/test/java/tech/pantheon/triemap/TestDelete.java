@@ -92,8 +92,8 @@ public class TestDelete {
         }
     }
 
-    private static void checkAddInsert(final TrieMap<Integer, Integer> bt, final int k) {
-        final Integer v = Integer.valueOf(k);
+    private static void checkAddInsert(final TrieMap<Integer, Integer> bt, final int key) {
+        final Integer v = Integer.valueOf(key);
         bt.remove(v);
         Integer foundV = bt.get(v);
         assertNull(foundV);
