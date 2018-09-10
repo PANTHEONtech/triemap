@@ -159,6 +159,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         return new CNode<>(ngen, bitmap, narr);
     }
 
+    @SuppressWarnings("unchecked")
     MainNode<K, V> toContracted(final int lev) {
         if (array.length == 1 && lev > 0) {
             if (array[0] instanceof SNode) {
@@ -170,11 +171,9 @@ final class CNode<K, V> extends MainNode<K, V> {
         return this;
     }
 
-    // - if the branching factor is 1 for this CNode, and the child
-    // is a tombed SNode, returns its tombed version
-    // - otherwise, if there is at least one non-null node below,
-    // returns the version of this node with at least some null-inodes
-    // removed (those existing when the op began)
+    // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
+    // - otherwise, if there is at least one non-null node below, returns the version of this node with at least some
+    //   null-inodes removed (those existing when the op began)
     // - if there are only null-i-nodes below, returns null
     MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen gen) {
         int bmp = bitmap;

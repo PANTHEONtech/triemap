@@ -102,6 +102,7 @@ abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void advance() {
         if (depth >= 0) {
             int npos = positionStack[depth] + 1;

@@ -148,6 +148,7 @@ final class INode<K, V> extends BasicNode {
                     // 1a) insert below
                     final BasicNode cnAtPos = cn.array[pos];
                     if (cnAtPos instanceof INode) {
+                        @SuppressWarnings("unchecked")
                         final INode<K, V> in = (INode<K, V>) cnAtPos;
                         if (startgen == in.gen) {
                             return in.recInsert(k, v, hc, lev + LEVEL_BITS, this, startgen, ct);
@@ -159,6 +160,7 @@ final class INode<K, V> extends BasicNode {
 
                         return false;
                     } else if (cnAtPos instanceof SNode) {
+                        @SuppressWarnings("unchecked")
                         final SNode<K, V> sn = (SNode<K, V>) cnAtPos;
                         if (sn.hc == hc && ct.equal(sn.key, k)) {
                             return GCAS(cn, cn.updatedAt(pos, new SNode<>(k, v, hc), gen), ct);
@@ -238,6 +240,7 @@ final class INode<K, V> extends BasicNode {
                     // 1a) insert below
                     final BasicNode cnAtPos = cn.array[pos];
                     if (cnAtPos instanceof INode) {
+                        @SuppressWarnings("unchecked")
                         final INode<K, V> in = (INode<K, V>) cnAtPos;
                         if (startgen == in.gen) {
                             return in.recInsertIf(k, v, hc, cond, lev + LEVEL_BITS, this, startgen, ct);
@@ -250,6 +253,7 @@ final class INode<K, V> extends BasicNode {
 
                         return null;
                     } else if (cnAtPos instanceof SNode) {
+                        @SuppressWarnings("unchecked")
                         final SNode<K, V> sn = (SNode<K, V>) cnAtPos;
                         if (cond == null) {
                             if (sn.hc == hc && ct.equal(sn.key, k)) {
@@ -379,6 +383,7 @@ final class INode<K, V> extends BasicNode {
                 final int pos = bmp == 0xffffffff ? idx : Integer.bitCount(bmp & flag - 1);
                 final BasicNode sub = cn.array[pos];
                 if (sub instanceof INode) {
+                    @SuppressWarnings("unchecked")
                     final INode<K, V> in = (INode<K, V>) sub;
                     if (ct.isReadOnly() || startgen == in.gen) {
                         return in.recLookup(k, hc, lev + LEVEL_BITS, this, startgen, ct);
@@ -392,6 +397,7 @@ final class INode<K, V> extends BasicNode {
                     return RESTART;
                 } else if (sub instanceof SNode) {
                     // 2) singleton node
+                    @SuppressWarnings("unchecked")
                     final SNode<K, V> sn = (SNode<K, V>) sub;
                     if (sn.hc == hc && ct.equal(sn.key, k)) {
                         return sn.value;
@@ -462,6 +468,7 @@ final class INode<K, V> extends BasicNode {
             final BasicNode sub = cn.array[pos];
             final Optional<V> res;
             if (sub instanceof INode) {
+                @SuppressWarnings("unchecked")
                 final INode<K, V> in = (INode<K, V>) sub;
                 if (startgen == in.gen) {
                     res = in.recRemove(k, cond, hc, lev + LEVEL_BITS, this, startgen, ct);
@@ -473,6 +480,7 @@ final class INode<K, V> extends BasicNode {
                     }
                 }
             } else if (sub instanceof SNode) {
+                @SuppressWarnings("unchecked")
                 final SNode<K, V> sn = (SNode<K, V>) sub;
                 if (sn.hc == hc && ct.equal(sn.key, k) && (cond == null || cond.equals(sn.value))) {
                     final MainNode<K, V> ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
