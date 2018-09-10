@@ -132,17 +132,17 @@ public class TestMultiThreadMapIterator {
         }
     }
 
-    static Collection<Object> getObjects(final int j) {
+    static Collection<Object> getObjects(final int value) {
         final Collection<Object> results = new ArrayList<>(4);
-        results.add(Integer.valueOf(j));
-        if (j < 2000) {
-            results.add(Character.valueOf((char) j));
+        results.add(Integer.valueOf(value));
+        if (value < 2000) {
+            results.add(Character.valueOf((char) value));
         }
-        if (j < 1000) {
-            results.add(Short.valueOf((short) j));
+        if (value < 1000) {
+            results.add(Short.valueOf((short) value));
         }
-        if (j < 100) {
-            results.add(Byte.valueOf((byte) j));
+        if (value < 100) {
+            results.add(Byte.valueOf((byte) value));
         }
 
         return results;

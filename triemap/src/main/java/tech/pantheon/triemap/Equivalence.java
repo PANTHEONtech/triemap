@@ -33,8 +33,8 @@ abstract class Equivalence<T> implements Serializable {
         static final Equals INSTANCE = new Equals();
 
         @Override
-        boolean equivalent(final Object a, final Object b) {
-            return a.equals(b);
+        boolean equivalent(final Object first, final Object second) {
+            return first.equals(second);
         }
 
         @Override
@@ -49,8 +49,8 @@ abstract class Equivalence<T> implements Serializable {
         static final Identity INSTANCE = new Identity();
 
         @Override
-        boolean equivalent(final Object a, final Object b) {
-            return a == b;
+        boolean equivalent(final Object first, final Object second) {
+            return first == second;
         }
 
         @Override
@@ -67,18 +67,18 @@ abstract class Equivalence<T> implements Serializable {
         return Identity.INSTANCE;
     }
 
-    final int hash(@Nonnull final T t) {
-        int h = t.hashCode();
+    final int hash(@Nonnull final T obj) {
+        int hash = obj.hashCode();
 
         // This function ensures that hashCodes that differ only by
         // constant multiples at each bit position have a bounded
         // number of collisions (approximately 8 at default load factor).
-        h ^= (h >>> 20) ^ (h >>> 12);
-        h ^= (h >>> 7) ^ (h >>> 4);
-        return h;
+        hash ^= hash >>> 20 ^ hash >>> 12;
+        hash ^= hash >>> 7 ^ hash >>> 4;
+        return hash;
     }
 
-    abstract boolean equivalent(@Nonnull T a, @Nonnull T b);
+    abstract boolean equivalent(@Nonnull T first, @Nonnull T second);
 
     abstract Object readResolve();
 }
