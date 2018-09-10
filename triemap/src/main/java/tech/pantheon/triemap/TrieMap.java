@@ -148,7 +148,7 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
 
     abstract boolean isReadOnly();
 
-    abstract INode<K, V> RDCSS_READ_ROOT(boolean abort);
+    abstract INode<K, V> rdcssReadRoot(boolean abort);
 
     /**
      * Return an iterator over a TrieMap.
@@ -195,16 +195,12 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
     }
 
     final INode<K, V> readRoot() {
-        return RDCSS_READ_ROOT(false);
+        return rdcssReadRoot(false);
     }
 
     // FIXME: abort = false by default
     final INode<K, V> readRoot(final boolean abort) {
-        return RDCSS_READ_ROOT(abort);
-    }
-
-    final INode<K, V> RDCSS_READ_ROOT() {
-        return RDCSS_READ_ROOT(false);
+        return rdcssReadRoot(abort);
     }
 
     final boolean equal(final K k1, final K k2) {
@@ -218,7 +214,7 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
         Object res;
         do {
             // Keep looping as long as RESTART is being indicated
-            res = RDCSS_READ_ROOT().recLookup(key, hc, 0, null, this);
+            res = readRoot().recLookup(key, hc, 0, null, this);
         } while (res == RESTART);
 
         return (V) res;

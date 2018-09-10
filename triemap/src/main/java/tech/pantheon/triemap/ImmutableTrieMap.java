@@ -138,7 +138,7 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
-    INode<K, V> RDCSS_READ_ROOT(final boolean abort) {
+    INode<K, V> rdcssReadRoot(final boolean abort) {
         return root;
     }
 

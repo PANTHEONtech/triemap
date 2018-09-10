@@ -54,7 +54,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     public void clear() {
         INode<K, V> r;
         do {
-            r = RDCSS_READ_ROOT();
+            r = readRoot();
         } while (!RDCSS_ROOT(r, r.gcasRead(this), newRootNode()));
     }
 
@@ -106,7 +106,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private INode<K, V> snapshot() {
         INode<K, V> r;
         do {
-            r = RDCSS_READ_ROOT();
+            r = readRoot();
         } while (!RDCSS_ROOT(r, r.gcasRead(this), r.copyToGen(new Gen(), this)));
 
         return r;
@@ -146,7 +146,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     @SuppressWarnings("unchecked")
-    INode<K, V> RDCSS_READ_ROOT(final boolean abort) {
+    INode<K, V> rdcssReadRoot(final boolean abort) {
         final Object r = /* READ */ root;
         if (r instanceof INode) {
             return (INode<K, V>) r;
@@ -169,7 +169,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private void inserthc(final K key, final int hc, final V value) {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
-        final boolean success = RDCSS_READ_ROOT().recInsert(key, value, hc, 0, null, this);
+        final boolean success = readRoot().recInsert(key, value, hc, 0, null, this);
         VerifyException.throwIf(!success, "Concurrent modification during serialization of map %s", this);
     }
 
@@ -177,7 +177,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Optional<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = RDCSS_READ_ROOT().recInsertIf(key, value, hc, cond, 0, null, this);
+            res = readRoot().recInsertIf(key, value, hc, cond, 0, null, this);
         } while (res == null);
 
         return res;
@@ -187,7 +187,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Optional<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = RDCSS_READ_ROOT().recRemove(key, cond, hc, 0, null, this);
+            res = readRoot().recRemove(key, cond, hc, 0, null, this);
         } while (res == null);
 
         return res;
