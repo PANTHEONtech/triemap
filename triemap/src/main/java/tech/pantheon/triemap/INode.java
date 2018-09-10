@@ -39,10 +39,6 @@ final class INode<K, V> extends BasicNode {
     }
 
     MainNode<K, V> gcasRead(final TrieMap<?, ?> ct) {
-        return GCAS_READ(ct);
-    }
-
-    private MainNode<K, V> GCAS_READ(final TrieMap<?, ?> ct) {
         MainNode<K, V> m = /* READ */ mainnode;
         MainNode<K, V> prevval = /* READ */ m.readPrev();
         if (prevval == null) {
@@ -117,7 +113,7 @@ final class INode<K, V> extends BasicNode {
     }
 
     INode<K, V> copyToGen(final Gen ngen, final TrieMap<?, ?> ct) {
-        return new INode<>(ngen, GCAS_READ(ct));
+        return new INode<>(ngen, gcasRead(ct));
     }
 
     /**
@@ -133,7 +129,7 @@ final class INode<K, V> extends BasicNode {
     private boolean recInsert(final K k, final V v, final int hc, final int lev, final INode<K, V> parent,
             final Gen startgen, final TrieMap<K, V> ct) {
         while (true) {
-            final MainNode<K, V> m = GCAS_READ(ct);
+            final MainNode<K, V> m = gcasRead(ct);
 
             if (m instanceof CNode) {
                 // 1) a multiway node
@@ -225,7 +221,7 @@ final class INode<K, V> extends BasicNode {
     private Optional<V> recInsertIf(final K k, final V v, final int hc, final Object cond, final int lev,
             final INode<K, V> parent, final Gen startgen, final TrieMap<K, V> ct) {
         while (true) {
-            final MainNode<K, V> m = GCAS_READ(ct);
+            final MainNode<K, V> m = gcasRead(ct);
 
             if (m instanceof CNode) {
                 // 1) a multiway node
@@ -365,7 +361,7 @@ final class INode<K, V> extends BasicNode {
     private Object recLookup(final K k, final int hc, final int lev, final INode<K, V> parent, final Gen startgen,
             final TrieMap<K, V> ct) {
         while (true) {
-            final MainNode<K, V> m = GCAS_READ(ct);
+            final MainNode<K, V> m = gcasRead(ct);
 
             if (m instanceof CNode) {
                 // 1) a multinode
@@ -453,7 +449,7 @@ final class INode<K, V> extends BasicNode {
             justification = "Returning null Optional indicates the need to restart.")
     private Optional<V> recRemove(final K k, final Object cond, final int hc, final int lev, final INode<K, V> parent,
             final Gen startgen, final TrieMap<K, V> ct) {
-        final MainNode<K, V> m = GCAS_READ(ct);
+        final MainNode<K, V> m = gcasRead(ct);
 
         if (m instanceof CNode) {
             final CNode<K, V> cn = (CNode<K, V>) m;
@@ -502,7 +498,7 @@ final class INode<K, V> extends BasicNode {
 
             if (parent != null) {
                 // never tomb at root
-                final MainNode<K, V> n = GCAS_READ(ct);
+                final MainNode<K, V> n = gcasRead(ct);
                 if (n instanceof TNode) {
                     cleanParent(n, parent, ct, hc, lev, startgen);
                 }
@@ -535,7 +531,7 @@ final class INode<K, V> extends BasicNode {
     private void cleanParent(final Object nonlive, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
             final int lev, final Gen startgen) {
         while (true) {
-            final MainNode<K, V> pm = parent.GCAS_READ(ct);
+            final MainNode<K, V> pm = parent.gcasRead(ct);
             if (!(pm instanceof CNode)) {
                 // parent is no longer a cnode, we're done
                 return;
@@ -567,7 +563,7 @@ final class INode<K, V> extends BasicNode {
     }
 
     private void clean(final INode<K, V> nd, final TrieMap<K, V> ct, final int lev) {
-        final MainNode<K, V> m = nd.GCAS_READ(ct);
+        final MainNode<K, V> m = nd.gcasRead(ct);
         if (m instanceof CNode) {
             final CNode<K, V> cn = (CNode<K, V>) m;
             nd.GCAS(cn, cn.toCompressed(ct, lev, gen), ct);
@@ -575,6 +571,6 @@ final class INode<K, V> extends BasicNode {
     }
 
     int size(final ImmutableTrieMap<?, ?> ct) {
-        return GCAS_READ(ct).size(ct);
+        return gcasRead(ct).size(ct);
     }
 }
