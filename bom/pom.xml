@@ -39,7 +39,7 @@
             </dependency>
             <dependency>
                 <groupId>tech.pantheon.triemap</groupId>
-                <artifactId>triemap</artifactId>
+                <artifactId>pt-triemap</artifactId>
                 <version>1.0.0-SNAPSHOT</version>
                 <type>xml</type>
                 <classifier>features</classifier>
