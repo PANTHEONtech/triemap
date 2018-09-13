@@ -32,6 +32,7 @@
 
     <name>Pantheon Technologies :: TrieMap :: Feature</name>
     <description>Concurrent Hash-trie Map</description>
+    <url>https://github.com/PantheonTechnologies/triemap</url>
 
     <dependencyManagement>
         <dependencies>
@@ -45,11 +46,66 @@
         </dependencies>
     </dependencyManagement>
 
-
     <dependencies>
         <dependency>
             <groupId>tech.pantheon.triemap</groupId>
             <artifactId>triemap</artifactId>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile> 
+            <id>release</id>
+            <build>
+                  <plugins>
+                      <plugin>
+                          <groupId>org.apache.maven.plugins</groupId>
+                          <artifactId>maven-gpg-plugin</artifactId>
+                          <version>1.6</version>
+                          <executions>
+                              <execution>
+                                  <id>sign-artifacts</id>
+                                  <phase>verify</phase>
+                                  <goals>
+                                      <goal>sign</goal>
+                                  </goals>
+                              </execution>
+                          </executions>
+                      </plugin>
+                  </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:https://github.com/PantheonTechnologies/triemap.git</connection>
+        <developerConnection>scm:git:https://github.com/PantheonTechnologies/triemap.git</developerConnection>
+        <url>https://github.com/PantheonTechnologies/triemap</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>rovarga</id>
+            <name>Robert Varga</name>
+            <email>robert.varga@pantheon.tech</email>
+            <organization>Pantheon Technologies, s.r.o.</organization>
+            <organizationUrl>https://www.pantheon.tech</organizationUrl>
+        </developer>
+    </developers>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
