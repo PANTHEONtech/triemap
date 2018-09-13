@@ -2,6 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=master)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=master)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2172/badge)](https://bestpractices.coreinfrastructure.org/projects/2172)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_shield)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/tech.pantheon.triemap/triemap/badge.svg)](https://maven-badges.herokuapp.com/maven-central/tech.pantheon.triemap/triemap)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## About
@@ -69,7 +70,7 @@ The prebuilt binaries of the library are available from Maven central. Please us
     <dependency>
         <groupId>tech.pantheon.triemap</groupId>
         <artifactId>triemap</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </dependency>
 
 
