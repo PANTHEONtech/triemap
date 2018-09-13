@@ -75,6 +75,8 @@
                     <useReleaseProfile>false</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
                     <preparationGoals>clean install</preparationGoals>
+                    <localCheckout>true</localCheckout>
+                    <pushChanges>false</pushChanges>
                     <goals>deploy</goals>
                 </configuration>
             </plugin>
@@ -102,4 +104,14 @@
             <organizationUrl>https://www.pantheon.tech</organizationUrl>
         </developer>
     </developers>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
