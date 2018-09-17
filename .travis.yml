@@ -4,9 +4,9 @@ sudo: false
 jdk:
   - oraclejdk8
 before_install:
-  - wget https://raw.githubusercontent.com/opendaylight/odlparent/master/settings.xml; cp ./settings.xml $HOME/.m2/settings.xml
+  - cp ./settings.xml $HOME/.m2/settings.xml
 script:
-  - mvn clean install
+  - mvn -gs settings.xml clean install
 
 cache:
   directories:
