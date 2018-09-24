@@ -16,7 +16,7 @@
 package tech.pantheon.triemap;
 
 import java.io.Serializable;
-import javax.annotation.Nonnull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
  * Internal equivalence class, similar to com.google.common.base.Equivalence, but explicitly not handling
@@ -24,6 +24,7 @@ import javax.annotation.Nonnull;
  *
  * @author Robert Varga
  */
+@NonNullByDefault
 abstract class Equivalence<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -67,7 +68,7 @@ abstract class Equivalence<T> implements Serializable {
         return Identity.INSTANCE;
     }
 
-    final int hash(@Nonnull final T obj) {
+    final int hash(final T obj) {
         int hash = obj.hashCode();
 
         // This function ensures that hashCodes that differ only by
@@ -78,7 +79,7 @@ abstract class Equivalence<T> implements Serializable {
         return hash;
     }
 
-    abstract boolean equivalent(@Nonnull T first, @Nonnull T second);
+    abstract boolean equivalent(T first, T second);
 
     abstract Object readResolve();
 }
