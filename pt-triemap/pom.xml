@@ -70,7 +70,7 @@
     </build>
 
     <profiles>
-        <profile> 
+        <profile>
             <id>release</id>
             <build>
                   <plugins>
