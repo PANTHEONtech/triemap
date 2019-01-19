@@ -43,6 +43,16 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Automatic-Module-Name>tech.pantheon.triemap</Automatic-Module-Name>
+                        <Bundle-SymbolicName>tech.pantheon.triemap</Bundle-SymbolicName>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
                     <propertyExpansion>checkstyle.violationSeverity=error</propertyExpansion>
