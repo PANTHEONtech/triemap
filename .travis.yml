@@ -11,6 +11,8 @@ script:
 cache:
   directories:
     - '$HOME/.m2/repository'
+before_cache:
+  - rm -rf $HOME/.m2/repository/tech/pantheon/triemap
 
 after_success:
   - mvn org.eluder.coveralls:coveralls-maven-plugin:report
