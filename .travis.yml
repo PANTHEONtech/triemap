@@ -1,16 +1,26 @@
 language: java
 sudo: false
 
+addons:
+  sonarcloud:
+    organization: "pantheon-tech"
+    token:
+       secure: "sCxPKLaDIq0yKquZNBxaefUitv/ij1i0CF+YHugS8ClTMUMHF24vsA7QoVVuQCcspOeOHs+b6i3fRoUJYVA+vGQ67SBnSrr4EQ3QuCQTlrod9ZydwsKWNp6SlvlifYa6/Y5YEqVkkJe+AL+qe9PIGc8JYII+HDP82bPtVLzaL7ozQp/jRAH0bZ8eqGKyZ2lJjRGXcowuUiS/tsy7e8GKpPbsYBT7fbpSKsX5rRbb4qJkUk3kRoG2KbvV5Pv3Jnz1KKBgGP6n3QVkI1ZaAxHo8jLPev3sHQmqXy2PnG0Y1fkPL7YCM0zfTHJxacbpZxipw1q2uYK24CDZ/2YIStUCeXsP9pNAr/oeleyo0mde0+PSZbpSeNtx/S1m0+L+nIQ+FF8NUA8kqgfbc3xKIETXwlMMG8SkRT2bfW7WrkHOgUI2hiHeHtEPzUBq4BDQTpSWpyUtVfv/bv8ZyP3AoI5igsrOkPD0xC8vrIADNQ8WFWZiJCC+CPwFNi7raxGosazubHCy+Iu9JAH3D0NKI2Eqdz1w2WgwQw53qDpl5o2RWhvMk781rKOmJxwxcj/h8i/EM3wSsglPEBowLbSeD6xaX59sBIvndaYME5yoeSj5ZUKxkb9q8nINy3Mj38dXONlTm2uNYL9t0dfIDagOFzpQ5yO0BfIuKXL1L1vjh+QRKGo="
+
 jdk:
   - openjdk8
   - oraclejdk8
   - oraclejdk11
+
 script:
   - mvn clean install
+  - mvn sonar:sonar -Dsonar.projectKey=PantheonTechnologies_triemap -Dsonar.host.url=https://sonarcloud.io
 
 cache:
   directories:
     - '$HOME/.m2/repository'
+    - '$HOME/.sonar/cache'
+
 before_cache:
   - rm -rf $HOME/.m2/repository/tech/pantheon/triemap
 
