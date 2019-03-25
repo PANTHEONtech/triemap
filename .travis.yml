@@ -14,7 +14,7 @@ jdk:
 
 script:
   - mvn clean install
-  - mvn sonar:sonar -Dsonar.projectKey=PantheonTechnologies_triemap -Dsonar.host.url=https://sonarcloud.io
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then mvn sonar:sonar -Dsonar.projectKey=PantheonTechnologies_triemap -Dsonar.host.url=https://sonarcloud.io; fi'
 
 cache:
   directories:
