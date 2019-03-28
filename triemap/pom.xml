@@ -33,6 +33,11 @@
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
     <url>https://github.com/PantheonTechnologies/triemap</url>
 
+    <properties>
+        <!-- https://issues.apache.org/jira/browse/MJAVADOC-591 -->
+        <source>8</source>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -100,28 +105,6 @@
                           </executions>
                       </plugin>
                   </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!-- On JDK9-and-later specify html5 javadoc -->
-            <id>jdk9-javadoc</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration combine.children="append">
-                            <additionalOptions>
-                                <additionalOption>-html5</additionalOption>
-                            </additionalOptions>
-
-                            <!-- https://bugs.openjdk.java.net/browse/JDK-8212233 -->
-                            <source>8</source>
-                        </configuration>
-                    </plugin>
-                </plugins>
             </build>
         </profile>
     </profiles>
