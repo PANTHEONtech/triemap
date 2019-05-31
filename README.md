@@ -2,6 +2,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=master)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=master)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2172/badge)](https://bestpractices.coreinfrastructure.org/projects/2172)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_shield)
+[![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/PantheonTechnologies/triemap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/PantheonTechnologies/triemap/context:java)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/PantheonTechnologies/triemap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/PantheonTechnologies/triemap/alerts)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/tech.pantheon.triemap/triemap/badge.svg)](https://maven-badges.herokuapp.com/maven-central/tech.pantheon.triemap/triemap)
 [![Javadocs](https://www.javadoc.io/badge/tech.pantheon.triemap/triemap.svg)](https://www.javadoc.io/doc/tech.pantheon.triemap/triemap)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
