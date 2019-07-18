@@ -82,6 +82,10 @@
                     <failOnError>true</failOnError>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.gaul</groupId>
+                <artifactId>modernizer-maven-plugin</artifactId>
+            </plugin>
 
             <plugin>
                 <groupId>codes.rafael.modulemaker</groupId>
