@@ -33,11 +33,6 @@
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
     <url>https://github.com/PantheonTechnologies/triemap</url>
 
-    <properties>
-        <!-- https://issues.apache.org/jira/browse/MJAVADOC-591 -->
-        <source>8</source>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -46,6 +41,16 @@
     </dependencies>
 
     <build>
+        <!-- FIXME: remove this when upgrading to oldparent-5.0.2+ -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
