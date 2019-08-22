@@ -70,16 +70,15 @@ Use a usual `mvn clean install`
 ## Using the library with Maven projects
 The prebuilt binaries of the library are available from Maven central. Please use the following dependency in your POM files:
 
+```xml
     <dependency>
         <groupId>tech.pantheon.triemap</groupId>
         <artifactId>triemap</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.6</version>
     </dependency>
-
+```
 
 ## External dependencies
 This library is self-contained. It does not depend on any additional libraries. In particular, it does not require the rather big Scala's 
 standard library to be used.
-
-
 
