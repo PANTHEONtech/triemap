@@ -9,14 +9,16 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## About
-This is a Java port of a concurrent trie hash map implementation from the Scala collections library. It is almost a line-by-line 
-conversion from Scala to Java.
+This is a Java port of a concurrent trie hash map implementation from the Scala collections library. It used to be an almost line-by-line 
+conversion from Scala to Java. These days it has been refactored to be Java 8 friendly and make some original assertions impossible via
+refactoring.
 
 Idea + implementation techniques can be found in these reports written by Aleksandar Prokopec:
    * http://infoscience.epfl.ch/record/166908/files/ctries-techreport.pdf - this is a nice introduction to Ctries, along with a correctness proof
    * http://lamp.epfl.ch/~prokopec/ctries-snapshot.pdf - a more up-to-date writeup which describes the snapshot operation
 
-The original Scala implementation can be found here and is a part of scala.collection.concurrent:
+The code origins can be tracked through these links:
+   *   [Original Java port](https://github.com/romix/java-concurrent-hash-trie-map)
    *   [Scala implementation](https://github.com/scala/scala/blob/930c85d6c96507d798d1847ea078eebf93dc0acb/src/library/scala/collection/concurrent/TrieMap.scala)
 
 Some of the tests and implementation details were borrowed from this project:
@@ -24,11 +26,13 @@ Some of the tests and implementation details were borrowed from this project:
 
 Implementation status : 
    *   The given implementation is complete and implements all features of the original Scala implementation including support for 
-   snapshots.
+       snapshots.
    *   Wherever necessary, code was adapted to be more easily usable in Java, e.g. it returns Objects instead of Option<V> as 
-   many methods of Scala's collections do.   
+       many methods of Scala's collections do.
    *   This class implements all the ConcurrentMap & Iterator methods and passes all the tests. Can be used as a drop-in replacement
        for usual Java maps, including ConcurrentHashMap.
+   *   The code take advantage of Java 8 to supplant Scala constructs
+   *   The implementation is a Java 9+ JPMS module and can easily be depended upon by other modules
 
 
 ## What is a concurrent trie hash map also known as ctrie?
@@ -57,11 +61,12 @@ More info about Ctries:
 ## Usage
 Usage of this library is very simple. Simply import the class tech.pantheon.triemap.TrieMap and use it as a usual Map.
 
+```java
     import tech.pantheon.triemap.TrieMap;
 
     Map<String, String> myMap = TrieMap.create();
     myMap.put("key", "value");
-
+```
 
 ## Building the library
 
