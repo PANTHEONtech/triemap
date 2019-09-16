@@ -29,12 +29,6 @@ final class VerifyException extends RuntimeException {
         super(String.format(format, args));
     }
 
-    static void throwIf(final boolean expression) {
-        if (expression) {
-            throw new VerifyException();
-        }
-    }
-
     static void throwIf(final boolean expresison, final String format, final Object... args) {
         if (expresison) {
             throw new VerifyException(format, args);

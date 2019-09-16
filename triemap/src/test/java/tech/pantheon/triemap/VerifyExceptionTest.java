@@ -50,13 +50,7 @@ public class VerifyExceptionTest {
 
     @Test
     public void testThrowIfFalse() {
-        VerifyException.throwIf(false);
         VerifyException.throwIf(false, null);
-    }
-
-    @Test(expected = VerifyException.class)
-    public void testThrowIfTrue() {
-        VerifyException.throwIf(true);
     }
 
     @Test(expected = NullPointerException.class)

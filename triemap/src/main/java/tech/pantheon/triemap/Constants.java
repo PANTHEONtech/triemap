@@ -45,8 +45,22 @@ final class Constants {
      */
     static final int MAX_DEPTH = 7;
 
+    /*
+     * Normally we would be deriving both LEVEL_BITS and MAX_DEPTH from HASH_BITS and BITMAP_BITS, but that would mean
+     * they would be runtime constants. We really want them to be compile-time constants. Hence we seed them manually
+     * and assert the constants are correct.
+     */
     static {
-        VerifyException.throwIf(LEVEL_BITS != (int) (Math.log(BITMAP_BITS) / Math.log(2)));
-        VerifyException.throwIf(MAX_DEPTH != (int) Math.ceil((double)HASH_BITS / LEVEL_BITS));
+        final int expectedBits = (int) (Math.log(BITMAP_BITS) / Math.log(2));
+        if (LEVEL_BITS != expectedBits) {
+            throw new AssertionError(String.format("BITMAP_BITS=%s implies LEVEL_BITS=%s, but %s found", BITMAP_BITS,
+                expectedBits, LEVEL_BITS));
+        }
+
+        final int expectedDepth = (int) Math.ceil((double)HASH_BITS / LEVEL_BITS);
+        if (MAX_DEPTH != expectedDepth) {
+            throw new AssertionError(String.format("HASH_BITS=%s and LEVEL_BITS=%s implies MAX_DEPTH=%s, but %s found",
+                HASH_BITS, LEVEL_BITS, expectedDepth, MAX_DEPTH));
+        }
     }
 }
