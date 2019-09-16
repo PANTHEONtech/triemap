@@ -25,13 +25,13 @@ final class VerifyException extends RuntimeException {
 
     }
 
-    VerifyException(final String format, final Object... args) {
-        super(String.format(format, args));
+    VerifyException(final @NonNull String message) {
+        super(message);
     }
 
-    static void throwIf(final boolean expresison, final String format, final Object... args) {
-        if (expresison) {
-            throw new VerifyException(format, args);
+    static void throwIf(final boolean expression, final String format, final Object... args) {
+        if (expression) {
+            throw new VerifyException(String.format(format, args));
         }
     }
 

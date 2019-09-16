@@ -22,11 +22,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 public class VerifyExceptionTest {
-    @Test(expected = NullPointerException.class)
-    public void testConstructNullFormat() {
-        throw new VerifyException(null);
-    }
-
     @Test(expected = VerifyException.class)
     public void testThrowIfNullSimple() {
         VerifyException.throwIfNull(null);
@@ -46,11 +41,6 @@ public class VerifyExceptionTest {
         } catch (VerifyException e) {
             assertEquals("foo foo", e.getMessage());
         }
-    }
-
-    @Test
-    public void testThrowIfFalse() {
-        VerifyException.throwIf(false, null);
     }
 
     @Test(expected = NullPointerException.class)

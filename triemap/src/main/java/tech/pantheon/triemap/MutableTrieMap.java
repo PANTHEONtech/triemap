@@ -151,7 +151,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             return (INode<K, V>) r;
         }
 
-        checkRootDescriptor(r);
+        verifyRootDescriptor(r);
         return rdcssComplete(abort);
     }
 
@@ -214,7 +214,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 return (INode<K, V>) r;
             }
 
-            checkRootDescriptor(r);
+            verifyRootDescriptor(r);
             final RDCSS_Descriptor<K, V> desc = (RDCSS_Descriptor<K, V>) r;
             final INode<K, V> ov = desc.old;
             final MainNode<K, V> exp = desc.expectedmain;
@@ -248,9 +248,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    private static void checkRootDescriptor(final Object obj) {
+    private static void verifyRootDescriptor(final Object obj) {
         if (!(obj instanceof RDCSS_Descriptor)) {
-            throw new VerifyException("Unhandled root %s", obj);
+            throw new VerifyException("Unhandled root " + obj);
         }
     }
 
