@@ -47,11 +47,4 @@ final class VerifyException extends RuntimeException {
         }
         return obj;
     }
-
-    static <T> @NonNull T throwIfNull(final @Nullable T obj, final String format, final Object... args) {
-        if (obj == null) {
-            throw new VerifyException(format, args);
-        }
-        return obj;
-    }
 }

@@ -32,27 +32,10 @@ public class VerifyExceptionTest {
         VerifyException.throwIfNull(null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testThrowIfNullNullFormat() {
-        VerifyException.throwIfNull(null, null);
-    }
-
     @Test
     public void testThrowIfNullSame() {
         final Object obj = new Object();
         assertSame(obj, VerifyException.throwIfNull(obj));
-        assertSame(obj, VerifyException.throwIfNull(obj, null));
-        assertSame(obj, VerifyException.throwIfNull(obj, "foo"));
-    }
-
-    @Test
-    public void testThrowIfNullMessage() {
-        try {
-            VerifyException.throwIfNull(null, "foo %s", "foo");
-            fail("Expected exception");
-        } catch (VerifyException e) {
-            assertEquals("foo foo", e.getMessage());
-        }
     }
 
     @Test
