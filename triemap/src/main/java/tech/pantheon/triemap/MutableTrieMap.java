@@ -168,8 +168,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private void inserthc(final K key, final int hc, final V value) {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
-        final boolean success = readRoot().recInsert(key, value, hc, 0, null, this);
-        VerifyException.throwIf(!success, "Concurrent modification during serialization of map %s", this);
+        if (!readRoot().recInsert(key, value, hc, 0, null, this)) {
+            throw new VerifyException("Concurrent modification during serialization of map " + this);
+        }
     }
 
     private Optional<V> insertifhc(final K key, final int hc, final V value, final Object cond) {

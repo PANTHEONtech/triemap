@@ -25,12 +25,6 @@ final class VerifyException extends RuntimeException {
         super(message);
     }
 
-    static void throwIf(final boolean expression, final String format, final Object... args) {
-        if (expression) {
-            throw new VerifyException(String.format(format, args));
-        }
-    }
-
     static <T> @NonNull T throwIfNull(final @Nullable T obj) {
         if (obj == null) {
             throw new VerifyException("Unexpected null reference");

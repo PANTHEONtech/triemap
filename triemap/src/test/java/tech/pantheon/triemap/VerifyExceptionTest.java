@@ -15,9 +15,7 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -31,20 +29,5 @@ public class VerifyExceptionTest {
     public void testThrowIfNullSame() {
         final Object obj = new Object();
         assertSame(obj, VerifyException.throwIfNull(obj));
-    }
-
-    @Test
-    public void testThrowIfMessage() {
-        try {
-            VerifyException.throwIf(true, "foo %s", "foo");
-            fail("Expected exception");
-        } catch (VerifyException e) {
-            assertEquals("foo foo", e.getMessage());
-        }
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testThrowIfTrueNullFormat() {
-        VerifyException.throwIf(true, null);
     }
 }
