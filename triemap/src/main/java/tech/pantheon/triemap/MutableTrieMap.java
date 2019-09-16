@@ -20,8 +20,9 @@ import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * A mutable TrieMap.
@@ -34,9 +35,15 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<MutableTrieMap, Object> ROOT_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(MutableTrieMap.class, Object.class, "root");
+    private static final VarHandle ROOT;
+
+    static {
+        try {
+            ROOT = MethodHandles.lookup().findVarHandle(MutableTrieMap.class, "root", Object.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     private volatile Object root;
 
@@ -194,7 +201,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     private boolean casRoot(final Object ov, final Object nv) {
-        return ROOT_UPDATER.compareAndSet(this, ov, nv);
+        return ROOT.compareAndSet(this, ov, nv);
     }
 
     private boolean rdcssRoot(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {

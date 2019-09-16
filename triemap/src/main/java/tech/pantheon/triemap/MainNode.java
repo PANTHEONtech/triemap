@@ -15,14 +15,21 @@
  */
 package tech.pantheon.triemap;
 
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 
 abstract class MainNode<K, V> extends BasicNode {
     static final int NO_SIZE = -1;
 
-    @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<MainNode, MainNode> PREV_UPDATER =
-        AtomicReferenceFieldUpdater.newUpdater(MainNode.class, MainNode.class, "prev");
+    private static final VarHandle PREV;
+
+    static {
+        try {
+            PREV = MethodHandles.lookup().findVarHandle(MainNode.class, "prev", MainNode.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     private volatile MainNode<K, V> prev;
 
@@ -49,7 +56,7 @@ abstract class MainNode<K, V> extends BasicNode {
     abstract int size(ImmutableTrieMap<?, ?> ct);
 
     final boolean casPrev(final MainNode<K, V> oldval, final MainNode<K, V> nval) {
-        return PREV_UPDATER.compareAndSet(this, oldval, nval);
+        return PREV.compareAndSet(this, oldval, nval);
     }
 
     final void writePrev(final MainNode<K, V> nval) {

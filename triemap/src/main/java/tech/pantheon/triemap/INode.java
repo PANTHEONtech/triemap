@@ -21,13 +21,20 @@ import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 final class INode<K, V> extends BasicNode {
-    @SuppressWarnings("rawtypes")
-    private static final AtomicReferenceFieldUpdater<INode, MainNode> MAINNODE_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(INode.class, MainNode.class, "mainnode");
+    private static final VarHandle MAINNODE;
+
+    static {
+        try {
+            MAINNODE = MethodHandles.lookup().findVarHandle(INode.class, "mainnode", MainNode.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     private final Gen gen;
 
@@ -61,7 +68,7 @@ final class INode<K, V> extends BasicNode {
             if (prev instanceof FailedNode) {
                 // try to commit to previous value
                 FailedNode<K, V> fn = (FailedNode<K, V>) prev;
-                if (MAINNODE_UPDATER.compareAndSet(this, main, fn.readPrev())) {
+                if (MAINNODE.compareAndSet(this, main, fn.readPrev())) {
                     return fn.readPrev();
                 }
 
@@ -100,7 +107,7 @@ final class INode<K, V> extends BasicNode {
 
     private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
         newMain.writePrev(oldMain);
-        if (MAINNODE_UPDATER.compareAndSet(this, oldMain, newMain)) {
+        if (MAINNODE.compareAndSet(this, oldMain, newMain)) {
             gcasComplete(newMain, ct);
             return /* READ */ newMain.readPrev() == null;
         }
