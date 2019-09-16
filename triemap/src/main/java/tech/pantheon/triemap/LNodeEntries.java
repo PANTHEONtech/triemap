@@ -123,6 +123,6 @@ abstract class LNodeEntries<K, V> extends LNodeEntry<K, V> {
             cur = cur.next();
         }
 
-        throw new VerifyException("Failed to find entry %s", entry);
+        throw new VerifyException("Failed to find entry " + entry);
     }
 }

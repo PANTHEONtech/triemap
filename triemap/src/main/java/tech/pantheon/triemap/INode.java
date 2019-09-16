@@ -188,7 +188,7 @@ final class INode<K, V> extends BasicNode {
     }
 
     static VerifyException invalidElement(final BasicNode elem) {
-        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not %s", elem);
+        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 
     @SuppressFBWarnings(value = "NP_OPTIONAL_RETURN_NULL",

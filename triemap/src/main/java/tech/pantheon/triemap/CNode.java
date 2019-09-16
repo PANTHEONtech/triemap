@@ -75,7 +75,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     static VerifyException invalidElement(final BasicNode elem) {
-        throw new VerifyException("A CNode can contain only CNodes and SNodes, not %s", elem);
+        throw new VerifyException("A CNode can contain only CNodes and SNodes, not " + elem);
     }
 
     // lends itself towards being parallelizable by choosing

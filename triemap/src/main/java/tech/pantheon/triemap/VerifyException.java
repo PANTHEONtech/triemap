@@ -21,36 +21,13 @@ import org.eclipse.jdt.annotation.Nullable;
 final class VerifyException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    private VerifyException() {
-
-    }
-
-    VerifyException(final String format, final Object... args) {
-        super(String.format(format, args));
-    }
-
-    static void throwIf(final boolean expression) {
-        if (expression) {
-            throw new VerifyException();
-        }
-    }
-
-    static void throwIf(final boolean expresison, final String format, final Object... args) {
-        if (expresison) {
-            throw new VerifyException(format, args);
-        }
+    VerifyException(final @NonNull String message) {
+        super(message);
     }
 
     static <T> @NonNull T throwIfNull(final @Nullable T obj) {
         if (obj == null) {
-            throw new VerifyException();
-        }
-        return obj;
-    }
-
-    static <T> @NonNull T throwIfNull(final @Nullable T obj, final String format, final Object... args) {
-        if (obj == null) {
-            throw new VerifyException(format, args);
+            throw new VerifyException("Unexpected null reference");
         }
         return obj;
     }
