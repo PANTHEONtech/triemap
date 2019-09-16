@@ -45,4 +45,9 @@ public class MutableIteratorTest {
         final Entry<String, String> testEntry = new SimpleImmutableEntry<>(KEY, VALUE);
         assertEquals(EntryUtil.equal(testEntry, KEY, VALUE), entry.equals(entry));
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void testRemoveWithoutNext() {
+        it.remove();
+    }
 }

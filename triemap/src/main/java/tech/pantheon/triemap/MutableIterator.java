@@ -15,8 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import static tech.pantheon.triemap.CheckUtil.nonNullState;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map.Entry;
 
@@ -40,7 +38,10 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
 
     @Override
     public void remove() {
-        mutable.remove(nonNullState(lastReturned).getKey());
+        if (lastReturned == null) {
+            throw new IllegalStateException();
+        }
+        mutable.remove(lastReturned.getKey());
         lastReturned = null;
     }
 

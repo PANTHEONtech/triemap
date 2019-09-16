@@ -16,7 +16,6 @@
 package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
-import static tech.pantheon.triemap.CheckUtil.checkState;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
@@ -152,7 +151,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             return (INode<K, V>) r;
         }
 
-        checkState(r instanceof RDCSS_Descriptor, "Unhandled root %s", r);
+        checkRootDescriptor(r);
         return rdcssComplete(abort);
     }
 
@@ -215,7 +214,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 return (INode<K, V>) r;
             }
 
-            checkState(r instanceof RDCSS_Descriptor, "Unhandled root %s", r);
+            checkRootDescriptor(r);
             final RDCSS_Descriptor<K, V> desc = (RDCSS_Descriptor<K, V>) r;
             final INode<K, V> ov = desc.old;
             final MainNode<K, V> exp = desc.expectedmain;
@@ -246,6 +245,12 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             }
 
             // Tail recursion: return RDCSS_Complete(abort);
+        }
+    }
+
+    private static void checkRootDescriptor(final Object obj) {
+        if (!(obj instanceof RDCSS_Descriptor)) {
+            throw new VerifyException("Unhandled root %s", obj);
         }
     }
 
