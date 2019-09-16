@@ -23,12 +23,6 @@ final class CheckUtil {
 
     }
 
-    static void checkState(final boolean expression, final String format, final Object... args) {
-        if (!expression) {
-            throw new IllegalStateException(String.format(format, args));
-        }
-    }
-
     static <T> @NonNull T nonNullArgument(final @Nullable T obj) {
         if (obj == null) {
             throw new IllegalArgumentException();

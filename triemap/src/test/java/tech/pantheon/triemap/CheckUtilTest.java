@@ -15,33 +15,11 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
 public class CheckUtilTest {
-    @Test(expected = NullPointerException.class)
-    public void testCheckStateFalseNullFormat() {
-        CheckUtil.checkState(false, null);
-    }
-
-    @Test
-    public void testCheckStateFalseMessage() {
-        try {
-            CheckUtil.checkState(false, "foo %s", "foo");
-            fail();
-        } catch (IllegalStateException e) {
-            assertEquals("foo foo", e.getMessage());
-        }
-    }
-
-    @Test
-    public void testCheckStateTrue() {
-        CheckUtil.checkState(true, null);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void testNonNullArgument() {
         CheckUtil.nonNullArgument(null);
