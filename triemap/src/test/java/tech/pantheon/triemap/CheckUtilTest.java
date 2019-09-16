@@ -20,17 +20,6 @@ import static org.junit.Assert.assertSame;
 import org.junit.Test;
 
 public class CheckUtilTest {
-    @Test(expected = IllegalArgumentException.class)
-    public void testNonNullArgument() {
-        CheckUtil.nonNullArgument(null);
-    }
-
-    @Test
-    public void testNonNullArgumentSame() {
-        final Object obj = new Object();
-        assertSame(obj, CheckUtil.nonNullArgument(obj));
-    }
-
     @Test(expected = IllegalStateException.class)
     public void testNonNullState() {
         CheckUtil.nonNullState(null);

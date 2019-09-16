@@ -16,13 +16,15 @@
 package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
-import static tech.pantheon.triemap.CheckUtil.nonNullArgument;
 
 import java.io.Externalizable;
 import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.NotActiveException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamException;
+import java.io.StreamCorruptedException;
 import java.util.Map.Entry;
 
 /**
@@ -61,13 +63,17 @@ final class SerializationProxy implements Externalizable {
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        @SuppressWarnings("unchecked")
-        final Equivalence<Object> equiv = nonNullArgument((Equivalence<Object>) in.readObject());
+        final Object eqObj = in.readObject();
+        if (!(eqObj instanceof Equivalence)) {
+            throw new InvalidObjectException("Expected Equivalence object instead of " + eqObj);
+        }
 
+        @SuppressWarnings("unchecked")
+        final Equivalence<Object> equiv = (Equivalence<Object>) eqObj;
         final MutableTrieMap<Object, Object> tmp = new MutableTrieMap<>(equiv);
         final int size = in.readInt();
         if (size < 0) {
-            throw new IllegalArgumentException();
+            throw new StreamCorruptedException("Expected non-negative size instead of " + size);
         }
 
         for (int i = 0; i < size; ++i) {
@@ -78,6 +84,9 @@ final class SerializationProxy implements Externalizable {
     }
 
     private Object readResolve() throws ObjectStreamException {
-        return VerifyException.throwIfNull(map);
+        if (map == null) {
+            throw new NotActiveException();
+        }
+        return map;
     }
 }

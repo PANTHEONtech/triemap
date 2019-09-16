@@ -23,13 +23,6 @@ final class CheckUtil {
 
     }
 
-    static <T> @NonNull T nonNullArgument(final @Nullable T obj) {
-        if (obj == null) {
-            throw new IllegalArgumentException();
-        }
-        return obj;
-    }
-
     static <T> @NonNull T nonNullState(final @Nullable T obj) {
         if (obj == null) {
             throw new IllegalStateException();
