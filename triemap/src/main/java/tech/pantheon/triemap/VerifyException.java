@@ -21,10 +21,6 @@ import org.eclipse.jdt.annotation.Nullable;
 final class VerifyException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    private VerifyException() {
-
-    }
-
     VerifyException(final @NonNull String message) {
         super(message);
     }
@@ -37,7 +33,7 @@ final class VerifyException extends RuntimeException {
 
     static <T> @NonNull T throwIfNull(final @Nullable T obj) {
         if (obj == null) {
-            throw new VerifyException();
+            throw new VerifyException("Unexpected null reference");
         }
         return obj;
     }
