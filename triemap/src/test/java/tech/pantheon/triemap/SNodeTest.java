@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Pantheon Technologies, s.r.o. and others.
+ * (C) Copyright 2018 PANTHEON.tech, s.r.o. and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
