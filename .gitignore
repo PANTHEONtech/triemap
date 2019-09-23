@@ -1,5 +1,6 @@
 *.class
 **/target
+**/target-ide/
 .idea
 .classpath
 .project
@@ -7,5 +8,3 @@
 *.iml
 *.ipr
 *.iws
-
-/target-ide/
