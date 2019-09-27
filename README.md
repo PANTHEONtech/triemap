@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/PantheonTechnologies/triemap.svg?branch=master)](https://travis-ci.org/PantheonTechnologies/triemap)
-[![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=master)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=master)
+[![Build Status](https://travis-ci.org/PantheonTechnologies/triemap.svg?branch=1.1.x)](https://travis-ci.org/PantheonTechnologies/triemap)
+[![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=1.1.x)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=1.1.x)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2172/badge)](https://bestpractices.coreinfrastructure.org/projects/2172)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_shield)
 [![Code Quality: Java](https://img.shields.io/lgtm/grade/java/g/PantheonTechnologies/triemap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/PantheonTechnologies/triemap/context:java)
@@ -79,7 +79,7 @@ The prebuilt binaries of the library are available from Maven central. Please us
     <dependency>
         <groupId>tech.pantheon.triemap</groupId>
         <artifactId>triemap</artifactId>
-        <version>1.0.6</version>
+        <version>1.1.0</version>
     </dependency>
 ```
 
