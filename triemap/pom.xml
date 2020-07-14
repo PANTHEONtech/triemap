@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>bundle-parent</artifactId>
-        <version>5.0.2</version>
+        <version>7.0.3</version>
         <relativePath />
     </parent>
 
@@ -54,9 +54,6 @@
             </plugin>
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <configuration>
-                    <propertyExpansion>checkstyle.violationSeverity=error</propertyExpansion>
-                </configuration>
                 <executions>
                     <execution>
                         <id>check-license</id>
@@ -69,17 +66,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <configuration>
-                    <failOnError>true</failOnError>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.gaul</groupId>
-                <artifactId>modernizer-maven-plugin</artifactId>
             </plugin>
 
             <plugin>
