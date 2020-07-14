@@ -44,28 +44,8 @@ abstract class Equivalence<T> implements Serializable {
         }
     }
 
-    private static final class Identity extends Equivalence<Object> {
-        private static final long serialVersionUID = 1L;
-
-        static final Identity INSTANCE = new Identity();
-
-        @Override
-        boolean equivalent(final Object first, final Object second) {
-            return first == second;
-        }
-
-        @Override
-        Object readResolve() {
-            return INSTANCE;
-        }
-    }
-
     static Equivalence<Object> equals() {
         return Equals.INSTANCE;
-    }
-
-    static Equivalence<Object> identity() {
-        return Identity.INSTANCE;
     }
 
     final int hash(final T obj) {
