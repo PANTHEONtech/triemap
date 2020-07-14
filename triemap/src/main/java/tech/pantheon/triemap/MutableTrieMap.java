@@ -47,12 +47,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     private volatile Object root;
 
-    MutableTrieMap(final Equivalence<? super K> equiv) {
-        this(equiv, newRootNode());
+    MutableTrieMap() {
+        this(newRootNode());
     }
 
-    MutableTrieMap(final Equivalence<? super K> equiv, final INode<K, V> root) {
-        super(equiv);
+    MutableTrieMap(final INode<K, V> root) {
         this.root = requireNonNull(root);
     }
 
@@ -120,12 +119,12 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public ImmutableTrieMap<K, V> immutableSnapshot() {
-        return new ImmutableTrieMap<>(snapshot(), equiv());
+        return new ImmutableTrieMap<>(snapshot());
     }
 
     @Override
     public MutableTrieMap<K, V> mutableSnapshot() {
-        return new MutableTrieMap<>(equiv(), snapshot().copyToGen(new Gen(), this));
+        return new MutableTrieMap<>(snapshot().copyToGen(new Gen(), this));
     }
 
     @Override
@@ -167,7 +166,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         inserthc(k, computeHash(k), requireNonNull(value));
     }
 
-    private static <K,V> INode<K, V> newRootNode() {
+    private static <K, V> INode<K, V> newRootNode() {
         final Gen gen = new Gen();
         return new INode<>(gen, new CNode<>(gen));
     }

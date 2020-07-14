@@ -52,7 +52,7 @@ final class SerializationProxy implements Externalizable {
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeObject(map.equiv());
+        out.writeObject(Equivalence.Equals.INSTANCE);
         out.writeInt(map.size());
         for (Entry<Object, Object> e : map.entrySet()) {
             out.writeObject(e.getKey());
@@ -68,9 +68,7 @@ final class SerializationProxy implements Externalizable {
             throw new InvalidObjectException("Expected Equivalence object instead of " + eqObj);
         }
 
-        @SuppressWarnings("unchecked")
-        final Equivalence<Object> equiv = (Equivalence<Object>) eqObj;
-        final MutableTrieMap<Object, Object> tmp = new MutableTrieMap<>(equiv);
+        final MutableTrieMap<Object, Object> tmp = new MutableTrieMap<>();
         final int size = in.readInt();
         if (size < 0) {
             throw new StreamCorruptedException("Expected non-negative size instead of " + size);

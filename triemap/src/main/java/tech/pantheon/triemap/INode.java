@@ -165,7 +165,7 @@ final class INode<K, V> extends BasicNode {
                     } else if (cnAtPos instanceof SNode) {
                         @SuppressWarnings("unchecked")
                         final SNode<K, V> sn = (SNode<K, V>) cnAtPos;
-                        if (sn.hc == hc && ct.equal(sn.key, key)) {
+                        if (sn.hc == hc && key.equals(sn.key)) {
                             return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct);
                         }
 
@@ -186,7 +186,7 @@ final class INode<K, V> extends BasicNode {
                 return false;
             } else if (m instanceof LNode) {
                 final LNode<K, V> ln = (LNode<K, V>) m;
-                final LNodeEntry<K, V> entry = ln.get(ct.equiv(), key);
+                final LNodeEntry<K, V> entry = ln.get(key);
                 return entry != null ? replaceln(ln, entry, val, ct) : insertln(ln, key, val, ct);
             } else {
                 throw invalidElement(m);
@@ -258,7 +258,7 @@ final class INode<K, V> extends BasicNode {
                         @SuppressWarnings("unchecked")
                         final SNode<K, V> sn = (SNode<K, V>) cnAtPos;
                         if (cond == null) {
-                            if (sn.hc == hc && ct.equal(sn.key, key)) {
+                            if (sn.hc == hc && key.equals(sn.key)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
                                     return Optional.of(sn.value);
                                 }
@@ -268,13 +268,13 @@ final class INode<K, V> extends BasicNode {
 
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == ABSENT) {
-                            if (sn.hc == hc && ct.equal(sn.key, key)) {
+                            if (sn.hc == hc && key.equals(sn.key)) {
                                 return Optional.of(sn.value);
                             }
 
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == PRESENT) {
-                            if (sn.hc == hc && ct.equal(sn.key, key)) {
+                            if (sn.hc == hc && key.equals(sn.key)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
                                     return Optional.of(sn.value);
                                 }
@@ -283,7 +283,7 @@ final class INode<K, V> extends BasicNode {
 
                             return Optional.empty();
                         } else {
-                            if (sn.hc == hc && ct.equal(sn.key, key) && cond.equals(sn.value)) {
+                            if (sn.hc == hc && key.equals(sn.key) && cond.equals(sn.value)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
                                     return Optional.of(sn.value);
                                 }
@@ -313,7 +313,7 @@ final class INode<K, V> extends BasicNode {
             } else if (m instanceof LNode) {
                 // 3) an l-node
                 final LNode<K, V> ln = (LNode<K, V>) m;
-                final LNodeEntry<K, V> entry = ln.get(ct.equiv(), key);
+                final LNodeEntry<K, V> entry = ln.get(key);
 
                 if (cond == null) {
                     if (entry != null) {
@@ -401,7 +401,7 @@ final class INode<K, V> extends BasicNode {
                     // 2) singleton node
                     @SuppressWarnings("unchecked")
                     final SNode<K, V> sn = (SNode<K, V>) sub;
-                    if (sn.hc == hc && ct.equal(sn.key, key)) {
+                    if (sn.hc == hc && key.equals(sn.key)) {
                         return sn.value;
                     }
 
@@ -414,7 +414,7 @@ final class INode<K, V> extends BasicNode {
                 return cleanReadOnly((TNode<K, V>) m, lev, parent, ct, key, hc);
             } else if (m instanceof LNode) {
                 // 5) an l-node
-                final LNodeEntry<K, V> entry = ((LNode<K, V>) m).get(ct.equiv(), key);
+                final LNodeEntry<K, V> entry = ((LNode<K, V>) m).get(key);
                 return entry != null ? entry.getValue() : null;
             } else {
                 throw invalidElement(m);
@@ -425,7 +425,7 @@ final class INode<K, V> extends BasicNode {
     private Object cleanReadOnly(final TNode<K, V> tn, final int lev, final INode<K, V> parent,
             final TrieMap<K, V> ct, final K key, final int hc) {
         if (ct.isReadOnly()) {
-            if (tn.hc == hc && ct.equal(tn.key, key)) {
+            if (tn.hc == hc && key.equals(tn.key)) {
                 return tn.value;
             }
 
@@ -484,7 +484,7 @@ final class INode<K, V> extends BasicNode {
             } else if (sub instanceof SNode) {
                 @SuppressWarnings("unchecked")
                 final SNode<K, V> sn = (SNode<K, V>) sub;
-                if (sn.hc == hc && ct.equal(sn.key, key) && (cond == null || cond.equals(sn.value))) {
+                if (sn.hc == hc && key.equals(sn.key) && (cond == null || cond.equals(sn.value))) {
                     final MainNode<K, V> ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
                     if (gcas(cn, ncn, ct)) {
                         res = Optional.of(sn.value);
@@ -516,7 +516,7 @@ final class INode<K, V> extends BasicNode {
             return null;
         } else if (m instanceof LNode) {
             final LNode<K, V> ln = (LNode<K, V>) m;
-            final LNodeEntry<K, V> entry = ln.get(ct.equiv(), key);
+            final LNodeEntry<K, V> entry = ln.get(key);
             if (entry == null) {
                 // Key was not found, hence no modification is needed
                 return Optional.empty();

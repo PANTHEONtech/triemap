@@ -73,11 +73,11 @@ abstract class LNodeEntries<K, V> extends LNodeEntry<K, V> {
      */
     abstract LNodeEntries<K, V> next();
 
-    final LNodeEntry<K, V> findEntry(final Equivalence<? super K> equiv, final K key) {
+    final LNodeEntry<K, V> findEntry(final K key) {
         // We do not perform recursion on purpose here, so we do not run out of stack if the key hashing fails.
         LNodeEntries<K, V> entry = this;
         do {
-            if (equiv.equivalent(entry.getKey(), key)) {
+            if (key.equals(entry.getKey())) {
                 return entry;
             }
 

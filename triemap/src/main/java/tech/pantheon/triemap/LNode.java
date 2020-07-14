@@ -52,8 +52,8 @@ final class LNode<K, V> extends MainNode<K, V> {
         return new LNode<>(entries.replace(entry, value), size);
     }
 
-    LNodeEntry<K, V> get(final Equivalence<? super K> equiv, final K key) {
-        return entries.findEntry(equiv, key);
+    LNodeEntry<K, V> get(final K key) {
+        return entries.findEntry(key);
     }
 
     LNodeEntries<K, V> entries() {
