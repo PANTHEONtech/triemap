@@ -21,7 +21,6 @@ import static tech.pantheon.triemap.LookupResult.RESTART;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -171,11 +170,6 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
      */
     final ImmutableIterator<K, V> immutableIterator() {
         return new ImmutableIterator<>(immutableSnapshot());
-    }
-
-    @SuppressWarnings("null")
-    static <V> V toNullable(final Optional<V> opt) {
-        return opt.orElse(null);
     }
 
     static final int computeHash(final Object key) {
