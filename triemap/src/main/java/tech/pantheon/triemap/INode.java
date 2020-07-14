@@ -20,10 +20,9 @@ import static tech.pantheon.triemap.LookupResult.RESTART;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.util.Optional;
+import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> extends BasicNode {
     private static final VarHandle MAINNODE;
@@ -198,13 +197,11 @@ final class INode<K, V> extends BasicNode {
         throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 
-    @SuppressFBWarnings(value = "NP_OPTIONAL_RETURN_NULL",
-            justification = "Returning null Optional indicates the need to restart.")
-    private Optional<V> insertDual(final TrieMap<K, V> ct, final CNode<K, V> cn, final int pos, final SNode<K, V> sn,
-            final K key, final V val, final int hc, final int lev) {
+    private @Nullable Result<V> insertDual(final TrieMap<K, V> ct, final CNode<K, V> cn, final int pos,
+            final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
         final CNode<K, V> rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
         final MainNode<K, V> nn = rn.updatedAt(pos, inode(CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, gen)), gen);
-        return gcas(cn, nn, ct) ? Optional.empty() : null;
+        return gcas(cn, nn, ct) ? Result.empty() : null;
     }
 
     /**
@@ -215,16 +212,14 @@ final class INode<K, V> extends BasicNode {
      *            KEY_ABSENT - key wasn't there
      *            KEY_PRESENT - key was there
      *            other value `val` - key must be bound to `val`
-     * @return null if unsuccessful, Optional(V) otherwise (indicating previous value bound to the key)
+     * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
      */
-    Optional<V> recInsertIf(final K key, final V val, final int hc, final Object cond, final int lev,
+    @Nullable Result<V> recInsertIf(final K key, final V val, final int hc, final Object cond, final int lev,
             final INode<K, V> parent, final TrieMap<K, V> ct) {
         return recInsertIf(key, val, hc, cond, lev, parent, gen, ct);
     }
 
-    @SuppressFBWarnings(value = "NP_OPTIONAL_RETURN_NULL",
-            justification = "Returning null Optional indicates the need to restart.")
-    private Optional<V> recInsertIf(final K key, final V val, final int hc, final Object cond, final int lev,
+    private @Nullable Result<V> recInsertIf(final K key, final V val, final int hc, final Object cond, final int lev,
             final INode<K, V> parent, final Gen startgen, final TrieMap<K, V> ct) {
         while (true) {
             final MainNode<K, V> m = gcasRead(ct);
@@ -260,7 +255,7 @@ final class INode<K, V> extends BasicNode {
                         if (cond == null) {
                             if (sn.hc == hc && key.equals(sn.key)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return Optional.of(sn.value);
+                                    return Result.of(sn);
                                 }
 
                                 return null;
@@ -269,29 +264,29 @@ final class INode<K, V> extends BasicNode {
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == ABSENT) {
                             if (sn.hc == hc && key.equals(sn.key)) {
-                                return Optional.of(sn.value);
+                                return Result.of(sn);
                             }
 
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == PRESENT) {
                             if (sn.hc == hc && key.equals(sn.key)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return Optional.of(sn.value);
+                                    return Result.of(sn);
                                 }
                                 return null;
                             }
 
-                            return Optional.empty();
+                            return Result.empty();
                         } else {
                             if (sn.hc == hc && key.equals(sn.key) && cond.equals(sn.value)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return Optional.of(sn.value);
+                                    return Result.of(sn);
                                 }
 
                                 return null;
                             }
 
-                            return Optional.empty();
+                            return Result.empty();
                         }
                     } else {
                         throw CNode.invalidElement(cnAtPos);
@@ -300,12 +295,12 @@ final class INode<K, V> extends BasicNode {
                     final CNode<K, V> rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
                     final CNode<K, V> ncnode = rn.insertedAt(pos, flag, new SNode<>(key, val, hc), gen);
                     if (gcas(cn, ncnode, ct)) {
-                        return Optional.empty();
+                        return Result.empty();
                     }
 
                     return null;
                 } else {
-                    return Optional.empty();
+                    return Result.empty();
                 }
             } else if (m instanceof TNode) {
                 clean(parent, ct, lev - LEVEL_BITS);
@@ -317,28 +312,28 @@ final class INode<K, V> extends BasicNode {
 
                 if (cond == null) {
                     if (entry != null) {
-                        return replaceln(ln, entry, val, ct) ? Optional.of(entry.getValue()) : null;
+                        return replaceln(ln, entry, val, ct) ? Result.of(entry) : null;
                     }
 
-                    return insertln(ln, key, val, ct) ? Optional.empty() : null;
+                    return insertln(ln, key, val, ct) ? Result.empty() : null;
                 } else if (cond == ABSENT) {
                     if (entry != null) {
-                        return Optional.of(entry.getValue());
+                        return Result.of(entry);
                     }
 
-                    return insertln(ln, key, val, ct) ? Optional.empty() : null;
+                    return insertln(ln, key, val, ct) ? Result.empty() : null;
                 } else if (cond == PRESENT) {
                     if (entry == null) {
-                        return Optional.empty();
+                        return Result.empty();
                     }
 
-                    return replaceln(ln, entry, val, ct) ? Optional.of(entry.getValue()) : null;
+                    return replaceln(ln, entry, val, ct) ? Result.of(entry) : null;
                 } else {
                     if (entry == null || !cond.equals(entry.getValue())) {
-                        return Optional.empty();
+                        return Result.empty();
                     }
 
-                    return replaceln(ln, entry, val, ct) ? Optional.of(entry.getValue()) : null;
+                    return replaceln(ln, entry, val, ct) ? Result.of(entry) : null;
                 }
             } else {
                 throw invalidElement(m);
@@ -443,18 +438,16 @@ final class INode<K, V> extends BasicNode {
      *            if null, will remove the key regardless of the value;
      *            otherwise removes only if binding contains that exact key
      *            and value
-     * @return null if not successful, an Optional indicating the previous
+     * @return null if not successful, an Result indicating the previous
      *         value otherwise
      */
-    Optional<V> recRemove(final K key, final Object cond, final int hc, final int lev, final INode<K, V> parent,
+    @Nullable Result<V> recRemove(final K key, final Object cond, final int hc, final int lev, final INode<K, V> parent,
             final TrieMap<K, V> ct) {
         return recRemove(key, cond, hc, lev, parent, gen, ct);
     }
 
-    @SuppressFBWarnings(value = "NP_OPTIONAL_RETURN_NULL",
-            justification = "Returning null Optional indicates the need to restart.")
-    private Optional<V> recRemove(final K key, final Object cond, final int hc, final int lev, final INode<K, V> parent,
-            final Gen startgen, final TrieMap<K, V> ct) {
+    private @Nullable Result<V> recRemove(final K key, final Object cond, final int hc, final int lev,
+            final INode<K, V> parent, final Gen startgen, final TrieMap<K, V> ct) {
         final MainNode<K, V> m = gcasRead(ct);
 
         if (m instanceof CNode) {
@@ -463,12 +456,12 @@ final class INode<K, V> extends BasicNode {
             final int bmp = cn.bitmap;
             final int flag = 1 << idx;
             if ((bmp & flag) == 0) {
-                return Optional.empty();
+                return Result.empty();
             }
 
             final int pos = Integer.bitCount(bmp & flag - 1);
             final BasicNode sub = cn.array[pos];
-            final Optional<V> res;
+            final Result<V> res;
             if (sub instanceof INode) {
                 @SuppressWarnings("unchecked")
                 final INode<K, V> in = (INode<K, V>) sub;
@@ -487,12 +480,12 @@ final class INode<K, V> extends BasicNode {
                 if (sn.hc == hc && key.equals(sn.key) && (cond == null || cond.equals(sn.value))) {
                     final MainNode<K, V> ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
                     if (gcas(cn, ncn, ct)) {
-                        res = Optional.of(sn.value);
+                        res = Result.of(sn);
                     } else {
                         res = null;
                     }
                 } else {
-                    res = Optional.empty();
+                    res = Result.empty();
                 }
             } else {
                 throw CNode.invalidElement(sub);
@@ -519,16 +512,15 @@ final class INode<K, V> extends BasicNode {
             final LNodeEntry<K, V> entry = ln.get(key);
             if (entry == null) {
                 // Key was not found, hence no modification is needed
-                return Optional.empty();
+                return Result.empty();
             }
 
-            final V value = entry.getValue();
-            if (cond != null && !cond.equals(value)) {
+            if (cond != null && !cond.equals(entry.getValue())) {
                 // Value does not match
-                return Optional.empty();
+                return Result.empty();
             }
 
-            return gcas(ln, ln.removeChild(entry, hc), ct) ? Optional.of(value) : null;
+            return gcas(ln, ln.removeChild(entry, hc), ct) ? Result.of(entry) : null;
         } else {
             throw invalidElement(m);
         }

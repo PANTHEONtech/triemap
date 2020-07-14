@@ -22,7 +22,7 @@ import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.util.Optional;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * A mutable TrieMap.
@@ -66,20 +66,20 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @Override
     public V put(final K key, final V value) {
         final K k = requireNonNull(key);
-        return toNullable(insertifhc(k, computeHash(k), requireNonNull(value), null));
+        return insertifhc(k, computeHash(k), requireNonNull(value), null).orNull();
     }
 
     @Override
     public V putIfAbsent(final K key, final V value) {
         final K k = requireNonNull(key);
-        return toNullable(insertifhc(k, computeHash(k), requireNonNull(value), ABSENT));
+        return insertifhc(k, computeHash(k), requireNonNull(value), ABSENT).orNull();
     }
 
     @Override
     public V remove(final Object key) {
         @SuppressWarnings("unchecked")
         final K k = (K) requireNonNull(key);
-        return toNullable(removehc(k, null, computeHash(k)));
+        return removehc(k, null, computeHash(k)).orNull();
     }
 
     @SuppressFBWarnings(value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE",
@@ -100,7 +100,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @Override
     public V replace(final K key, final V value) {
         final K k = requireNonNull(key);
-        return toNullable(insertifhc(k, computeHash(k), requireNonNull(value), PRESENT));
+        return insertifhc(k, computeHash(k), requireNonNull(value), PRESENT).orNull();
     }
 
     @Override
@@ -179,8 +179,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    private Optional<V> insertifhc(final K key, final int hc, final V value, final Object cond) {
-        Optional<V> res;
+    private @NonNull Result<V> insertifhc(final K key, final int hc, final V value, final Object cond) {
+        Result<V> res;
         do {
             // Keep looping as long as we do not get a reply
             res = readRoot().recInsertIf(key, value, hc, cond, 0, null, this);
@@ -189,8 +189,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         return res;
     }
 
-    private Optional<V> removehc(final K key, final Object cond, final int hc) {
-        Optional<V> res;
+    private @NonNull Result<V> removehc(final K key, final Object cond, final int hc) {
+        Result<V> res;
         do {
             // Keep looping as long as we do not get a reply
             res = readRoot().recRemove(key, cond, hc, 0, null, this);
