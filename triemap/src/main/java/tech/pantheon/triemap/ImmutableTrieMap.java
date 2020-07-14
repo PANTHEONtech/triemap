@@ -33,8 +33,8 @@ import java.util.function.Function;
 public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     private static final long serialVersionUID = 1L;
 
-    @SuppressFBWarnings(value = "SE_BAD_FIELD", justification = "Handled by SerializationProxy")
-    private final INode<K, V> root;
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
+    private final transient INode<K, V> root;
 
     ImmutableTrieMap(final INode<K, V> root) {
         this.root = requireNonNull(root);

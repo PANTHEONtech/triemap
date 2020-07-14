@@ -38,8 +38,8 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private AbstractEntrySet<K, V> entrySet;
-    private AbstractKeySet<K> keySet;
+    private transient AbstractEntrySet<K, V> entrySet;
+    private transient AbstractKeySet<K> keySet;
 
     TrieMap() {
         // Hidden on purpose
