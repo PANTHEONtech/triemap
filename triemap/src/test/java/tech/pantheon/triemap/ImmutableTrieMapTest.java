@@ -15,6 +15,8 @@
  */
 package tech.pantheon.triemap;
 
+import static org.junit.Assert.assertThrows;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,63 +28,63 @@ public class ImmutableTrieMapTest {
         map = ImmutableTrieMap.create().immutableSnapshot();
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testClear() {
-        map.clear();
+        assertThrows(UnsupportedOperationException.class, () -> map.clear());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testCompute() {
-        map.compute(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.compute(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testComputeIfAbsent() {
-        map.computeIfAbsent(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.computeIfAbsent(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testComputeIfPresent() {
-        map.computeIfPresent(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.computeIfPresent(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testMerge() {
-        map.merge(null, null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.merge(null, null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testPut() {
-        map.put(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.put(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testPutAll() {
-        map.putAll(null);
+        assertThrows(UnsupportedOperationException.class, () -> map.putAll(null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testPutIfAbsent() {
-        map.putIfAbsent(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.putIfAbsent(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testRemove() {
-        map.remove(null);
+        assertThrows(UnsupportedOperationException.class, () -> map.remove(null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testRemoveExact() {
-        map.remove(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.remove(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReplace() {
-        map.replace(null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.replace(null, null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReplaceExact() {
-        map.replace(null, null, null);
+        assertThrows(UnsupportedOperationException.class, () -> map.replace(null, null, null));
     }
 }

@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
@@ -43,8 +44,8 @@ public class LNodeEntryTest {
         assertEquals(EntryUtil.equal(testEntry, KEY1, VALUE), entry.equals(testEntry));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testSetValue() {
-        entry.setValue(null);
+        assertThrows(UnsupportedOperationException.class, () -> entry.setValue(null));
     }
 }

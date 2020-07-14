@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -41,18 +42,21 @@ public class TestInsert {
         bt.toString();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullKey() {
-        TrieMap.create().put(null, "");
+        final TrieMap<String, String> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.put(null, ""));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullValue() {
-        TrieMap.create().put("", null);
+        TrieMap<String, String> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.put("", null));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullBoth() {
-        TrieMap.create().put(null, null);
+        TrieMap<String, String> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.put(null, null));
     }
 }
