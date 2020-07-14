@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -41,40 +42,41 @@ public class TestReadOnlyAndUpdatableIterators {
     }
 
     private static void trySet(final Iterator<Entry<Integer, Integer>> it) {
-        it.next().setValue(0);
+        final Entry<Integer, Integer> entry = it.next();
+        assertThrows(UnsupportedOperationException.class, () -> entry.setValue(0));
     }
 
     private static void tryRemove(final Iterator<?> it) {
         it.next();
-        it.remove();
+        assertThrows(UnsupportedOperationException.class, () -> it.remove());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadOnlyIteratorSet() {
         trySet(bt.immutableIterator());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadOnlyIteratorRemove() {
         tryRemove(bt.immutableIterator());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadOnlySnapshotReadOnlyIteratorSet() {
         trySet(bt.immutableSnapshot().immutableIterator());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadOnlySnapshotReadOnlyIteratorRemove() {
         tryRemove(bt.immutableSnapshot().immutableIterator());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadOnlySnapshotIteratorSet() {
         trySet(bt.immutableSnapshot().iterator());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testReadOnlySnapshotIteratorRemove() {
         tryRemove(bt.immutableSnapshot().iterator());
     }

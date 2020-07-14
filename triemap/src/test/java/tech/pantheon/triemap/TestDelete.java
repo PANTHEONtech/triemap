@@ -17,29 +17,34 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 public class TestDelete {
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullSimple() {
-        TrieMap.create().remove(null);
+        TrieMap<?, ?> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.remove(null));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullKey() {
-        TrieMap.create().remove(null, "");
+        TrieMap<?, ?> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.remove(null, ""));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullValue() {
-        TrieMap.create().remove("", null);
+        TrieMap<?, ?> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.remove("", null));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullBoth() {
-        TrieMap.create().remove(null, null);
+        TrieMap<?, ?> tm = TrieMap.create();
+        assertThrows(NullPointerException.class, () -> tm.remove(null, null));
     }
 
     @Test

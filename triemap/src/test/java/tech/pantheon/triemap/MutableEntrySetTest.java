@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -39,9 +40,9 @@ public class MutableEntrySetTest {
         set = map.createEntrySet();
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testAdd() {
-        set.add(null);
+        assertThrows(UnsupportedOperationException.class, () -> set.add(null));
     }
 
     @Test

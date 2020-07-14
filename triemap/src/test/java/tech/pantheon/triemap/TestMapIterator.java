@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -104,23 +105,23 @@ public class TestMapIterator {
         }
     }
 
-    private static void failAdvance(final Iterator<?> it) {
-        assertFalse(it.hasNext());
-        it.next();
-    }
-
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testEmptyIterator() {
         failAdvance(TrieMap.create().iterator());
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testEmptyReadOnlyIterator() {
         failAdvance(TrieMap.create().immutableIterator());
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testEmptyReadOnlySnapshotIterator() {
         failAdvance(TrieMap.create().immutableSnapshot().iterator());
+    }
+
+    private static void failAdvance(final Iterator<?> it) {
+        assertFalse(it.hasNext());
+        assertThrows(NoSuchElementException.class, () -> it.next());
     }
 }

@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,14 +36,14 @@ public class FailedNodeTest {
         failed = new FailedNode<>(main);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testSize() {
-        failed.size(null);
+        assertThrows(UnsupportedOperationException.class, () -> failed.size(null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testTrySize() {
-        failed.trySize();
+        assertThrows(UnsupportedOperationException.class, () -> failed.trySize());
     }
 
     @Test

@@ -15,11 +15,13 @@
  */
 package tech.pantheon.triemap;
 
+import static org.junit.Assert.assertThrows;
+
 import org.junit.Test;
 
 public class INodeTest {
-    @Test(expected = VerifyException.class)
+    @Test
     public void testInvalidElement() {
-        INode.invalidElement(null);
+        assertThrows(VerifyException.class, () -> INode.invalidElement(null));
     }
 }
