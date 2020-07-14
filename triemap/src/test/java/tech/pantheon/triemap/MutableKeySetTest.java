@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
@@ -37,14 +38,14 @@ public class MutableKeySetTest {
         set = map.createKeySet();
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testAdd() {
-        set.add(null);
+        assertThrows(UnsupportedOperationException.class, () -> set.add(null));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testAddAll() {
-        set.addAll(null);
+        assertThrows(UnsupportedOperationException.class, () -> set.addAll(null));
     }
 
     @Test
@@ -61,9 +62,9 @@ public class MutableKeySetTest {
         assertFalse(set.contains(VALUE));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testContainsNull() {
-        set.contains(null);
+        assertThrows(NullPointerException.class, () -> set.contains(null));
     }
 
     @Test
@@ -75,9 +76,9 @@ public class MutableKeySetTest {
         assertTrue(map.isEmpty());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testRemoveNull() {
-        set.remove(null);
+        assertThrows(NullPointerException.class, () -> set.remove(null));
     }
 
     @Test

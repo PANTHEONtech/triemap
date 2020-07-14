@@ -20,6 +20,7 @@ import static java.lang.Boolean.TRUE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import org.junit.Before;
@@ -33,9 +34,10 @@ public class LNodeEntriesTest {
         map = LNodeEntries.map(1, TRUE, 2, TRUE);
     }
 
-    @Test(expected = VerifyException.class)
+    @Test
     public void testReplaceInvalid() {
-        map.replace(new LNodeEntries.Single<>(1, TRUE), FALSE);
+        final LNodeEntry<Integer, Boolean> lnode = new LNodeEntries.Single<>(1, TRUE);
+        assertThrows(VerifyException.class, () -> map.replace(lnode, FALSE));
     }
 
     @Test

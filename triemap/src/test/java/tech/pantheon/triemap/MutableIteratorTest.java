@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
@@ -46,8 +47,8 @@ public class MutableIteratorTest {
         assertEquals(EntryUtil.equal(testEntry, KEY, VALUE), entry.equals(entry));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testRemoveWithoutNext() {
-        it.remove();
+        assertThrows(IllegalStateException.class, () -> it.remove());
     }
 }

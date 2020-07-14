@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 
@@ -25,8 +26,8 @@ public class CNodeTest {
         assertEquals(MainNode.NO_SIZE, new CNode<>(new Gen()).trySize());
     }
 
-    @Test(expected = VerifyException.class)
+    @Test
     public void testInvalidElement() {
-        CNode.invalidElement(null);
+        assertThrows(VerifyException.class, () -> CNode.invalidElement(null));
     }
 }

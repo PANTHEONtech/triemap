@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
@@ -41,24 +42,24 @@ public class ImmutableKeySetTest {
         assertEquals(0, set.size());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testClear() {
-        set.clear();
+        assertThrows(UnsupportedOperationException.class, () -> set.clear());
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testRemove() {
-        set.remove(new Object());
+        assertThrows(UnsupportedOperationException.class, () -> set.remove(new Object()));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testRemoveAll() {
-        set.removeAll(Collections.emptyList());
+        assertThrows(UnsupportedOperationException.class, () -> set.removeAll(Collections.emptyList()));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testRetainAll() {
-        set.retainAll(Collections.emptyList());
+        assertThrows(UnsupportedOperationException.class, () -> set.retainAll(Collections.emptyList()));
     }
 
     @Test

@@ -16,13 +16,14 @@
 package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 
 public class VerifyExceptionTest {
-    @Test(expected = VerifyException.class)
+    @Test
     public void testThrowIfNullSimple() {
-        VerifyException.throwIfNull(null);
+        assertThrows(VerifyException.class, () -> VerifyException.throwIfNull(null));
     }
 
     @Test
