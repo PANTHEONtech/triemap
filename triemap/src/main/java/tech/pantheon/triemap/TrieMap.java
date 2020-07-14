@@ -39,17 +39,15 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable {
     private static final long serialVersionUID = 1L;
 
-    private final Equivalence<? super K> equiv;
-
     private AbstractEntrySet<K, V> entrySet;
     private AbstractKeySet<K> keySet;
 
-    TrieMap(final Equivalence<? super K> equiv) {
-        this.equiv = equiv;
+    TrieMap() {
+        // Hidden on purpose
     }
 
     public static <K, V> MutableTrieMap<K, V> create() {
-        return new MutableTrieMap<>(Equivalence.equals());
+        return new MutableTrieMap<>();
     }
 
     /**
@@ -180,8 +178,15 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
         return opt.orElse(null);
     }
 
-    final int computeHash(final K key) {
-        return equiv.hash(key);
+    static final int computeHash(final Object key) {
+        int hash = key.hashCode();
+
+        // This function ensures that hashCodes that differ only by
+        // constant multiples at each bit position have a bounded
+        // number of collisions (approximately 8 at default load factor).
+        hash ^= hash >>> 20 ^ hash >>> 12;
+        hash ^= hash >>> 7 ^ hash >>> 4;
+        return hash;
     }
 
     final Object writeReplace() throws ObjectStreamException {
@@ -190,10 +195,6 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
 
     /* package-protected utility methods */
 
-    final Equivalence<? super K> equiv() {
-        return equiv;
-    }
-
     final INode<K, V> readRoot() {
         return rdcssReadRoot(false);
     }
@@ -201,10 +202,6 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
     // FIXME: abort = false by default
     final INode<K, V> readRoot(final boolean abort) {
         return rdcssReadRoot(abort);
-    }
-
-    final boolean equal(final K k1, final K k2) {
-        return equiv.equivalent(k1, k2);
     }
 
     /* private implementation methods */

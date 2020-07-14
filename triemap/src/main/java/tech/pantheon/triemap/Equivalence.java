@@ -28,38 +28,16 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 abstract class Equivalence<T> implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private static final class Equals extends Equivalence<Object> {
+    static final class Equals extends Equivalence<Object> {
         private static final long serialVersionUID = 1L;
 
         static final Equals INSTANCE = new Equals();
-
-        @Override
-        boolean equivalent(final Object first, final Object second) {
-            return first.equals(second);
-        }
 
         @Override
         Object readResolve() {
             return INSTANCE;
         }
     }
-
-    static Equivalence<Object> equals() {
-        return Equals.INSTANCE;
-    }
-
-    final int hash(final T obj) {
-        int hash = obj.hashCode();
-
-        // This function ensures that hashCodes that differ only by
-        // constant multiples at each bit position have a bounded
-        // number of collisions (approximately 8 at default load factor).
-        hash ^= hash >>> 20 ^ hash >>> 12;
-        hash ^= hash >>> 7 ^ hash >>> 4;
-        return hash;
-    }
-
-    abstract boolean equivalent(T first, T second);
 
     abstract Object readResolve();
 }

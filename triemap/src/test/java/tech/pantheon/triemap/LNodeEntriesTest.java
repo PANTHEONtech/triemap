@@ -82,6 +82,6 @@ public class LNodeEntriesTest {
             map = map.insert(i, TRUE);
         }
 
-        assertNull(map.findEntry(Equivalence.equals(), 0));
+        assertNull(map.findEntry(0));
     }
 }

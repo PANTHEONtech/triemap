@@ -36,8 +36,7 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     @SuppressFBWarnings(value = "SE_BAD_FIELD", justification = "Handled by SerializationProxy")
     private final INode<K, V> root;
 
-    ImmutableTrieMap(final INode<K, V> root, final Equivalence<? super K> equiv) {
-        super(equiv);
+    ImmutableTrieMap(final INode<K, V> root) {
         this.root = requireNonNull(root);
     }
 
@@ -109,7 +108,7 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public MutableTrieMap<K, V> mutableSnapshot() {
-        return new MutableTrieMap<>(equiv(), new INode<>(new Gen(), root.gcasRead(this)));
+        return new MutableTrieMap<>(new INode<>(new Gen(), root.gcasRead(this)));
     }
 
     @Override
