@@ -33,13 +33,6 @@
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
     <url>https://github.com/PantheonTechnologies/triemap</url>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -48,7 +41,6 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>tech.pantheon.triemap</Bundle-SymbolicName>
-                        <Multi-Release>true</Multi-Release>
                     </instructions>
                 </configuration>
             </plugin>
@@ -66,25 +58,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>codes.rafael.modulemaker</groupId>
-                <artifactId>modulemaker-maven-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>inject-module</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <name>tech.pantheon.triemap</name>
-                    <exports>tech.pantheon.triemap</exports>
-                    <multirelease>true</multirelease>
-                </configuration>
             </plugin>
         </plugins>
     </build>

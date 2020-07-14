@@ -20,14 +20,19 @@ import static org.junit.Assert.assertThrows;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.StrictStubs.class)
 public class FailedNodeTest {
-    @Mock
-    private MainNode<Object, Object> main;
+    private final MainNode<Object, Object> main = new MainNode<>() {
+        @Override
+        int trySize() {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        int size(ImmutableTrieMap<?, ?> ct) {
+            throw new IllegalStateException();
+        }
+    };
 
     private FailedNode<Object, Object> failed;
 
