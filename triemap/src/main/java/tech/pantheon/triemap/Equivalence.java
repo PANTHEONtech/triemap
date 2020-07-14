@@ -25,10 +25,10 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  * @author Robert Varga
  */
 @NonNullByDefault
-abstract class Equivalence<T> implements Serializable {
+abstract class Equivalence implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    static final class Equals extends Equivalence<Object> {
+    static final class Equals extends Equivalence {
         private static final long serialVersionUID = 1L;
 
         static final Equals INSTANCE = new Equals();
