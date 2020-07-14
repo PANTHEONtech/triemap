@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -41,9 +42,11 @@ import java.util.stream.Stream;
 public abstract class TrieSet<E> implements Set<E>, Serializable {
     private static final long serialVersionUID = 0L;
 
-    private final TrieMap<E, Boolean> map;
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
+    private final transient TrieMap<E, Boolean> map;
     // Cached map keyset view, so we do not re-checking it all over
-    private final AbstractKeySet<E> set;
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
+    private final transient AbstractKeySet<E> set;
 
     TrieSet(final TrieMap<E, Boolean> map) {
         this.map = requireNonNull(map);
@@ -211,7 +214,7 @@ public abstract class TrieSet<E> implements Set<E>, Serializable {
     private static final class SerializedForm implements Externalizable {
         private static final long serialVersionUID = 0L;
 
-        private TrieSet<?> set;
+        private transient TrieSet<?> set;
 
         @SuppressWarnings("checkstyle:redundantModifier")
         public SerializedForm() {

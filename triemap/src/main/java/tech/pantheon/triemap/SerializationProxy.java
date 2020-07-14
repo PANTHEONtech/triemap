@@ -36,8 +36,8 @@ import java.util.Map.Entry;
 final class SerializationProxy implements Externalizable {
     private static final long serialVersionUID = 1L;
 
-    private TrieMap<Object, Object> map;
-    private boolean readOnly;
+    private transient TrieMap<Object, Object> map;
+    private transient boolean readOnly;
 
     @SuppressWarnings("checkstyle:redundantModifier")
     public SerializationProxy() {
