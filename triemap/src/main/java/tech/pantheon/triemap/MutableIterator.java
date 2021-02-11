@@ -81,7 +81,7 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
          * {@inheritDoc}
          *
          * @implSpec
-         * This implementation returns the most uptodate value we have observed via this entry. It does not reflect
+         *     This implementation returns the most uptodate value we have observed via this entry. It does not reflect
          *     concurrent modifications, nor does it throw {@link IllegalStateException} if the entry is removed.
          */
         @Override
@@ -93,7 +93,7 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
          * {@inheritDoc}
          *
          * @implSpec
-         * This implementation returns the most uptodate value we have observed via this entry. It does not reflect
+         *     This implementation returns the most uptodate value we have observed via this entry. It does not reflect
          *     concurrent modifications, nor does it throw {@link IllegalStateException} if the entry is removed.
          */
         @Override
