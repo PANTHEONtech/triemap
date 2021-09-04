@@ -21,8 +21,8 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>odlparent</artifactId>
-        <version>8.1.0</version>
-        <relativePath />
+        <version>9.0.5</version>
+        <relativePath/>
     </parent>
 
     <groupId>tech.pantheon.triemap</groupId>
