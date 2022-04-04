@@ -87,3 +87,10 @@ The prebuilt binaries of the library are available from Maven central. Please us
 This library is self-contained. It does not depend on any additional libraries. In particular, it does not require the rather big Scala's 
 standard library to be used.
 
+
+## Contributing
+All contributions are welcome! The mechanics follows GitHub norms: we use GH issues to track bugs and improvements. In terms of coding style,
+the project follows OpenDaylight's code style -- which is a combination of Google's style guidelines and a few tweaks here and there -- these
+are enforced by CheckStyle. Each code contribution should have an attached unit test, for bug fixes this is a strict requirement.
+We are also using SpotBugs for static code analysis and prefer no @SuppressFBWarnings. If a suppression is needed, its scope must be minimal
+and it must carry a justification.
