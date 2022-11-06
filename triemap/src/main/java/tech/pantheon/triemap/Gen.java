@@ -16,5 +16,5 @@
 package tech.pantheon.triemap;
 
 final class Gen {
-
+    // Just an identity object
 }

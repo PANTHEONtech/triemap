@@ -85,10 +85,10 @@ abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
      * @param in INode to be read.
      */
     private void readin(final INode<K, V> in) {
-        final MainNode<K, V> m = in.gcasRead(map);
+        final var m = in.gcasRead(map);
         if (m instanceof CNode) {
             // Enter the next level
-            final CNode<K, V> cn = (CNode<K, V>) m;
+            final var cn = (CNode<K, V>) m;
             depth++;
             nodeStack[depth] = cn.array;
             positionStack[depth] = -1;
@@ -108,7 +108,7 @@ abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
             int npos = positionStack[depth] + 1;
             if (npos < nodeStack[depth].length) {
                 positionStack [depth] = npos;
-                BasicNode elem = nodeStack[depth][npos];
+                var elem = nodeStack[depth][npos];
                 if (elem instanceof SNode) {
                     current = (SNode<K, V>) elem;
                 } else if (elem instanceof INode) {

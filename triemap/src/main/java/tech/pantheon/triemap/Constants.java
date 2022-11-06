@@ -22,7 +22,7 @@ package tech.pantheon.triemap;
  */
 final class Constants {
     private Constants() {
-
+        // Hidden on purpose
     }
 
     /**

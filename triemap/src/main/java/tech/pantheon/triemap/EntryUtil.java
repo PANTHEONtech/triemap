@@ -24,7 +24,7 @@ import java.util.Map.Entry;
  */
 final class EntryUtil {
     private EntryUtil() {
-
+        // Hidden on purpose
     }
 
     /**

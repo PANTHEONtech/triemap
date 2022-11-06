@@ -65,20 +65,20 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public V put(final K key, final V value) {
-        final K k = requireNonNull(key);
+        final var k = requireNonNull(key);
         return insertifhc(k, computeHash(k), requireNonNull(value), null).orNull();
     }
 
     @Override
     public V putIfAbsent(final K key, final V value) {
-        final K k = requireNonNull(key);
+        final var k = requireNonNull(key);
         return insertifhc(k, computeHash(k), requireNonNull(value), ABSENT).orNull();
     }
 
     @Override
     public V remove(final Object key) {
         @SuppressWarnings("unchecked")
-        final K k = (K) requireNonNull(key);
+        final var k = (K) requireNonNull(key);
         return removehc(k, null, computeHash(k)).orNull();
     }
 
@@ -87,19 +87,19 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @Override
     public boolean remove(final Object key, final Object value) {
         @SuppressWarnings("unchecked")
-        final K k = (K) requireNonNull(key);
+        final var k = (K) requireNonNull(key);
         return removehc(k, requireNonNull(value), computeHash(k)).isPresent();
     }
 
     @Override
     public boolean replace(final K key, final V oldValue, final V newValue) {
-        final K k = requireNonNull(key);
+        final var k = requireNonNull(key);
         return insertifhc(k, computeHash(k), requireNonNull(newValue), requireNonNull(oldValue)).isPresent();
     }
 
     @Override
     public V replace(final K key, final V value) {
-        final K k = requireNonNull(key);
+        final var k = requireNonNull(key);
         return insertifhc(k, computeHash(k), requireNonNull(value), PRESENT).orNull();
     }
 
@@ -152,7 +152,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @Override
     @SuppressWarnings("unchecked")
     INode<K, V> rdcssReadRoot(final boolean abort) {
-        final Object r = /* READ */ root;
+        final var r = /* READ */ root;
         if (r instanceof INode) {
             return (INode<K, V>) r;
         }
@@ -167,7 +167,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     private static <K, V> INode<K, V> newRootNode() {
-        final Gen gen = new Gen();
+        final var gen = new Gen();
         return new INode<>(gen, new CNode<>(gen));
     }
 
@@ -204,7 +204,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     private boolean rdcssRoot(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
-        final RDCSS_Descriptor<K, V> desc = new RDCSS_Descriptor<>(ov, expectedmain, nv);
+        final var desc = new RDCSS_Descriptor<>(ov, expectedmain, nv);
         if (casRoot(ov, desc)) {
             rdcssComplete(false);
             return /* READ */desc.committed;
@@ -216,16 +216,16 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @SuppressWarnings("unchecked")
     private INode<K, V> rdcssComplete(final boolean abort) {
         while (true) {
-            final Object r = /* READ */ root;
+            final var r = /* READ */ root;
             if (r instanceof INode) {
                 return (INode<K, V>) r;
             }
 
             verifyRootDescriptor(r);
-            final RDCSS_Descriptor<K, V> desc = (RDCSS_Descriptor<K, V>) r;
-            final INode<K, V> ov = desc.old;
-            final MainNode<K, V> exp = desc.expectedmain;
-            final INode<K, V> nv = desc.nv;
+            final var desc = (RDCSS_Descriptor<K, V>) r;
+            final var ov = desc.old;
+            final var exp = desc.expectedmain;
+            final var nv = desc.nv;
 
             if (abort) {
                 if (casRoot(desc, ov)) {
@@ -236,7 +236,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 continue;
             }
 
-            final MainNode<K, V> oldmain = ov.gcasRead(this);
+            final var oldmain = ov.gcasRead(this);
             if (oldmain == exp) {
                 if (casRoot(desc, nv)) {
                     desc.committed = true;
@@ -267,6 +267,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         final MainNode<K, V> expectedmain;
         final INode<K, V> nv;
 
+        // FIXME: use VarHandle for access?
         volatile boolean committed = false;
 
         RDCSS_Descriptor(final INode<K, V> old, final MainNode<K, V> expectedmain, final INode<K, V> nv) {

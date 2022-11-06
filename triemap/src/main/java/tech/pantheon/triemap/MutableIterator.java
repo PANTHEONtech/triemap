@@ -98,7 +98,7 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
          */
         @Override
         public V setValue(final V value) {
-            final V ret = getValue();
+            final var ret = getValue();
             map.put(getKey(), value);
             newValue = value;
             return ret;

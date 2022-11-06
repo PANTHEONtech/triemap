@@ -36,16 +36,13 @@ final class LNode<K, V> extends MainNode<K, V> {
     MainNode<K, V> removeChild(final LNodeEntry<K, V> entry, final int hc) {
         // While remove() can return null, that case will never happen here, as we are starting off with two entries
         // so we cannot observe a null return here.
-        final LNodeEntries<K, V> map = VerifyException.throwIfNull(entries.remove(entry));
+        final var map = VerifyException.throwIfNull(entries.remove(entry));
 
         // If the returned LNode would have only one element, we turn it into a TNode, hence above null return from
         // remove() can never happen.
-        if (size == 2) {
+        return size != 2 ? new LNode<>(map, size - 1)
             // create it tombed so that it gets compressed on subsequent accesses
-            return new TNode<>(map.getKey(), map.getValue(), hc);
-        }
-
-        return new LNode<>(map, size - 1);
+            : new TNode<>(map.getKey(), map.getValue(), hc);
     }
 
     MainNode<K, V> replaceChild(final LNodeEntry<K, V> entry, final V value) {
