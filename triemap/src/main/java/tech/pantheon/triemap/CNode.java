@@ -114,27 +114,27 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     CNode<K, V> updatedAt(final int pos, final BasicNode nn, final Gen newGen) {
-        int len = array.length;
-        BasicNode[] narr = new BasicNode[len];
+        final int len = array.length;
+        final var narr = new BasicNode[len];
         System.arraycopy(array, 0, narr, 0, len);
         narr[pos] = nn;
         return new CNode<>(newGen, bitmap, narr);
     }
 
     CNode<K, V> removedAt(final int pos, final int flag, final Gen newGen) {
-        BasicNode[] arr = array;
-        int len = arr.length;
-        BasicNode[] narr = new BasicNode[len - 1];
+        final var arr = array;
+        final int len = arr.length;
+        final var narr = new BasicNode[len - 1];
         System.arraycopy(arr, 0, narr, 0, pos);
         System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
         return new CNode<>(newGen, bitmap ^ flag, narr);
     }
 
     CNode<K, V> insertedAt(final int pos, final int flag, final BasicNode nn, final Gen newGen) {
-        int len = array.length;
-        BasicNode[] narr = new BasicNode[len + 1];
+        final int len = array.length;
+        final var narr = new BasicNode[len + 1];
         System.arraycopy(array, 0, narr, 0, pos);
-        narr [pos] = nn;
+        narr[pos] = nn;
         System.arraycopy(array, pos, narr, pos + 1, len - pos);
         return new CNode<>(newGen, bitmap | flag, narr);
     }
@@ -145,11 +145,11 @@ final class CNode<K, V> extends MainNode<K, V> {
      */
     CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
         int idx = 0;
-        final BasicNode[] arr = array;
+        final var arr = array;
         final int len = arr.length;
-        final BasicNode[] narr = new BasicNode[len];
+        final var narr = new BasicNode[len];
         while (idx < len) {
-            final BasicNode elem = arr[idx];
+            final var elem = arr[idx];
             if (elem instanceof INode) {
                 narr[idx] = ((INode<?, ?>) elem).copyToGen(ngen, ct);
             } else if (elem != null) {
@@ -168,7 +168,6 @@ final class CNode<K, V> extends MainNode<K, V> {
             }
             return this;
         }
-
         return this;
     }
 
@@ -177,12 +176,13 @@ final class CNode<K, V> extends MainNode<K, V> {
     //   null-inodes removed (those existing when the op began)
     // - if there are only null-i-nodes below, returns null
     MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen newGen) {
-        int bmp = bitmap;
+        final int bmp = bitmap;
+        final var arr = array;
+        final var tmparray = new BasicNode[arr.length];
         int idx = 0;
-        BasicNode[] arr = array;
-        BasicNode[] tmparray = new BasicNode[arr.length];
+
         while (idx < arr.length) { // construct new bitmap
-            BasicNode sub = arr[idx];
+            var sub = arr[idx];
             if (sub instanceof INode) {
                 final INode<?, ?> in = (INode<?, ?>) sub;
                 final MainNode<?, ?> inodemain = VerifyException.throwIfNull(in.gcasRead(ct));
@@ -202,9 +202,6 @@ final class CNode<K, V> extends MainNode<K, V> {
 
     @Override
     public String toString() {
-        // val elems = collectLocalElems
-        // "CNode(sz: %d; %s)".format(elems.size,
-        // elems.sorted.mkString(", "))
         return "CNode";
     }
 }

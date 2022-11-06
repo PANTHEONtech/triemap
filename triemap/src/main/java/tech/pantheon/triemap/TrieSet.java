@@ -227,7 +227,7 @@ public abstract class TrieSet<E> implements Set<E>, Serializable {
 
         @Override
         public void writeExternal(final ObjectOutput out) throws IOException {
-            final ImmutableTrieSet<?> snap = set.immutableSnapshot();
+            final var snap = set.immutableSnapshot();
             out.writeBoolean(set instanceof ImmutableTrieSet);
             out.writeInt(snap.size());
             for (Object e : snap) {
@@ -243,7 +243,7 @@ public abstract class TrieSet<E> implements Set<E>, Serializable {
                 throw new StreamCorruptedException("Expected non-negative size instead of " + size);
             }
 
-            final MutableTrieSet<Object> read = TrieSet.create();
+            final var read = TrieSet.create();
             for (int i = 0; i < size; ++i) {
                 read.add(in.readObject());
             }

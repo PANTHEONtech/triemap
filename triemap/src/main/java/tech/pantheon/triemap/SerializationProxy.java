@@ -25,7 +25,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.ObjectStreamException;
 import java.io.StreamCorruptedException;
-import java.util.Map.Entry;
 
 /**
  * External serialization object for use with TrieMap objects. This hides the implementation details, such as object
@@ -54,7 +53,7 @@ final class SerializationProxy implements Externalizable {
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeObject(Equivalence.Equals.INSTANCE);
         out.writeInt(map.size());
-        for (Entry<Object, Object> e : map.entrySet()) {
+        for (var e : map.entrySet()) {
             out.writeObject(e.getKey());
             out.writeObject(e.getValue());
         }
@@ -63,12 +62,12 @@ final class SerializationProxy implements Externalizable {
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        final Object eqObj = in.readObject();
+        final var eqObj = in.readObject();
         if (!(eqObj instanceof Equivalence)) {
             throw new InvalidObjectException("Expected Equivalence object instead of " + eqObj);
         }
 
-        final MutableTrieMap<Object, Object> tmp = new MutableTrieMap<>();
+        final var tmp = new MutableTrieMap<>();
         final int size = in.readInt();
         if (size < 0) {
             throw new StreamCorruptedException("Expected non-negative size instead of " + size);

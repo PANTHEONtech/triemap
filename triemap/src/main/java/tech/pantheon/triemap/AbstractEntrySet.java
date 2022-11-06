@@ -48,13 +48,13 @@ abstract class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>> {
             return false;
         }
 
-        final Entry<?, ?> e = (Entry<?, ?>) o;
-        final Object key = e.getKey();
+        final var e = (Entry<?, ?>) o;
+        final var key = e.getKey();
         if (key == null) {
             return false;
         }
 
-        final V v = map.get(key);
+        final var v = map.get(key);
         return v != null && v.equals(e.getValue());
     }
 

@@ -47,12 +47,12 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
             return false;
         }
 
-        final Entry<?, ?> e = (Entry<?, ?>) o;
-        final Object key = e.getKey();
+        final var e = (Entry<?, ?>) o;
+        final var key = e.getKey();
         if (key == null) {
             return false;
         }
-        final Object value = e.getValue();
+        final var value = e.getValue();
         if (value == null) {
             return false;
         }

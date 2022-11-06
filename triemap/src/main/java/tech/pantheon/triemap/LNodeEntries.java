@@ -75,7 +75,7 @@ abstract class LNodeEntries<K, V> extends LNodeEntry<K, V> {
 
     final LNodeEntry<K, V> findEntry(final K key) {
         // We do not perform recursion on purpose here, so we do not run out of stack if the key hashing fails.
-        LNodeEntries<K, V> entry = this;
+        var entry = this;
         do {
             if (key.equals(entry.getKey())) {
                 return entry;
@@ -105,10 +105,10 @@ abstract class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         // This will result in a list with a long tail, i.e last entry storing explicit null. Overhead is amortized
         // against the number of entries. We do not retain chains shorter than two, so the worst-case overhead is
         // half-a-reference for an entry.
-        final Multiple<K, V> ret = new Multiple<>(this);
+        final var ret = new Multiple<>(this);
 
-        Multiple<K, V> last = ret;
-        LNodeEntries<K, V> cur = next();
+        var last = ret;
+        var cur = next();
         while (cur != null) {
             // We cannot use equals() here, as it is wired to key equality and we must never compare entries based on
             // that property. This method is intended to remove a known reference, so identity is what we want.
@@ -117,7 +117,7 @@ abstract class LNodeEntries<K, V> extends LNodeEntry<K, V> {
                 return ret;
             }
 
-            final Multiple<K, V> tmp = new Multiple<>(cur);
+            final var tmp = new Multiple<>(cur);
             last.next = tmp;
             last = tmp;
             cur = cur.next();

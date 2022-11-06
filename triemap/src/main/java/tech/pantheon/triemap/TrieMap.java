@@ -109,7 +109,7 @@ public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements Concurr
     @Override
     public final V get(final Object key) {
         @SuppressWarnings("unchecked")
-        final K k = (K) requireNonNull(key);
+        final var k = (K) requireNonNull(key);
         return lookuphc(k, computeHash(k));
     }
 
