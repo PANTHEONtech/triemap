@@ -19,12 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -37,9 +33,9 @@ class TestMultiThreadMapIterator {
 
     @Test
     void testMultiThreadMapIterator() throws InterruptedException {
-        final Map<Object, Object> bt = TrieMap.create();
+        final var bt = TrieMap.create();
         for (int j = 0; j < 50 * 1000; j++) {
-            for (final Object o : getObjects(j)) {
+            for (var o : getObjects(j)) {
                 bt.put(o, o);
             }
         }
@@ -47,11 +43,11 @@ class TestMultiThreadMapIterator {
         LOG.debug("Size of initialized map is {}", bt.size());
         int count = 0;
         {
-            final ExecutorService es = Executors.newFixedThreadPool(NTHREADS);
+            final var es = Executors.newFixedThreadPool(NTHREADS);
             for (int i = 0; i < NTHREADS; i++) {
                 final int threadNo = i;
                 es.execute(() -> {
-                    for (Entry<Object, Object> e : bt.entrySet()) {
+                    for (var e : bt.entrySet()) {
                         if (accepts(threadNo, NTHREADS, e.getKey())) {
                             String newValue = "TEST:" + threadNo;
                             e.setValue(newValue);
@@ -65,20 +61,20 @@ class TestMultiThreadMapIterator {
         }
 
         count = 0;
-        for (final Map.Entry<Object, Object> kv : bt.entrySet()) {
+        for (var kv : bt.entrySet()) {
             assertTrue(kv.getValue() instanceof String);
             count++;
         }
         assertEquals(50000 + 2000 + 1000 + 100, count);
 
-        final ConcurrentHashMap<Object, Object> removed = new ConcurrentHashMap<>();
+        final var removed = new ConcurrentHashMap<>();
         {
-            final ExecutorService es = Executors.newFixedThreadPool(NTHREADS);
+            final var es = Executors.newFixedThreadPool(NTHREADS);
             for (int i = 0; i < NTHREADS; i++) {
                 final int threadNo = i;
                 es.execute(() -> {
-                    for (final Iterator<Map.Entry<Object, Object>> it = bt.entrySet().iterator(); it.hasNext();) {
-                        final Entry<Object, Object> e = it.next();
+                    for (var it = bt.entrySet().iterator(); it.hasNext();) {
+                        final var e = it.next();
                         Object key = e.getKey();
                         if (accepts(threadNo, NTHREADS, key)) {
                             if (null == bt.get(key)) {
@@ -99,11 +95,11 @@ class TestMultiThreadMapIterator {
         }
 
         count = 0;
-        for (final Object value : bt.keySet()) {
+        for (var value : bt.keySet()) {
             value.toString();
             count++;
         }
-        for (final Object o : bt.keySet()) {
+        for (var o : bt.keySet()) {
             if (!removed.contains(bt.get(o))) {
                 LOG.error("Not removed: {}", o);
             }
@@ -119,21 +115,21 @@ class TestMultiThreadMapIterator {
     }
 
     private static int getKeyValue(final Object key) {
-        if (key instanceof Integer) {
-            return ((Integer) key).intValue();
-        } else if (key instanceof Character) {
-            return Math.abs(Character.getNumericValue((Character) key) + 1);
-        } else if (key instanceof Short) {
-            return ((Short) key).intValue() + 2;
-        } else if (key instanceof Byte) {
-            return ((Byte) key).intValue() + 3;
+        if (key instanceof Integer integer) {
+            return integer;
+        } else if (key instanceof Character character) {
+            return Math.abs(Character.getNumericValue(character) + 1);
+        } else if (key instanceof Short shortValue) {
+            return shortValue.intValue() + 2;
+        } else if (key instanceof Byte byteValue) {
+            return byteValue.intValue() + 3;
         } else {
             return -1;
         }
     }
 
-    static Collection<Object> getObjects(final int value) {
-        final Collection<Object> results = new ArrayList<>(4);
+    static List<Object> getObjects(final int value) {
+        final var results = new ArrayList<>(4);
         results.add(Integer.valueOf(value));
         if (value < 2000) {
             results.add(Character.valueOf((char) value));

@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,31 +26,31 @@ import org.junit.jupiter.api.Test;
 class TestDelete {
     @Test
     void testNullSimple() {
-        TrieMap<?, ?> tm = TrieMap.create();
+        var tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove(null));
     }
 
     @Test
     void testNullKey() {
-        TrieMap<?, ?> tm = TrieMap.create();
+        var tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove(null, ""));
     }
 
     @Test
     void testNullValue() {
-        TrieMap<?, ?> tm = TrieMap.create();
+        var tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove("", null));
     }
 
     @Test
     void testNullBoth() {
-        TrieMap<?, ?> tm = TrieMap.create();
+        var tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove(null, null));
     }
 
     @Test
     void testClear() {
-        final TrieMap<Integer, Integer> bt = TrieMap.create();
+        final var bt = TrieMap.<Integer, Integer>create();
         bt.put(1, 1);
         bt.clear();
         assertTrue(bt.isEmpty());
@@ -58,7 +59,7 @@ class TestDelete {
 
     @Test
     void testDelete() {
-        final TrieMap<Integer, Integer> bt = TrieMap.create();
+        final var bt = TrieMap.<Integer, Integer>create();
 
         for (int i = 0; i < 10000; i++) {
             assertNull(bt.put(Integer.valueOf(i), Integer.valueOf(i)));
@@ -70,10 +71,8 @@ class TestDelete {
         checkAddInsert(bt, 8437);
 
         for (int i = 0; i < 10000; i++) {
-            boolean removed = null != bt.remove(Integer.valueOf(i));
-            assertTrue(removed);
-            final Object lookup = bt.get(Integer.valueOf(i));
-            assertNull(lookup);
+            assertNotNull(bt.remove(Integer.valueOf(i)));
+            assertNull(bt.get(Integer.valueOf(i)));
         }
 
         bt.toString();
@@ -84,21 +83,21 @@ class TestDelete {
      */
     @Test
     void testRemoveObjectLNode() {
-        final TrieMap<ZeroHashInt, ZeroHashInt> bt = TrieMap.create();
+        final var bt = TrieMap.<ZeroHashInt, ZeroHashInt>create();
 
         for (int i = 0; i < 100; i++) {
-            final ZeroHashInt v = new ZeroHashInt(i);
+            final var v = new ZeroHashInt(i);
             assertNull(bt.put(v, v));
         }
 
         for (int i = 0; i < 100; i++) {
-            final ZeroHashInt v = new ZeroHashInt(i);
+            final var v = new ZeroHashInt(i);
             assertTrue(bt.remove(v, v));
         }
     }
 
     private static void checkAddInsert(final TrieMap<Integer, Integer> bt, final int key) {
-        final Integer v = Integer.valueOf(key);
+        final Integer v = key;
         bt.remove(v);
         Integer foundV = bt.get(v);
         assertNull(foundV);

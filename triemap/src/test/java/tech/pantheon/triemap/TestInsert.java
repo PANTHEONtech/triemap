@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class TestInsert {
     @Test
     void testInsert() {
-        final TrieMap<Object, Object> bt = TrieMap.create();
+        final var bt = TrieMap.create();
         assertNull(bt.put("a", "a"));
         assertTrue(bt.containsValue("a"));
         assertNull(bt.put("b", "b"));
@@ -35,8 +35,7 @@ class TestInsert {
 
         for (int i = 0; i < 10000; i++) {
             assertNull(bt.put(Integer.valueOf(i), Integer.valueOf(i)));
-            final Object lookup = bt.get(Integer.valueOf(i));
-            assertEquals(Integer.valueOf(i), lookup);
+            assertEquals(Integer.valueOf(i), bt.get(Integer.valueOf(i)));
         }
 
         bt.toString();
@@ -44,19 +43,19 @@ class TestInsert {
 
     @Test
     void testNullKey() {
-        final TrieMap<String, String> tm = TrieMap.create();
+        final var tm = TrieMap.<String, String>create();
         assertThrows(NullPointerException.class, () -> tm.put(null, ""));
     }
 
     @Test
     void testNullValue() {
-        TrieMap<String, String> tm = TrieMap.create();
+        final var tm = TrieMap.<String, String>create();
         assertThrows(NullPointerException.class, () -> tm.put("", null));
     }
 
     @Test
     void testNullBoth() {
-        TrieMap<String, String> tm = TrieMap.create();
+        final var tm = TrieMap.<String, String>create();
         assertThrows(NullPointerException.class, () -> tm.put(null, null));
     }
 }

@@ -18,8 +18,7 @@ package tech.pantheon.triemap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +36,7 @@ class TNodeTest {
 
     @Test
     void testCopyUntombed() {
-        final SNode<String, String> snode = tnode.copyUntombed();
+        final var snode = tnode.copyUntombed();
         assertEquals(tnode.hashCode(), snode.hashCode());
         assertSame(tnode.getKey(), snode.getKey());
         assertSame(tnode.getValue(), snode.getValue());
@@ -54,7 +53,7 @@ class TNodeTest {
         assertEquals(EntryUtil.hash(KEY, VALUE), tnode.hashCode());
         assertEquals(EntryUtil.string(KEY, VALUE), tnode.toString());
 
-        final Entry<String, String> entry = new SimpleImmutableEntry<>(KEY, VALUE);
+        final var entry = Map.entry(KEY, VALUE);
         assertEquals(EntryUtil.equal(entry, KEY, VALUE), tnode.equals(entry));
     }
 }

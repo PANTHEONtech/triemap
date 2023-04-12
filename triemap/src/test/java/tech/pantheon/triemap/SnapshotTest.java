@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +32,7 @@ class SnapshotTest {
         map.put("k2", "v2");
     }
 
-    private static void assertMutableIsolation(final Map<String, String> m1, final Map<String, String> m2) {
+    private static void assertMutableIsolation(final TrieMap<String, String> m1, final TrieMap<String, String> m2) {
         assertTrue(m2.containsKey("k1"));
         assertTrue(m2.containsKey("k2"));
 
@@ -56,7 +55,7 @@ class SnapshotTest {
 
     @Test
     void testMutableSnapshotIsolationAcrossImmutable() {
-        final TrieMap<String, String> snap = map.immutableSnapshot();
+        final var snap = map.immutableSnapshot();
         assertTrue(snap.containsKey("k1"));
         assertTrue(snap.containsKey("k2"));
 

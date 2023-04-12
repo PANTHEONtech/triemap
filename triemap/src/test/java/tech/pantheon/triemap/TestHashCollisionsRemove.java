@@ -18,7 +18,6 @@ package tech.pantheon.triemap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestHashCollisionsRemove {
@@ -26,7 +25,7 @@ class TestHashCollisionsRemove {
 
     @Test
     void testHashCollisionsRemove() {
-        final Map<Object, Object> bt = TrieMap.create();
+        final var bt = TrieMap.create();
 
         for (int j = 0; j < COUNT; j++) {
             for (final Object o : TestMultiThreadMapIterator.getObjects(j)) {

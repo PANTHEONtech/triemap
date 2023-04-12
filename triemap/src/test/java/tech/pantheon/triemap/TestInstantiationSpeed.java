@@ -27,7 +27,7 @@ class TestInstantiationSpeed {
     private static final int WARMUP = 10;
 
     private static long runIteration() {
-        final TrieMap<?, ?>[] maps = new TrieMap<?, ?>[COUNT];
+        final var maps = new TrieMap<?, ?>[COUNT];
         long startTime = System.nanoTime();
         for (int i = 0; i < COUNT; ++i) {
             maps[i] = TrieMap.create();

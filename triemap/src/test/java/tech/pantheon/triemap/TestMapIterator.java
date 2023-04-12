@@ -24,11 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class TestMapIterator {
@@ -37,27 +34,27 @@ class TestMapIterator {
         final Random random = new Random();
 
         for (int i = 0; i < 60 * 1000; i += 400 + random.nextInt(400)) {
-            final Map<Integer, Integer> bt = TrieMap.create();
+            final var bt = TrieMap.<Integer, Integer>create();
             for (int j = 0; j < i; j++) {
                 assertNull(bt.put(Integer.valueOf(j), Integer.valueOf(j)));
             }
             int count = 0;
-            final Set<Integer> set = new HashSet<>();
-            for (final Entry<Integer, Integer> e : bt.entrySet()) {
+            final var set = new HashSet<Integer>();
+            for (var e : bt.entrySet()) {
                 set.add(e.getKey());
                 count++;
             }
-            for (final Integer j : set) {
+            for (var j : set) {
                 assertTrue(bt.containsKey(j));
             }
-            for (final Integer j : bt.keySet()) {
+            for (var j : bt.keySet()) {
                 assertTrue(set.contains(j));
             }
 
             assertEquals(i, count);
             assertEquals(i, bt.size());
 
-            for (Entry<Integer, Integer> e : bt.entrySet()) {
+            for (var e : bt.entrySet()) {
                 assertSame(e.getValue(), bt.get(e.getKey()));
                 e.setValue(e.getValue() + 1);
                 assertEquals((Object)e.getValue(), e.getKey() + 1);
@@ -65,9 +62,9 @@ class TestMapIterator {
                 e.setValue(e.getValue() - 1);
             }
 
-            final Iterator<Integer> it = bt.keySet().iterator();
+            final var it = bt.keySet().iterator();
             while (it.hasNext()) {
-                final Integer k = it.next();
+                final var k = it.next();
                 assertTrue(bt.containsKey(k));
                 it.remove();
                 assertFalse(bt.containsKey(k));
@@ -83,20 +80,20 @@ class TestMapIterator {
         final Random random = new Random();
 
         for (int i = 0; i < 60 * 1000; i += 400 + random.nextInt(400)) {
-            final Map<Integer, Integer> bt = TrieMap.create();
+            final var bt = TrieMap.<Integer, Integer>create();
             for (int j = 0; j < i; j++) {
                 assertNull(bt.put(Integer.valueOf(j), Integer.valueOf(j)));
             }
             int count = 0;
-            final Set<Integer> set = new HashSet<>();
-            for (final Entry<Integer, Integer> e : bt.entrySet()) {
+            final var set = new HashSet<Integer>();
+            for (var e : bt.entrySet()) {
                 set.add(e.getKey());
                 count++;
             }
-            for (final Integer j : set) {
+            for (var j : set) {
                 assertTrue(bt.containsKey(j));
             }
-            for (final Integer j : bt.keySet()) {
+            for (var j : bt.keySet()) {
                 assertTrue(set.contains(j));
             }
 

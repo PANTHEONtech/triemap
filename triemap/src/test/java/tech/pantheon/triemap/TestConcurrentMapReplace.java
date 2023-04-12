@@ -20,8 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import org.junit.jupiter.api.Test;
 
 class TestConcurrentMapReplace {
@@ -29,7 +27,7 @@ class TestConcurrentMapReplace {
 
     @Test
     void testConcurrentMapReplace() {
-        final ConcurrentMap<Integer, Object> map = TrieMap.create();
+        final var map = TrieMap.<Integer, Object>create();
 
         for (int i = 0; i < COUNT; i++) {
             assertNull(map.replace(i, "lol"));
@@ -43,17 +41,17 @@ class TestConcurrentMapReplace {
 
     @Test
     void testConflictingHash() {
-        final ZeroHashInt k1 = new ZeroHashInt(1);
-        final ZeroHashInt k2 = new ZeroHashInt(2);
-        final ZeroHashInt k3 = new ZeroHashInt(3);
-        final ZeroHashInt k3dup = new ZeroHashInt(3);
-        final ZeroHashInt v1 = new ZeroHashInt(4);
-        final ZeroHashInt v2 = new ZeroHashInt(5);
-        final ZeroHashInt v3 = new ZeroHashInt(6);
-        final ZeroHashInt v3dup = new ZeroHashInt(6);
-        final ZeroHashInt k4 = new ZeroHashInt(7);
+        final var k1 = new ZeroHashInt(1);
+        final var k2 = new ZeroHashInt(2);
+        final var k3 = new ZeroHashInt(3);
+        final var k3dup = new ZeroHashInt(3);
+        final var v1 = new ZeroHashInt(4);
+        final var v2 = new ZeroHashInt(5);
+        final var v3 = new ZeroHashInt(6);
+        final var v3dup = new ZeroHashInt(6);
+        final var k4 = new ZeroHashInt(7);
 
-        final Map<ZeroHashInt, ZeroHashInt> map = TrieMap.create();
+        final var map = TrieMap.<ZeroHashInt, ZeroHashInt>create();
         assertNull(map.put(k3, v3));
 
         // First check for SNode

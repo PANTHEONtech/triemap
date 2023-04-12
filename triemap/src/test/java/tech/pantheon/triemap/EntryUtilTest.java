@@ -19,8 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class EntryUtilTest {
@@ -31,7 +30,7 @@ class EntryUtilTest {
         assertFalse(EntryUtil.equal(null, key, value));
         assertFalse(EntryUtil.equal(key, key, value));
 
-        final Entry<Object, Object> entry = new SimpleImmutableEntry<>(key, value);
+        final var entry = Map.entry(key, value);
         assertTrue(EntryUtil.equal(entry, key, value));
         assertFalse(EntryUtil.equal(entry, value, value));
         assertFalse(EntryUtil.equal(entry, key, key));

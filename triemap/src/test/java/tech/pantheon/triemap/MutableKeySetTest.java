@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Iterator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -83,7 +82,7 @@ class MutableKeySetTest {
 
     @Test
     void testIterator() {
-        final Iterator<String> it = set.iterator();
+        final var it = set.iterator();
         assertTrue(it.hasNext());
         assertEquals(KEY, it.next());
         assertFalse(it.hasNext());
@@ -91,7 +90,7 @@ class MutableKeySetTest {
 
     @Test
     void testImmutableIterator() {
-        final Iterator<String> it = set.immutableIterator();
+        final var it = set.immutableIterator();
         assertTrue(it.hasNext());
         assertEquals(KEY, it.next());
         assertFalse(it.hasNext());
