@@ -51,7 +51,12 @@ More info about Ctries:
 
 - http://infoscience.epfl.ch/record/166908/files/ctries-techreport.pdf - this is a nice introduction to Ctries, along with a correctness proof
 - http://lamp.epfl.ch/~prokopec/ctries-snapshot.pdf - a more up-to-date writeup (more coherent with the current version of the code) which describes the snapshot operation
-       
+
+## Required Java versions
+There are multiple release trains of this library:
+   * Versions 1.1.x require Java 8 or later
+   * Versions 1.2.x require Java 11 or later
+   * Versions 1.3.x require Java 17 or later
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_large)
