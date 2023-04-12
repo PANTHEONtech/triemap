@@ -41,13 +41,11 @@ jobs:
     - name: Build with Maven
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY}}
       run: mvn -B -e --file pom.xml install org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-        -Dsonar.java.source=17
-        -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-        -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
         -Dsonar.host.url=https://sonarcloud.io
+        -Dsonar.organization=pantheon-tech
+        -Dsonar.projectKey=PANTHEONtech_triemap
+        -Dsonar.java.source=17
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     #- name: Update dependency graph
