@@ -78,7 +78,7 @@ The prebuilt binaries of the library are available from Maven central. Please us
     <dependency>
         <groupId>tech.pantheon.triemap</groupId>
         <artifactId>triemap</artifactId>
-        <version>1.0.6</version>
+        <version>1.2.1</version>
     </dependency>
 ```
 
