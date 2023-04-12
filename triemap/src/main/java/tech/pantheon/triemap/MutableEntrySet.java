@@ -43,16 +43,15 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public boolean remove(final Object o) {
-        if (!(o instanceof Entry)) {
+        if (!(o instanceof Entry<?, ?> entry)) {
             return false;
         }
 
-        final var e = (Entry<?, ?>) o;
-        final var key = e.getKey();
+        final var key = entry.getKey();
         if (key == null) {
             return false;
         }
-        final var value = e.getValue();
+        final var value = entry.getValue();
         if (value == null) {
             return false;
         }
