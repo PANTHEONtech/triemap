@@ -33,6 +33,7 @@ import org.eclipse.jdt.annotation.NonNull;
  * @param <V> the type of mapped values
  */
 public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
+    @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     private static final VarHandle ROOT;

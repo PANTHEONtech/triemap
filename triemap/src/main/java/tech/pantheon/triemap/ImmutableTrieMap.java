@@ -31,6 +31,7 @@ import java.util.function.Function;
  * @param <V> the type of mapped values
  */
 public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
+    @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")

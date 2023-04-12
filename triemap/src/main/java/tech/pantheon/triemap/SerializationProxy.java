@@ -33,6 +33,7 @@ import java.io.StreamCorruptedException;
  * @author Robert Varga
  */
 final class SerializationProxy implements Externalizable {
+    @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     private transient TrieMap<Object, Object> map;
@@ -80,6 +81,7 @@ final class SerializationProxy implements Externalizable {
         map = in.readBoolean() ? tmp.immutableSnapshot() : tmp;
     }
 
+    @java.io.Serial
     private Object readResolve() throws ObjectStreamException {
         if (map == null) {
             throw new NotActiveException();

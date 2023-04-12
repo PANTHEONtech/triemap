@@ -40,6 +40,7 @@ import java.util.stream.Stream;
  * @param <E> the type of elements maintained by this set
  */
 public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits ImmutableTrieSet, MutableTrieSet {
+    @java.io.Serial
     private static final long serialVersionUID = 0L;
 
     @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
@@ -203,6 +204,7 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
         return set.toString();
     }
 
+    @java.io.Serial
     final Object writeReplace() {
         return new SerializedForm(this);
     }
@@ -212,6 +214,7 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
     }
 
     private static final class SerializedForm implements Externalizable {
+        @java.io.Serial
         private static final long serialVersionUID = 0L;
 
         private transient TrieSet<?> set;
@@ -251,6 +254,7 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
             set = readOnly ? read.immutableSnapshot() : read;
         }
 
+        @java.io.Serial
         Object readResolve() {
             return set;
         }

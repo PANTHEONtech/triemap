@@ -18,7 +18,6 @@ package tech.pantheon.triemap;
 import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.LookupResult.RESTART;
 
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Set;
@@ -37,6 +36,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable
         permits ImmutableTrieMap, MutableTrieMap {
+    @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     private transient AbstractEntrySet<K, V> entrySet;
@@ -184,7 +184,8 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         return hash;
     }
 
-    final Object writeReplace() throws ObjectStreamException {
+    @java.io.Serial
+    final Object writeReplace() {
         return new SerializationProxy(immutableSnapshot(), isReadOnly());
     }
 
