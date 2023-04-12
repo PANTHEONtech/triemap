@@ -30,7 +30,7 @@ import java.util.Spliterators;
  *
  * @param <K> the type of keys
  */
-abstract class AbstractKeySet<K> extends AbstractSet<K> {
+abstract sealed class AbstractKeySet<K> extends AbstractSet<K> permits ImmutableKeySet, MutableKeySet {
     private final TrieMap<K, ?> map;
 
     AbstractKeySet(final TrieMap<K, ?> map) {

@@ -30,7 +30,8 @@ import java.util.Spliterators;
  * @param <K> the type of entry keys
  * @param <V> the type of entry values
  */
-abstract class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>> {
+abstract sealed class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>>
+        permits ImmutableEntrySet, MutableEntrySet {
     private final TrieMap<K, V> map;
 
     AbstractEntrySet(final TrieMap<K, V> map) {

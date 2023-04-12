@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  *
  * @param <E> the type of elements maintained by this set
  */
-public abstract class TrieSet<E> implements Set<E>, Serializable {
+public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits ImmutableTrieSet, MutableTrieSet {
     private static final long serialVersionUID = 0L;
 
     @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")

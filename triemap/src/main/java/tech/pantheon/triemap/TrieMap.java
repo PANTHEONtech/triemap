@@ -35,7 +35,8 @@ import java.util.concurrent.ConcurrentMap;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-public abstract class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable {
+public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable
+        permits ImmutableTrieMap, MutableTrieMap {
     private static final long serialVersionUID = 1L;
 
     private transient AbstractEntrySet<K, V> entrySet;
