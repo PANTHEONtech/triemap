@@ -53,13 +53,13 @@ final class Constants {
     static {
         final int expectedBits = (int) (Math.log(BITMAP_BITS) / Math.log(2));
         if (LEVEL_BITS != expectedBits) {
-            throw new AssertionError(String.format("BITMAP_BITS=%s implies LEVEL_BITS=%s, but %s found", BITMAP_BITS,
+            throw new AssertionError("BITMAP_BITS=%s implies LEVEL_BITS=%s, but %s found".formatted(BITMAP_BITS,
                 expectedBits, LEVEL_BITS));
         }
 
         final int expectedDepth = (int) Math.ceil((double)HASH_BITS / LEVEL_BITS);
         if (MAX_DEPTH != expectedDepth) {
-            throw new AssertionError(String.format("HASH_BITS=%s and LEVEL_BITS=%s implies MAX_DEPTH=%s, but %s found",
+            throw new AssertionError("HASH_BITS=%s and LEVEL_BITS=%s implies MAX_DEPTH=%s, but %s found".formatted(
                 HASH_BITS, LEVEL_BITS, expectedDepth, MAX_DEPTH));
         }
     }
