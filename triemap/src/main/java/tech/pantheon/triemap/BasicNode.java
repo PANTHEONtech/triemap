@@ -15,6 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-abstract class BasicNode {
+abstract sealed class BasicNode permits MainNode, INode, SNode {
 
 }

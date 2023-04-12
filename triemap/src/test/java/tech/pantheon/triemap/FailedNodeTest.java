@@ -18,22 +18,11 @@ package tech.pantheon.triemap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 class FailedNodeTest {
-    @Mock
-    private MainNode<Object, Object> main;
-    private FailedNode<Object, Object> failed;
-
-    @BeforeEach
-    void before() {
-        failed = new FailedNode<>(main);
-    }
+    private final TNode<Object, Object> tnode = new TNode<>(new Object(), new Object(), 123);
+    private final FailedNode<Object, Object> failed = new FailedNode<>(tnode);
 
     @Test
     void testSize() {
@@ -47,6 +36,6 @@ class FailedNodeTest {
 
     @Test
     void testToString() {
-        assertEquals("FailedNode(" + main + ")", failed.toString());
+        assertEquals("FailedNode(" + tnode + ")", failed.toString());
     }
 }
