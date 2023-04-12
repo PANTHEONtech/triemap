@@ -36,6 +36,8 @@
     <properties>
         <sonar.jacoco.reportPaths>${project.build.directory}/code-coverage/jacoco.exec</sonar.jacoco.reportPaths>
         <sonar.jacoco.itReportPaths>${project.build.directory}/code-coverage/jacoco-it.exec</sonar.jacoco.itReportPaths>
+        <sonar.organization>pantheon-tech</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <modules>
