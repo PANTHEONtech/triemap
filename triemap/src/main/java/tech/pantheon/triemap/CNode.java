@@ -85,12 +85,10 @@ final class CNode<K, V> extends MainNode<K, V> {
     // to be independent
     private int computeSize(final ImmutableTrieMap<?, ?> ct) {
         final int len = array.length;
-        switch (len) {
-            case 0:
-                return 0;
-            case 1:
-                return elementSize(array[0], ct);
-            default:
+        return switch (len) {
+            case 0 -> 0;
+            case 1 ->  elementSize(array[0], ct);
+            default -> {
                 final int offset = ThreadLocalRandom.current().nextInt(len);
                 int sz = 0;
                 for (int i = offset; i < len; ++i) {
@@ -99,15 +97,16 @@ final class CNode<K, V> extends MainNode<K, V> {
                 for (int i = 0; i < offset; ++i) {
                     sz += elementSize(array[i], ct);
                 }
-                return sz;
-        }
+                yield sz;
+            }
+        };
     }
 
     private static int elementSize(final BasicNode elem, final ImmutableTrieMap<?, ?> ct) {
         if (elem instanceof SNode) {
             return 1;
-        } else if (elem instanceof INode) {
-            return ((INode<?, ?>) elem).size(ct);
+        } else if (elem instanceof INode<?, ?> inode) {
+            return inode.size(ct);
         } else {
             throw invalidElement(elem);
         }
@@ -181,14 +180,13 @@ final class CNode<K, V> extends MainNode<K, V> {
         final var tmparray = new BasicNode[arr.length];
         int idx = 0;
 
-        while (idx < arr.length) { // construct new bitmap
+        while (idx < arr.length) {
+            // construct a new bitmap
             var sub = arr[idx];
-            if (sub instanceof INode) {
-                final INode<?, ?> in = (INode<?, ?>) sub;
-                final MainNode<?, ?> inodemain = VerifyException.throwIfNull(in.gcasRead(ct));
-                tmparray [idx] = resurrect(in, inodemain);
+            if (sub instanceof INode<?, ?> in) {
+                tmparray[idx] = resurrect(in, VerifyException.throwIfNull(in.gcasRead(ct)));
             } else if (sub instanceof SNode) {
-                tmparray [idx] = sub;
+                tmparray[idx] = sub;
             }
             idx += 1;
         }
@@ -197,7 +195,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     private static BasicNode resurrect(final INode<?, ?> inode, final MainNode<?, ?> inodemain) {
-        return inodemain instanceof TNode ? ((TNode<?, ?>) inodemain).copyUntombed() : inode;
+        return inodemain instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : inode;
     }
 
     @Override
