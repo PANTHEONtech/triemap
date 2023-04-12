@@ -58,8 +58,8 @@ final class INode<K, V> extends BasicNode {
         var main = oldmain;
         while (main != null) {
             // complete the GCAS
-            final MainNode<K, V> prev = /* READ */ main.readPrev();
-            final INode<?, ?> ctr = ct.readRoot(true);
+            final var prev = /* READ */ main.readPrev();
+            final var ctr = ct.readRoot(true);
             if (prev == null) {
                 return main;
             }
@@ -518,8 +518,7 @@ final class INode<K, V> extends BasicNode {
 
             final int pos = Integer.bitCount(bmp & flag - 1);
             final var sub = cn.array[pos];
-            if (sub == this && nonlive instanceof TNode) {
-                final var tn = (TNode<?, ?>) nonlive;
+            if (sub == this && nonlive instanceof TNode<?, ?> tn) {
                 final var ncn = cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(lev - LEVEL_BITS);
                 if (!parent.gcas(cn, ncn, ct)) {
                     if (ct.readRoot().gen == startgen) {
