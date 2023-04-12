@@ -36,7 +36,7 @@ final class ZeroHashInt {
 
     @Override
     public boolean equals(final Object obj) {
-        return obj instanceof ZeroHashInt && value == ((ZeroHashInt) obj).value;
+        return obj instanceof ZeroHashInt other && value == other.value;
     }
 
     @Override

@@ -18,8 +18,7 @@ package tech.pantheon.triemap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +39,7 @@ class LNodeEntryTest {
         assertEquals(EntryUtil.hash(KEY1, VALUE), entry.hashCode());
         assertEquals(EntryUtil.string(KEY1, VALUE), entry.toString());
 
-        final Entry<String, String> testEntry = new SimpleImmutableEntry<>(KEY1, VALUE);
+        final var testEntry = Map.entry(KEY1, VALUE);
         assertEquals(EntryUtil.equal(testEntry, KEY1, VALUE), entry.equals(testEntry));
     }
 

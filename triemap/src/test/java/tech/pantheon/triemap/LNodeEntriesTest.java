@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,33 +36,33 @@ class LNodeEntriesTest {
 
     @Test
     void testReplaceInvalid() {
-        final LNodeEntry<Integer, Boolean> lnode = new LNodeEntries.Single<>(1, TRUE);
+        final var lnode = new LNodeEntries.Single<>(1, TRUE);
         assertThrows(VerifyException.class, () -> map.replace(lnode, FALSE));
     }
 
     @Test
     void testReplaceHead() {
-        final LNodeEntries<Integer, Boolean> modified = map.replace(map, FALSE);
+        final var modified = map.replace(map, FALSE);
         assertEquals(map.next(), modified.next());
-        assertEquals(new SimpleImmutableEntry<>(1, FALSE), modified);
+        assertEquals(Map.entry(1, FALSE), modified);
 
-        final LNodeEntries<Integer, Boolean> trimmed = modified.remove(modified);
-        assertEquals(new SimpleImmutableEntry<>(2, TRUE), trimmed.replace(trimmed, TRUE));
+        final var trimmed = modified.remove(modified);
+        assertEquals(Map.entry(2, TRUE), trimmed.replace(trimmed, TRUE));
     }
 
     @Test
     void testReplaceTail() {
-        final LNodeEntries<Integer, Boolean> modified = map.replace(map.next(), FALSE);
+        final var modified = map.replace(map.next(), FALSE);
         assertEquals(map, modified.next());
-        assertEquals(new SimpleImmutableEntry<>(2, FALSE), modified);
+        assertEquals(Map.entry(2, FALSE), modified);
 
-        final LNodeEntries<Integer, Boolean> trimmed = modified.remove(modified);
-        assertEquals(new SimpleImmutableEntry<>(1, TRUE), trimmed.replace(trimmed, TRUE));
+        final var trimmed = modified.remove(modified);
+        assertEquals(Map.entry(1, TRUE), trimmed.replace(trimmed, TRUE));
     }
 
     @Test
     void testRemoveHead() {
-        final LNodeEntries<Integer, Boolean> modified = map.remove(map);
+        final var modified = map.remove(map);
         assertSame(map.next(), modified);
         assertNull(modified.remove(modified));
     }

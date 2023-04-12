@@ -17,7 +17,6 @@ package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -26,8 +25,8 @@ class TestMultiThreadInserts {
     @Test
     void testMultiThreadInserts() throws InterruptedException {
         final int nThreads = 2;
-        final ExecutorService es = Executors.newFixedThreadPool(nThreads);
-        final TrieMap<Object, Object> bt = TrieMap.create();
+        final var es = Executors.newFixedThreadPool(nThreads);
+        final var bt = TrieMap.create();
         for (int i = 0; i < nThreads; i++) {
             final int threadNo = i;
             es.execute(() -> {
@@ -43,8 +42,7 @@ class TestMultiThreadInserts {
         es.awaitTermination(5, TimeUnit.MINUTES);
 
         for (int j = 0; j < 500 * 1000; j++) {
-            final Object lookup = bt.get(Integer.valueOf(j));
-            assertEquals(Integer.valueOf(j), lookup);
+            assertEquals(Integer.valueOf(j), bt.get(Integer.valueOf(j)));
         }
     }
 }

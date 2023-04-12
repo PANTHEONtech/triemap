@@ -42,7 +42,7 @@ class TestReadOnlyAndUpdatableIterators {
     }
 
     private static void trySet(final Iterator<Entry<Integer, Integer>> it) {
-        final Entry<Integer, Integer> entry = it.next();
+        final var entry = it.next();
         assertThrows(UnsupportedOperationException.class, () -> entry.setValue(0));
     }
 
@@ -83,7 +83,7 @@ class TestReadOnlyAndUpdatableIterators {
 
     @Test
     void testIterator() {
-        Iterator<Entry<Integer, Integer>> it = bt.iterator();
+        var it = bt.iterator();
         it.next().setValue(0);
         it.remove();
 
@@ -93,8 +93,8 @@ class TestReadOnlyAndUpdatableIterators {
 
     @Test
     void testSnapshotIterator() {
-        TrieMap<Integer, Integer> snapshot = bt.mutableSnapshot();
-        Iterator<Entry<Integer, Integer>> it = snapshot.iterator();
+        var snapshot = bt.mutableSnapshot();
+        var it = snapshot.iterator();
         it.next().setValue(0);
         it.remove();
 

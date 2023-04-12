@@ -19,10 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.junit.jupiter.api.Test;
 
 class TestHashCollisionsRemoveIterator {
@@ -30,13 +26,13 @@ class TestHashCollisionsRemoveIterator {
 
     @Test
     void testHashCollisionsRemoveIterator() {
-        final Map<Object, Object> bt = TrieMap.create();
+        final var bt = TrieMap.create();
         for (int j = 0; j < COUNT; j++) {
             bt.put(Integer.valueOf(j), Integer.valueOf(j));
         }
 
-        final Collection<Object> list = new ArrayList<>(COUNT);
-        final Iterator<Entry<Object, Object>> it = bt.entrySet().iterator();
+        final var list = new ArrayList<>(COUNT);
+        final var it = bt.entrySet().iterator();
         while (it.hasNext()) {
             list.add(it.next().getKey());
             it.remove();

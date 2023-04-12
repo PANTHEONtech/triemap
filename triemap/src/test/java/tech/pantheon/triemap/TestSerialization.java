@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,27 +28,24 @@ import org.junit.jupiter.api.Test;
 class TestSerialization {
     @Test
     void testSerialization() throws IOException, ClassNotFoundException {
-        TrieMap<String, String> map = TrieMap.create();
+        var map = TrieMap.<String, String>create();
 
         map.put("dude-0", "tom");
         map.put("dude-1", "john");
         map.put("dude-3", "ravi");
         map.put("dude-4", "alex");
 
-        TrieMap<String, String> expected = map.immutableSnapshot();
+        var expected = map.immutableSnapshot();
 
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        final ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(expected);
-        oos.close();
+        final var bos = new ByteArrayOutputStream();
+        try (var oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(expected);
+        }
 
-        final byte[] bytes = bos.toByteArray();
-        final ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        final ObjectInputStream ois = new ObjectInputStream(bis);
-
-        @SuppressWarnings("unchecked")
-        final TrieMap<String, String> actual = (TrieMap<String, String>) ois.readObject();
-        ois.close();
+        final TrieMap<?, ?> actual;
+        try (var ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))) {
+            actual = assertInstanceOf(TrieMap.class, ois.readObject());
+        }
 
         assertEquals(expected, actual);
     }

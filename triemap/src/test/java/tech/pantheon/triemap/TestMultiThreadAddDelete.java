@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -36,10 +34,10 @@ class TestMultiThreadAddDelete {
     @Test
     void testMultiThreadAddDelete() throws InterruptedException {
         for (int j = 0; j < RETRIES; j++) {
-            final Map<Object, Object> bt = TrieMap.create();
+            final var bt = TrieMap.create();
 
             {
-                final ExecutorService es = Executors.newFixedThreadPool(N_THREADS);
+                final var es = Executors.newFixedThreadPool(N_THREADS);
                 for (int i = 0; i < N_THREADS; i++) {
                     final int threadNo = i;
                     es.execute(() -> {
@@ -58,7 +56,7 @@ class TestMultiThreadAddDelete {
             assertFalse(bt.isEmpty());
 
             {
-                final ExecutorService es = Executors.newFixedThreadPool(N_THREADS);
+                final var es = Executors.newFixedThreadPool(N_THREADS);
                 for (int i = 0; i < N_THREADS; i++) {
                     final int threadNo = i;
                     es.execute(() -> {
@@ -78,22 +76,19 @@ class TestMultiThreadAddDelete {
             assertTrue(bt.isEmpty());
 
             {
-                final ExecutorService es = Executors.newFixedThreadPool(N_THREADS);
+                final var es = Executors.newFixedThreadPool(N_THREADS);
                 for (int i = 0; i < N_THREADS; i++) {
                     final int threadNo = i;
-                    es.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (int j = 0; j < COUNT; j++) {
-                                if (j % N_THREADS == threadNo) {
-                                    bt.put(Integer.valueOf(j), Integer.valueOf(j));
-                                    if (!bt.containsKey(Integer.valueOf(j))) {
-                                        LOG.error("Key {} not present", j);
-                                    }
-                                    bt.remove(Integer.valueOf(j));
-                                    if (bt.containsKey(Integer.valueOf(j))) {
-                                        LOG.error("Key {} is still present", j);
-                                    }
+                    es.execute(() -> {
+                        for (int j1 = 0; j1 < COUNT; j1++) {
+                            if (j1 % N_THREADS == threadNo) {
+                                bt.put(Integer.valueOf(j1), Integer.valueOf(j1));
+                                if (!bt.containsKey(Integer.valueOf(j1))) {
+                                    LOG.error("Key {} not present", j1);
+                                }
+                                bt.remove(Integer.valueOf(j1));
+                                if (bt.containsKey(Integer.valueOf(j1))) {
+                                    LOG.error("Key {} is still present", j1);
                                 }
                             }
                         }

@@ -21,8 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -57,9 +56,9 @@ class MutableEntrySetTest {
         assertFalse(set.contains(null));
         assertFalse(set.contains(new SimpleImmutableEntry<>(null, VALUE)));
         assertFalse(set.contains(new SimpleImmutableEntry<>(KEY, null)));
-        assertFalse(set.contains(new SimpleImmutableEntry<>(KEY, KEY)));
-        assertFalse(set.contains(new SimpleImmutableEntry<>(VALUE, KEY)));
-        assertTrue(set.contains(new SimpleImmutableEntry<>(KEY, VALUE)));
+        assertFalse(set.contains(Map.entry(KEY, KEY)));
+        assertFalse(set.contains(Map.entry(VALUE, KEY)));
+        assertTrue(set.contains(Map.entry(KEY, VALUE)));
     }
 
     @Test
@@ -73,18 +72,18 @@ class MutableEntrySetTest {
         assertFalse(set.remove(new SimpleImmutableEntry<>(KEY, null)));
         assertEquals(1, map.size());
         assertEquals(1, set.size());
-        assertFalse(set.remove(new SimpleImmutableEntry<>(KEY, KEY)));
+        assertFalse(set.remove(Map.entry(KEY, KEY)));
         assertEquals(1, map.size());
         assertEquals(1, set.size());
-        assertTrue(set.remove(new SimpleImmutableEntry<>(KEY, VALUE)));
+        assertTrue(set.remove(Map.entry(KEY, VALUE)));
         assertTrue(map.isEmpty());
     }
 
     @Test
     void testIterator() {
-        final Iterator<Entry<String, String>> it = set.iterator();
+        final var it = set.iterator();
         assertTrue(it.hasNext());
-        assertEquals(new SimpleImmutableEntry<>(KEY, VALUE), it.next());
+        assertEquals(Map.entry(KEY, VALUE), it.next());
         assertFalse(it.hasNext());
     }
 }

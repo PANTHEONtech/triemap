@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 class TestHashCollisions {
     @Test
     void testHashCollisions() {
-        final TrieMap<Object, Object> bt = TrieMap.create();
+        final var bt = TrieMap.create();
 
         insertStrings(bt);
         insertChars(bt);
@@ -107,7 +107,7 @@ class TestHashCollisions {
 
     private static void insertBytes(final TrieMap<Object, Object> bt) {
         for (byte i = 0; i < 128 && i >= 0; i++) {
-            final Byte bigB = Byte.valueOf(i);
+            final Byte bigB = i;
             assertNull(bt.put(bigB, bigB));
             assertEquals(bigB, bt.put(bigB, bigB));
         }
@@ -115,7 +115,7 @@ class TestHashCollisions {
 
     private static void insertInts(final TrieMap<Object, Object> bt) {
         for (int i = 0; i < 128; i++) {
-            final Integer bigI = Integer.valueOf(i);
+            final Integer bigI = i;
             assertNull(bt.put(bigI, bigI));
             assertEquals(bigI, bt.put(bigI, bigI));
         }
@@ -175,7 +175,7 @@ class TestHashCollisions {
 
     private static void removeInts(final TrieMap<Object, Object> bt) {
         for (int i = 0; i < 128; i++) {
-            final Integer bigI = Integer.valueOf(i);
+            final Integer bigI = i;
             assertNotNull(bt.get(bigI));
             assertNotNull(bt.remove(bigI));
             assertNull(bt.remove(bigI));
@@ -185,7 +185,7 @@ class TestHashCollisions {
 
     private static void removeBytes(final TrieMap<Object, Object> bt) {
         for (byte i = 0; i < 128 && i >= 0; i++) {
-            final Byte bigB = Byte.valueOf(i);
+            final Byte bigB = i;
             assertNotNull(bt.get(bigB));
             assertNotNull(bt.remove(bigB));
             assertNull(bt.remove(bigB));

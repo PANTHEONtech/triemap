@@ -18,8 +18,7 @@ package tech.pantheon.triemap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,19 +30,19 @@ class MutableIteratorTest {
 
     @BeforeEach
     void before() {
-        final MutableTrieMap<String, String> map = TrieMap.create();
+        final var map = TrieMap.<String, String>create();
         map.put(KEY, VALUE);
         it = map.iterator();
     }
 
     @Test
     void testEntryUtil() {
-        final Entry<String, String> entry = it.next();
+        final var entry = it.next();
 
         assertEquals(EntryUtil.hash(KEY, VALUE), entry.hashCode());
         assertEquals(EntryUtil.string(KEY, VALUE), entry.toString());
 
-        final Entry<String, String> testEntry = new SimpleImmutableEntry<>(KEY, VALUE);
+        final var testEntry = Map.entry(KEY, VALUE);
         assertEquals(EntryUtil.equal(testEntry, KEY, VALUE), entry.equals(entry));
     }
 

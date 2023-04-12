@@ -18,15 +18,14 @@ package tech.pantheon.triemap;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestCNodeFlagCollision {
     @Test
     void testCNodeFlagCollision() {
-        final Map<Integer, Object> map = TrieMap.create();
-        final Integer z15169 = Integer.valueOf(15169);
-        final Integer z28336 = Integer.valueOf(28336);
+        final var map = TrieMap.<Integer, Object>create();
+        final Integer z15169 = 15169;
+        final Integer z28336 = 28336;
 
         assertNull(map.get(z15169));
         assertNull(map.get(z28336));

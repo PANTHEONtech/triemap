@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import org.junit.jupiter.api.Test;
 
 class TestConcurrentMapPutIfAbsent {
@@ -28,7 +26,7 @@ class TestConcurrentMapPutIfAbsent {
 
     @Test
     void testConcurrentMapPutIfAbsent() {
-        final ConcurrentMap<Object, Object> map = TrieMap.create();
+        final var map = TrieMap.create();
 
         for (int i = 0; i < COUNT; i++) {
             assertNull(map.putIfAbsent(i, i));
@@ -38,15 +36,15 @@ class TestConcurrentMapPutIfAbsent {
 
     @Test
     void testConflictingHash() {
-        final ZeroHashInt k1 = new ZeroHashInt(1);
-        final ZeroHashInt k2 = new ZeroHashInt(2);
-        final ZeroHashInt k3 = new ZeroHashInt(3);
-        final ZeroHashInt k3dup = new ZeroHashInt(3);
-        final ZeroHashInt v1 = new ZeroHashInt(4);
-        final ZeroHashInt v2 = new ZeroHashInt(5);
-        final ZeroHashInt v3 = new ZeroHashInt(6);
+        final var k1 = new ZeroHashInt(1);
+        final var k2 = new ZeroHashInt(2);
+        final var k3 = new ZeroHashInt(3);
+        final var k3dup = new ZeroHashInt(3);
+        final var v1 = new ZeroHashInt(4);
+        final var v2 = new ZeroHashInt(5);
+        final var v3 = new ZeroHashInt(6);
 
-        final Map<ZeroHashInt, ZeroHashInt> map = TrieMap.create();
+        final var map = TrieMap.<ZeroHashInt, ZeroHashInt>create();
         // Pre-populate an LNode
         assertNull(map.putIfAbsent(k1, v1));
         assertNull(map.putIfAbsent(k2, v2));

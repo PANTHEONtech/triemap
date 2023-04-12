@@ -17,16 +17,15 @@ package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TestCNodeInsertionIncorrectOrder {
 
     @Test
     void testCNodeInsertionIncorrectOrder() {
-        final Map<Integer, Integer> map = TrieMap.create();
-        final Integer z3884 = Integer.valueOf(3884);
-        final Integer z4266 = Integer.valueOf(4266);
+        final var map = TrieMap.<Integer, Integer>create();
+        final Integer z3884 = 3884;
+        final Integer z4266 = 4266;
         map.put(z3884, z3884);
         assertSame(z3884, map.get(z3884));
 
