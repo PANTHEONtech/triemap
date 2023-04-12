@@ -45,18 +45,17 @@ abstract sealed class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>>
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public final boolean contains(final Object o) {
-        if (!(o instanceof Entry)) {
+        if (!(o instanceof Entry<?, ?> entry)) {
             return false;
         }
 
-        final var e = (Entry<?, ?>) o;
-        final var key = e.getKey();
+        final var key = entry.getKey();
         if (key == null) {
             return false;
         }
 
-        final var v = map.get(key);
-        return v != null && v.equals(e.getValue());
+        final var value = map.get(key);
+        return value != null && value.equals(entry.getValue());
     }
 
     @Override
