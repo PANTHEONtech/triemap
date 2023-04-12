@@ -20,20 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class FailedNodeTest {
-    private final MainNode<Object, Object> main = new MainNode<>() {
-        @Override
-        int trySize() {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        int size(ImmutableTrieMap<?, ?> ct) {
-            throw new IllegalStateException();
-        }
-    };
-
+    @Mock
+    private MainNode<Object, Object> main;
     private FailedNode<Object, Object> failed;
 
     @BeforeEach
