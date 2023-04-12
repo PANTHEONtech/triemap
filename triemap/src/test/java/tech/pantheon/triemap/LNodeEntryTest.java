@@ -36,11 +36,11 @@ class LNodeEntryTest {
 
     @Test
     void testEntryUtil() {
-        assertEquals(EntryUtil.hash(KEY1, VALUE), entry.hashCode());
-        assertEquals(EntryUtil.string(KEY1, VALUE), entry.toString());
+        assertEquals(EntryUtil.entryHashCode(KEY1, VALUE), entry.hashCode());
+        assertEquals(EntryUtil.entryToString(KEY1, VALUE), entry.toString());
 
         final var testEntry = Map.entry(KEY1, VALUE);
-        assertEquals(EntryUtil.equal(testEntry, KEY1, VALUE), entry.equals(testEntry));
+        assertEquals(EntryUtil.entryEquals(testEntry, KEY1, VALUE), entry.equals(testEntry));
     }
 
     @Test

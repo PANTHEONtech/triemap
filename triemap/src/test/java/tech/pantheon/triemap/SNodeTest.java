@@ -44,10 +44,10 @@ class SNodeTest {
 
     @Test
     void testEntryUtil() {
-        assertEquals(EntryUtil.hash(KEY, VALUE), snode.hashCode());
-        assertEquals(EntryUtil.string(KEY, VALUE), snode.toString());
+        assertEquals(EntryUtil.entryHashCode(KEY, VALUE), snode.hashCode());
+        assertEquals(EntryUtil.entryToString(KEY, VALUE), snode.toString());
 
         final var entry = Map.entry(KEY, VALUE);
-        assertEquals(EntryUtil.equal(entry, KEY, VALUE), snode.equals(entry));
+        assertEquals(EntryUtil.entryEquals(entry, KEY, VALUE), snode.equals(entry));
     }
 }

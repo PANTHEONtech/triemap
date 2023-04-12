@@ -49,17 +49,17 @@ final class SNode<K, V> extends BasicNode implements EntryNode<K, V> {
 
     @Override
     public int hashCode() {
-        return EntryUtil.hash(key, value);
+        return EntryUtil.entryHashCode(key, value);
     }
 
     @SuppressFBWarnings(value = "EQ_UNUSUAL",  justification = "Equality handled by utility methods")
     @Override
     public boolean equals(final Object obj) {
-        return EntryUtil.equal(obj, key, value);
+        return EntryUtil.entryEquals(obj, key, value);
     }
 
     @Override
     public String toString() {
-        return EntryUtil.string(key, value);
+        return EntryUtil.entryToString(key, value);
     }
 }

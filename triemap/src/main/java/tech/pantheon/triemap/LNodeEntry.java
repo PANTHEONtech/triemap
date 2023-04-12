@@ -59,17 +59,17 @@ abstract class LNodeEntry<K, V> implements Entry<K, V> {
 
     @Override
     public final int hashCode() {
-        return EntryUtil.hash(key, value);
+        return EntryUtil.entryHashCode(key, value);
     }
 
     @SuppressFBWarnings(value = "EQ_UNUSUAL",  justification = "Equality handled by utility methods")
     @Override
     public final boolean equals(final Object obj) {
-        return EntryUtil.equal(obj, key, value);
+        return EntryUtil.entryEquals(obj, key, value);
     }
 
     @Override
     public final String toString() {
-        return EntryUtil.string(key, value);
+        return EntryUtil.entryToString(key, value);
     }
 }

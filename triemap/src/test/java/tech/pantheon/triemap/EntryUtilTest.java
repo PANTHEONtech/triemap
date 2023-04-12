@@ -27,25 +27,25 @@ class EntryUtilTest {
     void testEqual() {
         final Object key = new Object();
         final Object value = new Object();
-        assertFalse(EntryUtil.equal(null, key, value));
-        assertFalse(EntryUtil.equal(key, key, value));
+        assertFalse(EntryUtil.entryEquals(null, key, value));
+        assertFalse(EntryUtil.entryEquals(key, key, value));
 
         final var entry = Map.entry(key, value);
-        assertTrue(EntryUtil.equal(entry, key, value));
-        assertFalse(EntryUtil.equal(entry, value, value));
-        assertFalse(EntryUtil.equal(entry, key, key));
+        assertTrue(EntryUtil.entryEquals(entry, key, value));
+        assertFalse(EntryUtil.entryEquals(entry, value, value));
+        assertFalse(EntryUtil.entryEquals(entry, key, key));
     }
 
     @Test
     void testHash() {
         final Object key = new Object();
         final Object value = new Object();
-        assertEquals(key.hashCode() ^ value.hashCode(), EntryUtil.hash(key, value));
+        assertEquals(key.hashCode() ^ value.hashCode(), EntryUtil.entryHashCode(key, value));
     }
 
     @Test
     void testString() {
-        assertEquals("foo=bar", EntryUtil.string("foo", "bar"));
+        assertEquals("foo=bar", EntryUtil.entryToString("foo", "bar"));
     }
 
 }

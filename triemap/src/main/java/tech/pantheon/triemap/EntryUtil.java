@@ -30,26 +30,21 @@ final class EntryUtil {
     /**
      * Utility implementing {@link Entry#equals(Object)}.
      */
-    static boolean equal(final Object obj, final Object key, final Object value) {
-        if (!(obj instanceof Entry)) {
-            return false;
-        }
-
-        final Entry<?, ?> entry = (Entry<?, ?>)obj;
-        return key.equals(entry.getKey()) && value.equals(entry.getValue());
+    static boolean entryEquals(final Object obj, final Object key, final Object value) {
+        return obj instanceof Entry<?, ?> entry && key.equals(entry.getKey()) && value.equals(entry.getValue());
     }
 
     /**
      * Utility implementing {@link Entry#hashCode()}.
      */
-    static int hash(final Object key, final Object value) {
+    static int entryHashCode(final Object key, final Object value) {
         return key.hashCode() ^ value.hashCode();
     }
 
     /**
      * Utility implementing {@link Entry#toString()}.
      */
-    static String string(final Object key, final Object value) {
+    static String entryToString(final Object key, final Object value) {
         return key + "=" + value;
     }
 }
