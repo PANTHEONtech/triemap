@@ -106,18 +106,18 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
 
         @Override
         public int hashCode() {
-            return EntryUtil.hash(getKey(), getValue());
+            return EntryUtil.entryHashCode(getKey(), getValue());
         }
 
         @SuppressFBWarnings(value = "EQ_UNUSUAL",  justification = "Equality handled by utility methods")
         @Override
         public boolean equals(final Object obj) {
-            return EntryUtil.equal(obj, getKey(), getValue());
+            return EntryUtil.entryEquals(obj, getKey(), getValue());
         }
 
         @Override
         public String toString() {
-            return EntryUtil.string(getKey(), getValue());
+            return EntryUtil.entryToString(getKey(), getValue());
         }
     }
 }
