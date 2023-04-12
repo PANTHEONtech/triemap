@@ -25,7 +25,7 @@ import java.util.Map.Entry;
  * @param <K> the type of key
  * @param <V> the type of value
  */
-interface EntryNode<K, V> extends Entry<K, V> {
+sealed interface EntryNode<K, V> extends Entry<K, V> permits SNode, TNode {
     @Override
     default V setValue(final V value) {
         throw new UnsupportedOperationException();
