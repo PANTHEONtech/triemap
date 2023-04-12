@@ -15,41 +15,41 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Iterator;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class MutableKeySetTest {
+class MutableKeySetTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
 
     private MutableKeySet<String> set;
     private MutableTrieMap<String, String> map;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         map = TrieMap.create();
         map.put(KEY, VALUE);
         set = map.createKeySet();
     }
 
     @Test
-    public void testAdd() {
+    void testAdd() {
         assertThrows(UnsupportedOperationException.class, () -> set.add(null));
     }
 
     @Test
-    public void testAddAll() {
+    void testAddAll() {
         assertThrows(UnsupportedOperationException.class, () -> set.addAll(null));
     }
 
     @Test
-    public void testClear() {
+    void testClear() {
         set.clear();
         assertTrue(map.isEmpty());
         assertTrue(set.isEmpty());
@@ -57,18 +57,18 @@ public class MutableKeySetTest {
 
 
     @Test
-    public void testContains() {
+    void testContains() {
         assertTrue(set.contains(KEY));
         assertFalse(set.contains(VALUE));
     }
 
     @Test
-    public void testContainsNull() {
+    void testContainsNull() {
         assertThrows(NullPointerException.class, () -> set.contains(null));
     }
 
     @Test
-    public void testRemove() {
+    void testRemove() {
         assertFalse(set.remove(VALUE));
         assertEquals(1, map.size());
         assertEquals(1, set.size());
@@ -77,12 +77,12 @@ public class MutableKeySetTest {
     }
 
     @Test
-    public void testRemoveNull() {
+    void testRemoveNull() {
         assertThrows(NullPointerException.class, () -> set.remove(null));
     }
 
     @Test
-    public void testIterator() {
+    void testIterator() {
         final Iterator<String> it = set.iterator();
         assertTrue(it.hasNext());
         assertEquals(KEY, it.next());
@@ -90,7 +90,7 @@ public class MutableKeySetTest {
     }
 
     @Test
-    public void testImmutableIterator() {
+    void testImmutableIterator() {
         final Iterator<String> it = set.immutableIterator();
         assertTrue(it.hasNext());
         assertEquals(KEY, it.next());

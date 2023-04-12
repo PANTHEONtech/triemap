@@ -15,20 +15,20 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestConcurrentMapReplace {
+class TestConcurrentMapReplace {
     private static final int COUNT = 50 * 1000;
 
     @Test
-    public void testConcurrentMapReplace() {
+    void testConcurrentMapReplace() {
         final ConcurrentMap<Integer, Object> map = TrieMap.create();
 
         for (int i = 0; i < COUNT; i++) {
@@ -42,7 +42,7 @@ public class TestConcurrentMapReplace {
     }
 
     @Test
-    public void testConflictingHash() {
+    void testConflictingHash() {
         final ZeroHashInt k1 = new ZeroHashInt(1);
         final ZeroHashInt k2 = new ZeroHashInt(2);
         final ZeroHashInt k3 = new ZeroHashInt(3);

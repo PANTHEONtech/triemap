@@ -15,28 +15,28 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class LNodeEntryTest {
+class LNodeEntryTest {
     private static final String KEY1 = "key1";
     private static final String KEY2 = "key2";
     private static final String VALUE = "value";
 
     private LNodeEntry<String, String> entry;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         entry = LNodeEntries.map(KEY1, VALUE, KEY2, VALUE);
     }
 
     @Test
-    public void testEntryUtil() {
+    void testEntryUtil() {
         assertEquals(EntryUtil.hash(KEY1, VALUE), entry.hashCode());
         assertEquals(EntryUtil.string(KEY1, VALUE), entry.toString());
 
@@ -45,7 +45,7 @@ public class LNodeEntryTest {
     }
 
     @Test
-    public void testSetValue() {
+    void testSetValue() {
         assertThrows(UnsupportedOperationException.class, () -> entry.setValue(null));
     }
 }

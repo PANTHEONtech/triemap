@@ -15,17 +15,17 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestHashCollisionsRemove {
+class TestHashCollisionsRemove {
     private static final int COUNT = 50000;
 
     @Test
-    public void  testHashCollisionsRemove() {
+    void testHashCollisionsRemove() {
         final Map<Object, Object> bt = TrieMap.create();
 
         for (int j = 0; j < COUNT; j++) {

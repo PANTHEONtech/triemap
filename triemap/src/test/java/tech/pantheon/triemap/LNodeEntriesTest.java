@@ -17,31 +17,31 @@ package tech.pantheon.triemap;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class LNodeEntriesTest {
+class LNodeEntriesTest {
     private LNodeEntries<Integer, Boolean> map;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         map = LNodeEntries.map(1, TRUE, 2, TRUE);
     }
 
     @Test
-    public void testReplaceInvalid() {
+    void testReplaceInvalid() {
         final LNodeEntry<Integer, Boolean> lnode = new LNodeEntries.Single<>(1, TRUE);
         assertThrows(VerifyException.class, () -> map.replace(lnode, FALSE));
     }
 
     @Test
-    public void testReplaceHead() {
+    void testReplaceHead() {
         final LNodeEntries<Integer, Boolean> modified = map.replace(map, FALSE);
         assertEquals(map.next(), modified.next());
         assertEquals(new SimpleImmutableEntry<>(1, FALSE), modified);
@@ -51,7 +51,7 @@ public class LNodeEntriesTest {
     }
 
     @Test
-    public void testReplaceTail() {
+    void testReplaceTail() {
         final LNodeEntries<Integer, Boolean> modified = map.replace(map.next(), FALSE);
         assertEquals(map, modified.next());
         assertEquals(new SimpleImmutableEntry<>(2, FALSE), modified);
@@ -61,14 +61,14 @@ public class LNodeEntriesTest {
     }
 
     @Test
-    public void testRemoveHead() {
+    void testRemoveHead() {
         final LNodeEntries<Integer, Boolean> modified = map.remove(map);
         assertSame(map.next(), modified);
         assertNull(modified.remove(modified));
     }
 
     @Test
-    public void testRemoveTail() {
+    void testRemoveTail() {
         final LNodeEntries<Integer, Boolean> modified = map.remove(map.next());
         assertEquals(map, modified);
         assertNull(modified.remove(modified));
@@ -78,7 +78,7 @@ public class LNodeEntriesTest {
      * Test if Listmap.get() does not cause stack overflow.
      */
     @Test
-    public void testGetOverflow() {
+    void testGetOverflow() {
         // 30K seems to be enough to trigger the problem locally
         for (int i = 3; i < 30000; ++i) {
             map = map.insert(i, TRUE);

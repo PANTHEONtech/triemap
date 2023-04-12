@@ -15,16 +15,16 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestMultiThreadInserts {
+class TestMultiThreadInserts {
     @Test
-    public void testMultiThreadInserts() throws InterruptedException {
+    void testMultiThreadInserts() throws InterruptedException {
         final int nThreads = 2;
         final ExecutorService es = Executors.newFixedThreadPool(nThreads);
         final TrieMap<Object, Object> bt = TrieMap.create();

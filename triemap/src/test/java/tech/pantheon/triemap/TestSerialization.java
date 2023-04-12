@@ -15,17 +15,18 @@
  */
 package tech.pantheon.triemap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestSerialization {
+class TestSerialization {
     @Test
-    public void testSerialization() throws IOException, ClassNotFoundException {
+    void testSerialization() throws IOException, ClassNotFoundException {
         TrieMap<String, String> map = TrieMap.create();
 
         map.put("dude-0", "tom");
@@ -48,6 +49,6 @@ public class TestSerialization {
         final TrieMap<String, String> actual = (TrieMap<String, String>) ois.readObject();
         ois.close();
 
-        Assert.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 }

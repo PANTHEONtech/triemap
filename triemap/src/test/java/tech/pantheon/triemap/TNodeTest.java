@@ -15,28 +15,28 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TNodeTest {
+class TNodeTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
     private static final int HASH = 1337;
 
     private TNode<String, String> tnode;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         tnode = new TNode<>(KEY, VALUE, HASH);
     }
 
     @Test
-    public void testCopyUntombed() {
+    void testCopyUntombed() {
         final SNode<String, String> snode = tnode.copyUntombed();
         assertEquals(tnode.hashCode(), snode.hashCode());
         assertSame(tnode.getKey(), snode.getKey());
@@ -44,13 +44,13 @@ public class TNodeTest {
     }
 
     @Test
-    public void testSize() {
+    void testSize() {
         assertEquals(1, tnode.trySize());
         assertEquals(1, tnode.size(null));
     }
 
     @Test
-    public void testEntryUtil() {
+    void testEntryUtil() {
         assertEquals(EntryUtil.hash(KEY, VALUE), tnode.hashCode());
         assertEquals(EntryUtil.string(KEY, VALUE), tnode.toString());
 

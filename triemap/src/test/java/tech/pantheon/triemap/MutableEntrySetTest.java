@@ -15,45 +15,45 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class MutableEntrySetTest {
+class MutableEntrySetTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
 
     private MutableEntrySet<String, String> set;
     private MutableTrieMap<String, String> map;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         map = TrieMap.create();
         map.put(KEY, VALUE);
         set = map.createEntrySet();
     }
 
     @Test
-    public void testAdd() {
+    void testAdd() {
         assertThrows(UnsupportedOperationException.class, () -> set.add(null));
     }
 
     @Test
-    public void testClear() {
+    void testClear() {
         set.clear();
         assertTrue(map.isEmpty());
         assertTrue(set.isEmpty());
     }
 
     @Test
-    public void testContains() {
+    void testContains() {
         assertFalse(set.contains(null));
         assertFalse(set.contains(new SimpleImmutableEntry<>(null, VALUE)));
         assertFalse(set.contains(new SimpleImmutableEntry<>(KEY, null)));
@@ -63,7 +63,7 @@ public class MutableEntrySetTest {
     }
 
     @Test
-    public void testRemove() {
+    void testRemove() {
         assertFalse(set.remove(null));
         assertEquals(1, map.size());
         assertEquals(1, set.size());
@@ -81,7 +81,7 @@ public class MutableEntrySetTest {
     }
 
     @Test
-    public void testIterator() {
+    void testIterator() {
         final Iterator<Entry<String, String>> it = set.iterator();
         assertTrue(it.hasNext());
         assertEquals(new SimpleImmutableEntry<>(KEY, VALUE), it.next());

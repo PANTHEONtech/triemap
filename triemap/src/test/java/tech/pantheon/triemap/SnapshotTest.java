@@ -15,19 +15,19 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class SnapshotTest {
+class SnapshotTest {
     private TrieMap<String, String> map;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         map = TrieMap.create();
         map.put("k1", "v1");
         map.put("k2", "v2");
@@ -50,12 +50,12 @@ public class SnapshotTest {
     }
 
     @Test
-    public void testMutableSnapshotIsolation() {
+    void testMutableSnapshotIsolation() {
         assertMutableIsolation(map, map.mutableSnapshot());
     }
 
     @Test
-    public void testMutableSnapshotIsolationAcrossImmutable() {
+    void testMutableSnapshotIsolationAcrossImmutable() {
         final TrieMap<String, String> snap = map.immutableSnapshot();
         assertTrue(snap.containsKey("k1"));
         assertTrue(snap.containsKey("k2"));

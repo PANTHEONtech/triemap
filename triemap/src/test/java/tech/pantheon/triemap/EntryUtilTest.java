@@ -15,17 +15,17 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class EntryUtilTest {
+class EntryUtilTest {
     @Test
-    public void testEqual() {
+    void testEqual() {
         final Object key = new Object();
         final Object value = new Object();
         assertFalse(EntryUtil.equal(null, key, value));
@@ -38,14 +38,14 @@ public class EntryUtilTest {
     }
 
     @Test
-    public void testHash() {
+    void testHash() {
         final Object key = new Object();
         final Object value = new Object();
         assertEquals(key.hashCode() ^ value.hashCode(), EntryUtil.hash(key, value));
     }
 
     @Test
-    public void testString() {
+    void testString() {
         assertEquals("foo=bar", EntryUtil.string("foo", "bar"));
     }
 
