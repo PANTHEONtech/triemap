@@ -15,12 +15,12 @@
  */
 package tech.pantheon.triemap;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestInstantiationSpeed {
+class TestInstantiationSpeed {
     private static final Logger LOG = LoggerFactory.getLogger(TestInstantiationSpeed.class);
     private static final int COUNT = 1000000;
     private static final int ITERATIONS = 10;
@@ -42,9 +42,9 @@ public class TestInstantiationSpeed {
         return elapsedTime / COUNT;
     }
 
-    @Ignore
+    @Disabled
     @Test
-    public void testInstantiation() {
+    void testInstantiation() {
 
         for (int i = 0; i < WARMUP; ++i) {
             final long time = runIteration();

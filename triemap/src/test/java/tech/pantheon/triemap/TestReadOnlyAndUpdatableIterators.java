@@ -15,26 +15,26 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test that read-only iterators do not allow for any updates.
  * Test that non read-only iterators allow for updates.
  */
-public class TestReadOnlyAndUpdatableIterators {
+class TestReadOnlyAndUpdatableIterators {
     private static final int MAP_SIZE = 200;
 
     private TrieMap<Integer, Integer> bt;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         bt = TrieMap.create();
         for (int j = 0; j < MAP_SIZE; j++) {
             assertNull(bt.put(Integer.valueOf(j), Integer.valueOf(j)));
@@ -52,37 +52,37 @@ public class TestReadOnlyAndUpdatableIterators {
     }
 
     @Test
-    public void testReadOnlyIteratorSet() {
+    void testReadOnlyIteratorSet() {
         trySet(bt.immutableIterator());
     }
 
     @Test
-    public void testReadOnlyIteratorRemove() {
+    void testReadOnlyIteratorRemove() {
         tryRemove(bt.immutableIterator());
     }
 
     @Test
-    public void testReadOnlySnapshotReadOnlyIteratorSet() {
+    void testReadOnlySnapshotReadOnlyIteratorSet() {
         trySet(bt.immutableSnapshot().immutableIterator());
     }
 
     @Test
-    public void testReadOnlySnapshotReadOnlyIteratorRemove() {
+    void testReadOnlySnapshotReadOnlyIteratorRemove() {
         tryRemove(bt.immutableSnapshot().immutableIterator());
     }
 
     @Test
-    public void testReadOnlySnapshotIteratorSet() {
+    void testReadOnlySnapshotIteratorSet() {
         trySet(bt.immutableSnapshot().iterator());
     }
 
     @Test
-    public void testReadOnlySnapshotIteratorRemove() {
+    void testReadOnlySnapshotIteratorRemove() {
         tryRemove(bt.immutableSnapshot().iterator());
     }
 
     @Test
-    public void testIterator() {
+    void testIterator() {
         Iterator<Entry<Integer, Integer>> it = bt.iterator();
         it.next().setValue(0);
         it.remove();
@@ -92,7 +92,7 @@ public class TestReadOnlyAndUpdatableIterators {
     }
 
     @Test
-    public void testSnapshotIterator() {
+    void testSnapshotIterator() {
         TrieMap<Integer, Integer> snapshot = bt.mutableSnapshot();
         Iterator<Entry<Integer, Integer>> it = snapshot.iterator();
         it.next().setValue(0);

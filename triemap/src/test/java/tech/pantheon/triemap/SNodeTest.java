@@ -15,28 +15,28 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class SNodeTest {
+class SNodeTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
     private static final int HASH = 1337;
 
     private SNode<String, String> snode;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         snode = new SNode<>(KEY, VALUE, HASH);
     }
 
     @Test
-    public void testCopyTombed() {
+    void testCopyTombed() {
         final TNode<String, String> tnode = snode.copyTombed();
         assertEquals(snode.hashCode(), tnode.hashCode());
         assertSame(snode.getKey(), tnode.getKey());
@@ -44,7 +44,7 @@ public class SNodeTest {
     }
 
     @Test
-    public void testEntryUtil() {
+    void testEntryUtil() {
         assertEquals(EntryUtil.hash(KEY, VALUE), snode.hashCode());
         assertEquals(EntryUtil.string(KEY, VALUE), snode.toString());
 

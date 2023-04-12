@@ -15,26 +15,26 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestMultiThreadAddDelete {
+class TestMultiThreadAddDelete {
     private static final Logger LOG = LoggerFactory.getLogger(TestMultiThreadAddDelete.class);
     private static final int RETRIES = 1;
     private static final int N_THREADS = 7;
     private static final int COUNT = 50 * 1000;
 
     @Test
-    public void testMultiThreadAddDelete() throws InterruptedException {
+    void testMultiThreadAddDelete() throws InterruptedException {
         for (int j = 0; j < RETRIES; j++) {
             final Map<Object, Object> bt = TrieMap.create();
 

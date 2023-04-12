@@ -15,19 +15,19 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class CNodeTest {
+class CNodeTest {
     @Test
-    public void testTrySize() {
+    void testTrySize() {
         assertEquals(MainNode.NO_SIZE, new CNode<>(new Gen()).trySize());
     }
 
     @Test
-    public void testInvalidElement() {
+    void testInvalidElement() {
         assertThrows(VerifyException.class, () -> CNode.invalidElement(null));
     }
 }

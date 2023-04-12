@@ -15,19 +15,19 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class VerifyExceptionTest {
+class VerifyExceptionTest {
     @Test
-    public void testThrowIfNullSimple() {
+    void testThrowIfNullSimple() {
         assertThrows(VerifyException.class, () -> VerifyException.throwIfNull(null));
     }
 
     @Test
-    public void testThrowIfNullSame() {
+    void testThrowIfNullSame() {
         final Object obj = new Object();
         assertSame(obj, VerifyException.throwIfNull(obj));
     }

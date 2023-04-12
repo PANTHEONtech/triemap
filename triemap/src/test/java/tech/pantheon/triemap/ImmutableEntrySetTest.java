@@ -15,49 +15,49 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ImmutableEntrySetTest {
+class ImmutableEntrySetTest {
     private ImmutableEntrySet<Object, Object> set;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         set = TrieMap.create().immutableSnapshot().createEntrySet();
     }
 
     @Test
-    public void testIsEmpty() {
+    void testIsEmpty() {
         assertTrue(set.isEmpty());
     }
 
     @Test
-    public void testSize() {
+    void testSize() {
         assertEquals(0, set.size());
     }
 
     @Test
-    public void testClear() {
+    void testClear() {
         assertThrows(UnsupportedOperationException.class, () -> set.clear());
     }
 
     @Test
-    public void testRemove() {
+    void testRemove() {
         assertThrows(UnsupportedOperationException.class, () -> set.remove(new Object()));
     }
 
     @Test
-    public void testRemoveAll() {
+    void testRemoveAll() {
         assertThrows(UnsupportedOperationException.class, () -> set.removeAll(Collections.emptyList()));
     }
 
     @Test
-    public void testRetainAll() {
+    void testRetainAll() {
         assertThrows(UnsupportedOperationException.class, () -> set.retainAll(Collections.emptyList()));
     }
 }

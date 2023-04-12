@@ -15,40 +15,40 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestDelete {
+class TestDelete {
     @Test
-    public void testNullSimple() {
+    void testNullSimple() {
         TrieMap<?, ?> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove(null));
     }
 
     @Test
-    public void testNullKey() {
+    void testNullKey() {
         TrieMap<?, ?> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove(null, ""));
     }
 
     @Test
-    public void testNullValue() {
+    void testNullValue() {
         TrieMap<?, ?> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove("", null));
     }
 
     @Test
-    public void testNullBoth() {
+    void testNullBoth() {
         TrieMap<?, ?> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.remove(null, null));
     }
 
     @Test
-    public void testClear() {
+    void testClear() {
         final TrieMap<Integer, Integer> bt = TrieMap.create();
         bt.put(1, 1);
         bt.clear();
@@ -57,7 +57,7 @@ public class TestDelete {
     }
 
     @Test
-    public void testDelete() {
+    void testDelete() {
         final TrieMap<Integer, Integer> bt = TrieMap.create();
 
         for (int i = 0; i < 10000; i++) {
@@ -83,7 +83,7 @@ public class TestDelete {
      * Test if the Map.remove(Object, Object) method works correctly for hash collisions, which are handled by LNode.
      */
     @Test
-    public void testRemoveObjectLNode() {
+    void testRemoveObjectLNode() {
         final TrieMap<ZeroHashInt, ZeroHashInt> bt = TrieMap.create();
 
         for (int i = 0; i < 100; i++) {

@@ -15,12 +15,12 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,11 +29,11 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestMapIterator {
+class TestMapIterator {
     @Test
-    public void testMapIterator() {
+    void testMapIterator() {
         final Random random = new Random();
 
         for (int i = 0; i < 60 * 1000; i += 400 + random.nextInt(400)) {
@@ -79,7 +79,7 @@ public class TestMapIterator {
     }
 
     @Test
-    public void testMapImmutableIterator() {
+    void testMapImmutableIterator() {
         final Random random = new Random();
 
         for (int i = 0; i < 60 * 1000; i += 400 + random.nextInt(400)) {
@@ -106,17 +106,17 @@ public class TestMapIterator {
     }
 
     @Test
-    public void testEmptyIterator() {
+    void testEmptyIterator() {
         failAdvance(TrieMap.create().iterator());
     }
 
     @Test
-    public void testEmptyReadOnlyIterator() {
+    void testEmptyReadOnlyIterator() {
         failAdvance(TrieMap.create().immutableIterator());
     }
 
     @Test
-    public void testEmptyReadOnlySnapshotIterator() {
+    void testEmptyReadOnlySnapshotIterator() {
         failAdvance(TrieMap.create().immutableSnapshot().iterator());
     }
 

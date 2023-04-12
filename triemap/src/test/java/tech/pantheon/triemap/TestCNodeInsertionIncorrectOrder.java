@@ -15,15 +15,15 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestCNodeInsertionIncorrectOrder {
+class TestCNodeInsertionIncorrectOrder {
 
     @Test
-    public void testCNodeInsertionIncorrectOrder() {
+    void testCNodeInsertionIncorrectOrder() {
         final Map<Integer, Integer> map = TrieMap.create();
         final Integer z3884 = Integer.valueOf(3884);
         final Integer z4266 = Integer.valueOf(4266);

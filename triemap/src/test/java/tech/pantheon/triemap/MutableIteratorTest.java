@@ -15,29 +15,29 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class MutableIteratorTest {
+class MutableIteratorTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
 
     private MutableIterator<String, String> it;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         final MutableTrieMap<String, String> map = TrieMap.create();
         map.put(KEY, VALUE);
         it = map.iterator();
     }
 
     @Test
-    public void testEntryUtil() {
+    void testEntryUtil() {
         final Entry<String, String> entry = it.next();
 
         assertEquals(EntryUtil.hash(KEY, VALUE), entry.hashCode());
@@ -48,7 +48,7 @@ public class MutableIteratorTest {
     }
 
     @Test
-    public void testRemoveWithoutNext() {
+    void testRemoveWithoutNext() {
         assertThrows(IllegalStateException.class, () -> it.remove());
     }
 }

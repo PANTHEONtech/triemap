@@ -15,13 +15,13 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class FailedNodeTest {
+class FailedNodeTest {
     private final MainNode<Object, Object> main = new MainNode<>() {
         @Override
         int trySize() {
@@ -36,23 +36,23 @@ public class FailedNodeTest {
 
     private FailedNode<Object, Object> failed;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         failed = new FailedNode<>(main);
     }
 
     @Test
-    public void testSize() {
+    void testSize() {
         assertThrows(UnsupportedOperationException.class, () -> failed.size(null));
     }
 
     @Test
-    public void testTrySize() {
+    void testTrySize() {
         assertThrows(UnsupportedOperationException.class, () -> failed.trySize());
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         assertEquals("FailedNode(" + main + ")", failed.toString());
     }
 }

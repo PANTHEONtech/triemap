@@ -15,8 +15,8 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,16 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestMultiThreadMapIterator {
+class TestMultiThreadMapIterator {
     private static final Logger LOG = LoggerFactory.getLogger(TestMultiThreadMapIterator.class);
     private static final int NTHREADS = 7;
 
     @Test
-    public void testMultiThreadMapIterator() throws InterruptedException {
+    void testMultiThreadMapIterator() throws InterruptedException {
         final Map<Object, Object> bt = TrieMap.create();
         for (int j = 0; j < 50 * 1000; j++) {
             for (final Object o : getObjects(j)) {

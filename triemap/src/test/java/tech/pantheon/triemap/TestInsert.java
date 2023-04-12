@@ -15,16 +15,16 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestInsert {
+class TestInsert {
     @Test
-    public void testInsert() {
+    void testInsert() {
         final TrieMap<Object, Object> bt = TrieMap.create();
         assertNull(bt.put("a", "a"));
         assertTrue(bt.containsValue("a"));
@@ -43,19 +43,19 @@ public class TestInsert {
     }
 
     @Test
-    public void testNullKey() {
+    void testNullKey() {
         final TrieMap<String, String> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.put(null, ""));
     }
 
     @Test
-    public void testNullValue() {
+    void testNullValue() {
         TrieMap<String, String> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.put("", null));
     }
 
     @Test
-    public void testNullBoth() {
+    void testNullBoth() {
         TrieMap<String, String> tm = TrieMap.create();
         assertThrows(NullPointerException.class, () -> tm.put(null, null));
     }
