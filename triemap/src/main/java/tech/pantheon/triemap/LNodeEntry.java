@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map.Entry;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * A single entry in {@link LNodeEntries}, implements {@link Entry} in order to prevent instantiation of objects for
@@ -44,6 +45,10 @@ abstract class LNodeEntry<K, V> implements Entry<K, V> {
     @Override
     public final V getValue() {
         return value;
+    }
+
+    final @NonNull Result<V> toResult() {
+        return new Result<>(value);
     }
 
     @Override

@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.eclipse.jdt.annotation.NonNull;
 
 final class SNode<K, V> extends BasicNode implements EntryNode<K, V> {
     final K key;
@@ -40,6 +41,10 @@ final class SNode<K, V> extends BasicNode implements EntryNode<K, V> {
     @Override
     public V getValue() {
         return value;
+    }
+
+    @NonNull Result<V> toResult() {
+        return new Result<>(value);
     }
 
     @Override

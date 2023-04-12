@@ -255,7 +255,7 @@ final class INode<K, V> extends BasicNode {
                         if (cond == null) {
                             if (sn.hc == hc && key.equals(sn.key)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return Result.of(sn);
+                                    return sn.toResult();
                                 }
 
                                 return null;
@@ -264,14 +264,14 @@ final class INode<K, V> extends BasicNode {
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == ABSENT) {
                             if (sn.hc == hc && key.equals(sn.key)) {
-                                return Result.of(sn);
+                                return sn.toResult();
                             }
 
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == PRESENT) {
                             if (sn.hc == hc && key.equals(sn.key)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return Result.of(sn);
+                                    return sn.toResult();
                                 }
                                 return null;
                             }
@@ -280,7 +280,7 @@ final class INode<K, V> extends BasicNode {
                         } else {
                             if (sn.hc == hc && key.equals(sn.key) && cond.equals(sn.value)) {
                                 if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return Result.of(sn);
+                                    return sn.toResult();
                                 }
 
                                 return null;
@@ -307,15 +307,15 @@ final class INode<K, V> extends BasicNode {
                 final var entry = ln.get(key);
 
                 if (cond == null) {
-                    return entry != null ? replaceln(ln, entry, val, ct) ? Result.of(entry) : null
+                    return entry != null ? replaceln(ln, entry, val, ct) ? entry.toResult() : null
                         : insertln(ln, key, val, ct) ? Result.empty() : null;
                 } else if (cond == ABSENT) {
-                    return entry != null ? Result.of(entry) : insertln(ln, key, val, ct) ? Result.empty() : null;
+                    return entry != null ? entry.toResult() : insertln(ln, key, val, ct) ? Result.empty() : null;
                 } else if (cond == PRESENT) {
-                    return entry == null ? Result.empty() : replaceln(ln, entry, val, ct) ? Result.of(entry) : null;
+                    return entry == null ? Result.empty() : replaceln(ln, entry, val, ct) ? entry.toResult() : null;
                 } else {
                     return entry == null || !cond.equals(entry.getValue()) ? Result.empty()
-                        : replaceln(ln, entry, val, ct) ? Result.of(entry) : null;
+                        : replaceln(ln, entry, val, ct) ? entry.toResult() : null;
                 }
             } else {
                 throw invalidElement(m);
@@ -452,7 +452,7 @@ final class INode<K, V> extends BasicNode {
                 if (sn.hc == hc && key.equals(sn.key) && (cond == null || cond.equals(sn.value))) {
                     final var ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
                     if (gcas(cn, ncn, ct)) {
-                        res = Result.of(sn);
+                        res = sn.toResult();
                     } else {
                         res = null;
                     }
@@ -492,7 +492,7 @@ final class INode<K, V> extends BasicNode {
                 return Result.empty();
             }
 
-            return gcas(ln, ln.removeChild(entry, hc), ct) ? Result.of(entry) : null;
+            return gcas(ln, ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
         } else {
             throw invalidElement(m);
         }

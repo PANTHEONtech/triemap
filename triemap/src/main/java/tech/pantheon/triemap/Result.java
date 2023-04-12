@@ -20,26 +20,12 @@ import org.eclipse.jdt.annotation.NonNull;
 /**
  * Insertion result, similar to {@link java.util.Optional}, except heavily customized for our use.
  */
-final class Result<T> {
+record Result<T>(T value) {
     private static final @NonNull Result<?> EMPTY = new Result<>(null);
-
-    private final T value;
-
-    private Result(final T value) {
-        this.value = value;
-    }
 
     @SuppressWarnings("unchecked")
     static <T> @NonNull Result<T> empty() {
         return (Result<T>) EMPTY;
-    }
-
-    static <T> @NonNull Result<T> of(final LNodeEntry<?, T> entry) {
-        return new Result<>(entry.getValue());
-    }
-
-    static <T> @NonNull Result<T> of(final SNode<?, T> snode) {
-        return new Result<>(snode.value);
     }
 
     boolean isPresent() {
