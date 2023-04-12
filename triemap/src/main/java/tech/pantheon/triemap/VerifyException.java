@@ -19,6 +19,7 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class VerifyException extends RuntimeException {
+    @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     VerifyException(final @NonNull String message) {

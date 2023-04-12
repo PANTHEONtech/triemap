@@ -26,9 +26,11 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 abstract class Equivalence implements Serializable {
+    @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     static final class Equals extends Equivalence {
+        @java.io.Serial
         private static final long serialVersionUID = 1L;
 
         static final Equals INSTANCE = new Equals();
@@ -39,5 +41,6 @@ abstract class Equivalence implements Serializable {
         }
     }
 
+    @java.io.Serial
     abstract Object readResolve();
 }
