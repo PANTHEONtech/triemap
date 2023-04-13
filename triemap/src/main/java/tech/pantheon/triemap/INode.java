@@ -521,11 +521,9 @@ final class INode<K, V> extends BasicNode {
             if (sub == this && nonlive instanceof TNode) {
                 final var tn = (TNode<?, ?>) nonlive;
                 final var ncn = cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(lev - LEVEL_BITS);
-                if (!parent.gcas(cn, ncn, ct)) {
-                    if (ct.readRoot().gen == startgen) {
-                        // Tail recursion: cleanParent(nonlive, parent, ct, hc, lev, startgen);
-                        continue;
-                    }
+                if (!parent.gcas(cn, ncn, ct) && ct.readRoot().gen == startgen) {
+                    // Tail recursion: cleanParent(nonlive, parent, ct, hc, lev, startgen);
+                    continue;
                 }
             }
             break;
