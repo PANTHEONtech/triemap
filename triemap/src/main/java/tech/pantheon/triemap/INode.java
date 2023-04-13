@@ -538,6 +538,6 @@ final class INode<K, V> extends BasicNode {
     }
 
     int size(final ImmutableTrieMap<?, ?> ct) {
-        return gcasRead(ct).size(ct);
+        return VerifyException.throwIfNull(gcasRead(ct)).size(ct);
     }
 }
