@@ -1,5 +1,6 @@
 [![Build Status](https://github.com/PANTHEONtech/triemap/actions/workflows/maven.yml/badge.svg?event=push)](https://github.com/PANTHEONtech/triemap/actions/workflows/maven.yml)
-[![Coverage Status](https://coveralls.io/repos/github/PantheonTechnologies/triemap/badge.svg?branch=master)](https://coveralls.io/github/PantheonTechnologies/triemap?branch=master)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=PANTHEONtech_triemap&metric=coverage)](https://sonarcloud.io/summary/new_code?id=PANTHEONtech_triemap)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PANTHEONtech_triemap&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PANTHEONtech_triemap)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2172/badge)](https://bestpractices.coreinfrastructure.org/projects/2172)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_shield)
 [![CodeQL](https://github.com/PANTHEONtech/triemap/actions/workflows/codeql.yml/badge.svg?event=push)](https://github.com/PANTHEONtech/triemap/actions/workflows/codeql.yml)
