@@ -32,24 +32,7 @@ final class MutableKeySet<K> extends AbstractKeySet<K> {
 
     @Override
     public Iterator<K> iterator() {
-        return new Iterator<>() {
-            private final AbstractIterator<K, ?> itr = map().iterator();
-
-            @Override
-            public boolean hasNext() {
-                return itr.hasNext();
-            }
-
-            @Override
-            public K next() {
-                return itr.next().getKey();
-            }
-
-            @Override
-            public void remove() {
-                itr.remove();
-            }
-        };
+        return new Itr<>(map().iterator());
     }
 
     @Override
@@ -66,5 +49,28 @@ final class MutableKeySet<K> extends AbstractKeySet<K> {
     @Override
     int spliteratorCharacteristics() {
         return Spliterator.DISTINCT | Spliterator.CONCURRENT | Spliterator.NONNULL;
+    }
+
+    private static final class Itr<K> implements Iterator<K> {
+        private final AbstractIterator<K, ?> delegate;
+
+        Itr(final AbstractIterator<K, ?> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public K next() {
+            return delegate.next().getKey();
+        }
+
+        @Override
+        public void remove() {
+            delegate.remove();
+        }
     }
 }
