@@ -78,18 +78,24 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
     abstract int spliteratorCharacteristics();
 
     final Iterator<K> immutableIterator() {
-        return new Iterator<>() {
-            private final ImmutableIterator<K, ?> itr = map().immutableIterator();
+        return new Itr<>(map().immutableIterator());
+    }
 
-            @Override
-            public boolean hasNext() {
-                return itr.hasNext();
-            }
+    private static final class Itr<K> implements Iterator<K> {
+        private final ImmutableIterator<K, ?> delegate;
 
-            @Override
-            public K next() {
-                return itr.next().getKey();
-            }
-        };
+        Itr(final ImmutableIterator<K, ?> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public K next() {
+            return delegate.next().getKey();
+        }
     }
 }
