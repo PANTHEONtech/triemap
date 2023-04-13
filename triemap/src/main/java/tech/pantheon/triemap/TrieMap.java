@@ -40,7 +40,9 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     private static final long serialVersionUID = 1L;
 
     private transient AbstractEntrySet<K, V> entrySet;
-    private transient AbstractKeySet<K> keySet;
+    // Note: AbstractMap.keySet is something we do not have access to. At some point we should just not subclass
+    //       AbstractMap and lower our memory footprint.
+    private transient AbstractKeySet<K> theKeySet;
 
     TrieMap() {
         // Hidden on purpose
@@ -104,7 +106,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     @Override
     public final Set<K> keySet() {
         final AbstractKeySet<K> ret;
-        return (ret = keySet) != null ? ret : (keySet = createKeySet());
+        return (ret = theKeySet) != null ? ret : (theKeySet = createKeySet());
     }
 
     @Override

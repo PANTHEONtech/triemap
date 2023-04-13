@@ -49,17 +49,20 @@ class ImmutableKeySetTest {
 
     @Test
     void testRemove() {
-        assertThrows(UnsupportedOperationException.class, () -> set.remove(new Object()));
+        final var arg = new Object();
+        assertThrows(UnsupportedOperationException.class, () -> set.remove(arg));
     }
 
     @Test
     void testRemoveAll() {
-        assertThrows(UnsupportedOperationException.class, () -> set.removeAll(List.of()));
+        final var arg = List.of();
+        assertThrows(UnsupportedOperationException.class, () -> set.removeAll(arg));
     }
 
     @Test
     void testRetainAll() {
-        assertThrows(UnsupportedOperationException.class, () -> set.retainAll(List.of()));
+        final var arg = List.of();
+        assertThrows(UnsupportedOperationException.class, () -> set.retainAll(arg));
     }
 
     @Test
