@@ -2,9 +2,15 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
   build:
