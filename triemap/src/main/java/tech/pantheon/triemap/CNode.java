@@ -149,8 +149,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         final var narr = new BasicNode[len];
         while (idx < len) {
             final var elem = arr[idx];
-            if (elem instanceof INode) {
-                narr[idx] = ((INode<?, ?>) elem).copyToGen(ngen, ct);
+            if (elem instanceof INode<?, ?> in) {
+                narr[idx] = in.copyToGen(ngen, ct);
             } else if (elem != null) {
                 narr[idx] = elem;
             }
