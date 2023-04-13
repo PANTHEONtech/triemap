@@ -117,6 +117,12 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     }
 
     @Override
+    public final V getOrDefault(final Object key, final V defaultValue) {
+        final V v;
+        return (v = get(key)) != null ? v : defaultValue;
+    }
+
+    @Override
     public abstract void clear();
 
     @Override
