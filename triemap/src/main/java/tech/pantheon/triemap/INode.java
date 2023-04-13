@@ -56,7 +56,9 @@ final class INode<K, V> extends BasicNode {
 
     private MainNode<K, V> gcasComplete(final MainNode<K, V> oldmain, final TrieMap<?, ?> ct) {
         var main = oldmain;
-        while (main != null) {
+        while (true) {
+            VerifyException.throwIfNull(main);
+
             // complete the GCAS
             final var prev = /* READ */ main.readPrev();
             final var ctr = ct.readRoot(true);
@@ -100,8 +102,6 @@ final class INode<K, V> extends BasicNode {
             // Tail recursion: return GCAS_Complete(/* READ */ mainnode, ct);
             main = /* READ */ mainnode;
         }
-
-        return null;
     }
 
     private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
