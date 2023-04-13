@@ -24,7 +24,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.Nullable;
 
-final class INode<K, V> extends BasicNode {
+final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
     private static final VarHandle MAINNODE;
 
     static {
