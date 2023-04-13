@@ -42,7 +42,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     private transient AbstractEntrySet<K, V> entrySet;
     // Note: AbstractMap.keySet is something we do not have access to. At some point we should just not subclass
     //       AbstractMap and lower our memory footprint.
-    private transient AbstractKeySet<K> theKeySet;
+    private transient AbstractKeySet<K, ?> theKeySet;
 
     TrieMap() {
         // Hidden on purpose
@@ -105,7 +105,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
 
     @Override
     public final Set<K> keySet() {
-        final AbstractKeySet<K> ret;
+        final AbstractKeySet<K, ?> ret;
         return (ret = theKeySet) != null ? ret : (theKeySet = createKeySet());
     }
 
@@ -144,7 +144,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
 
     abstract AbstractEntrySet<K, V> createEntrySet();
 
-    abstract AbstractKeySet<K> createKeySet();
+    abstract AbstractKeySet<K, ?> createKeySet();
 
     abstract boolean isReadOnly();
 

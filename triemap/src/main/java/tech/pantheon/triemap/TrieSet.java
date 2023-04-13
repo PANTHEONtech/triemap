@@ -47,7 +47,7 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
     private final transient TrieMap<E, Boolean> map;
     // Cached map keyset view, so we do not re-checking it all over
     @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
-    private final transient AbstractKeySet<E> set;
+    private final transient AbstractKeySet<E, ?> set;
 
     TrieSet(final TrieMap<E, Boolean> map) {
         this.map = requireNonNull(map);

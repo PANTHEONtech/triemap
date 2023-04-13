@@ -15,7 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import java.util.Iterator;
 import java.util.Spliterator;
 
 /**
@@ -25,52 +24,29 @@ import java.util.Spliterator;
  *
  * @param <K> the type of keys
  */
-final class MutableKeySet<K> extends AbstractKeySet<K> {
+final class MutableKeySet<K> extends AbstractKeySet<K, MutableTrieMap<K, ?>> {
     MutableKeySet(final MutableTrieMap<K, ?> map) {
         super(map);
     }
 
     @Override
-    public Iterator<K> iterator() {
-        return new Itr<>(map().iterator());
+    public KeySetIterator<K> iterator() {
+        return new KeySetIterator<>(map.iterator());
     }
 
     @Override
     public void clear() {
-        map().clear();
+        map.clear();
     }
 
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public boolean remove(final Object o) {
-        return map().remove(o) != null;
+        return map.remove(o) != null;
     }
 
     @Override
     int spliteratorCharacteristics() {
         return Spliterator.DISTINCT | Spliterator.CONCURRENT | Spliterator.NONNULL;
-    }
-
-    private static final class Itr<K> implements Iterator<K> {
-        private final AbstractIterator<K, ?> delegate;
-
-        Itr(final AbstractIterator<K, ?> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return delegate.hasNext();
-        }
-
-        @Override
-        public K next() {
-            return delegate.next().getKey();
-        }
-
-        @Override
-        public void remove() {
-            delegate.remove();
-        }
     }
 }

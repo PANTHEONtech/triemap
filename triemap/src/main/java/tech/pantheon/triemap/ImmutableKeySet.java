@@ -18,7 +18,6 @@ package tech.pantheon.triemap;
 import static tech.pantheon.triemap.ImmutableTrieMap.unsupported;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Spliterator;
 
 /**
@@ -28,13 +27,13 @@ import java.util.Spliterator;
  *
  * @param <K> the type of keys
  */
-final class ImmutableKeySet<K> extends AbstractKeySet<K> {
-    ImmutableKeySet(final TrieMap<K, ?> map) {
+final class ImmutableKeySet<K> extends AbstractKeySet<K, ImmutableTrieMap<K, ?>> {
+    ImmutableKeySet(final ImmutableTrieMap<K, ?> map) {
         super(map);
     }
 
     @Override
-    public Iterator<K> iterator() {
+    public KeySetIterator<K> iterator() {
         return immutableIterator();
     }
 

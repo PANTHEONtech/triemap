@@ -19,9 +19,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.AbstractSet;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * Abstract base class for key set views of a TrieMap.
@@ -30,15 +30,12 @@ import java.util.Spliterators;
  *
  * @param <K> the type of keys
  */
-abstract sealed class AbstractKeySet<K> extends AbstractSet<K> permits ImmutableKeySet, MutableKeySet {
-    private final TrieMap<K, ?> map;
+abstract sealed class AbstractKeySet<K, M extends TrieMap<K, ?>> extends AbstractSet<K>
+        permits ImmutableKeySet, MutableKeySet {
+    final @NonNull M map;
 
-    AbstractKeySet(final TrieMap<K, ?> map) {
+    AbstractKeySet(final M map) {
         this.map = requireNonNull(map);
-    }
-
-    final TrieMap<K, ?> map() {
-        return map;
     }
 
     @Override
@@ -75,27 +72,12 @@ abstract sealed class AbstractKeySet<K> extends AbstractSet<K> permits Immutable
         return Spliterators.spliterator(immutableIterator(), Long.MAX_VALUE, spliteratorCharacteristics());
     }
 
+    @Override
+    public abstract KeySetIterator<K> iterator();
+
+    final @NonNull KeySetIterator<K> immutableIterator() {
+        return new KeySetIterator<>(map.immutableIterator());
+    }
+
     abstract int spliteratorCharacteristics();
-
-    final Iterator<K> immutableIterator() {
-        return new Itr<>(map().immutableIterator());
-    }
-
-    private static final class Itr<K> implements Iterator<K> {
-        private final ImmutableIterator<K, ?> delegate;
-
-        Itr(final ImmutableIterator<K, ?> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return delegate.hasNext();
-        }
-
-        @Override
-        public K next() {
-            return delegate.next().getKey();
-        }
-    }
 }
