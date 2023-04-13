@@ -46,7 +46,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    private volatile Object root;
+    // Either an INode or a RDCSS_Descriptor
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace()")
+    private transient volatile Object root;
 
     MutableTrieMap() {
         this(newRootNode());
