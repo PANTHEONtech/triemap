@@ -23,6 +23,10 @@ import java.util.concurrent.ThreadLocalRandom;
 final class CNode<K, V> extends MainNode<K, V> {
     private static final BasicNode[] EMPTY_ARRAY = new BasicNode[0];
 
+    static {
+        Constants.verifyLevelBits();
+    }
+
     final int bitmap;
     final BasicNode[] array;
     final Gen gen;

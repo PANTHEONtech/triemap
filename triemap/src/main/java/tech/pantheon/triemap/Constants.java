@@ -31,9 +31,9 @@ final class Constants {
     static final int HASH_BITS = Integer.SIZE;
 
     /**
-     * Size of the CNode bitmap, in bits.
+     * Size of the CNode.bitmap field, in bits.
      */
-    static final int BITMAP_BITS = Integer.SIZE;
+    private static final int BITMAP_BITS = Integer.SIZE;
 
     /**
      * Number of hash bits consumed in each CNode level.
@@ -50,13 +50,15 @@ final class Constants {
      * they would be runtime constants. We really want them to be compile-time constants. Hence we seed them manually
      * and assert the constants are correct.
      */
-    static {
+    static void verifyLevelBits() {
         final int expectedBits = (int) (Math.log(BITMAP_BITS) / Math.log(2));
         if (LEVEL_BITS != expectedBits) {
             throw new AssertionError("BITMAP_BITS=%s implies LEVEL_BITS=%s, but %s found".formatted(BITMAP_BITS,
                 expectedBits, LEVEL_BITS));
         }
+    }
 
+    static void verifyMaxDepth() {
         final int expectedDepth = (int) Math.ceil((double)HASH_BITS / LEVEL_BITS);
         if (MAX_DEPTH != expectedDepth) {
             throw new AssertionError("HASH_BITS=%s and LEVEL_BITS=%s implies MAX_DEPTH=%s, but %s found".formatted(

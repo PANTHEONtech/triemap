@@ -30,6 +30,10 @@ import java.util.NoSuchElementException;
  * @param <V> the type of entry values
  */
 abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
+    static {
+        Constants.verifyMaxDepth();
+    }
+
     private final BasicNode[][] nodeStack = new BasicNode[MAX_DEPTH][];
     private final int[] positionStack = new int[MAX_DEPTH];
     private final TrieMap<K, V> map;
