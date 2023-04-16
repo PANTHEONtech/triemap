@@ -21,6 +21,7 @@ import java.util.AbstractSet;
 import java.util.Map.Entry;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * Abstract base class for implementing {@link TrieMap} entry sets.
@@ -32,14 +33,10 @@ import java.util.Spliterators;
  */
 abstract sealed class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>>
         permits ImmutableEntrySet, MutableEntrySet {
-    private final TrieMap<K, V> map;
+    final @NonNull TrieMap<K, V> map;
 
     AbstractEntrySet(final TrieMap<K, V> map) {
         this.map = requireNonNull(map);
-    }
-
-    final TrieMap<K, V> map() {
-        return map;
     }
 
     @Override

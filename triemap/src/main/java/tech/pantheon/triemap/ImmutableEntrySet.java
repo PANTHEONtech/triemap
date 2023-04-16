@@ -18,8 +18,6 @@ package tech.pantheon.triemap;
 import static tech.pantheon.triemap.ImmutableTrieMap.unsupported;
 
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Spliterator;
 
 /**
@@ -41,8 +39,8 @@ final class ImmutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
     }
 
     @Override
-    public Iterator<Entry<K, V>> iterator() {
-        return map().immutableIterator();
+    public ImmutableIterator<K, V> iterator() {
+        return map.immutableIterator();
     }
 
     @Override

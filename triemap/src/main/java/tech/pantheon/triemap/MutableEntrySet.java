@@ -15,7 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Spliterator;
 
@@ -32,12 +31,12 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
 
     @Override
     public void clear() {
-        map().clear();
+        map.clear();
     }
 
     @Override
-    public Iterator<Entry<K, V>> iterator() {
-        return map().iterator();
+    public AbstractIterator<K, V> iterator() {
+        return map.iterator();
     }
 
     @Override
@@ -56,7 +55,7 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
             return false;
         }
 
-        return map().remove(key, value);
+        return map.remove(key, value);
     }
 
     @Override
