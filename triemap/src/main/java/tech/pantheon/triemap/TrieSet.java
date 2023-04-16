@@ -105,16 +105,6 @@ public abstract class TrieSet<E> implements Set<E>, Serializable {
 
     @Override
     @SuppressWarnings("checkstyle:parameterName")
-    public final boolean addAll(final Collection<? extends E> c) {
-        boolean ret = false;
-        for (E e : c) {
-            ret |= add(e);
-        }
-        return ret;
-    }
-
-    @Override
-    @SuppressWarnings("checkstyle:parameterName")
     public final boolean contains(final Object o) {
         return map.containsKey(o);
     }
