@@ -60,11 +60,6 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
     }
 
     @Override
-    public final boolean isEmpty() {
-        return map.isEmpty();
-    }
-
-    @Override
     public final int size() {
         return map.size();
     }
