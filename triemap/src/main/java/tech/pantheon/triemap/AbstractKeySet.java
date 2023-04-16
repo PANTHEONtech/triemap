@@ -57,11 +57,6 @@ abstract sealed class AbstractKeySet<K, M extends TrieMap<K, ?>> extends Abstrac
     }
 
     @Override
-    public final boolean isEmpty() {
-        return map.isEmpty();
-    }
-
-    @Override
     public final int size() {
         return map.size();
     }
