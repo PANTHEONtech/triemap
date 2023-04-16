@@ -50,9 +50,8 @@ abstract sealed class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>>
         if (key == null) {
             return false;
         }
-
-        final var value = map.get(key);
-        return value != null && value.equals(entry.getValue());
+        final var value = entry.getValue();
+        return value != null && value.equals(map.get(key));
     }
 
     @Override
