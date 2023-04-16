@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.function.Predicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +57,12 @@ class ImmutableEntrySetTest {
     void testRemoveAll() {
         final var arg = List.of();
         assertThrows(UnsupportedOperationException.class, () -> set.removeAll(arg));
+    }
+
+    @Test
+    void testRemoveIf() {
+        final Predicate<Object> arg = obj -> false;
+        assertThrows(UnsupportedOperationException.class, () -> set.removeIf(arg));
     }
 
     @Test

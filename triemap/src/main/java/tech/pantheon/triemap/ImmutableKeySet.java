@@ -19,6 +19,7 @@ import static tech.pantheon.triemap.ImmutableTrieMap.unsupported;
 
 import java.util.Collection;
 import java.util.Spliterator;
+import java.util.function.Predicate;
 
 /**
  * An immutable view of a TrieMap's key set.
@@ -57,6 +58,11 @@ final class ImmutableKeySet<K> extends AbstractKeySet<K, ImmutableTrieMap<K, ?>>
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public boolean removeAll(final Collection<?> c) {
+        throw unsupported();
+    }
+
+    @Override
+    public boolean removeIf(final Predicate<? super K> filter) {
         throw unsupported();
     }
 

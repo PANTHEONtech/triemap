@@ -18,7 +18,9 @@ package tech.pantheon.triemap;
 import static tech.pantheon.triemap.ImmutableTrieMap.unsupported;
 
 import java.util.Collection;
+import java.util.Map.Entry;
 import java.util.Spliterator;
+import java.util.function.Predicate;
 
 /**
  * {@link AbstractEntrySet} implementation guarding against attempts to mutate the underlying map.
@@ -58,6 +60,11 @@ final class ImmutableEntrySet<K, V> extends AbstractEntrySet<K, V, ImmutableTrie
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public boolean retainAll(final Collection<?> c) {
+        throw unsupported();
+    }
+
+    @Override
+    public boolean removeIf(final Predicate<? super Entry<K, V>> filter) {
         throw unsupported();
     }
 
