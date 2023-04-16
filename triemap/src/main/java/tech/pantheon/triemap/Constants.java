@@ -15,6 +15,8 @@
  */
 package tech.pantheon.triemap;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * Various implementation-specific constants shared across classes.
  *
@@ -58,6 +60,7 @@ final class Constants {
         }
     }
 
+    @SuppressFBWarnings(value = "UM_UNNECESSARY_MATH", justification = "Verification of compile-time constants")
     static void verifyMaxDepth() {
         final int expectedDepth = (int) Math.ceil((double)HASH_BITS / LEVEL_BITS);
         if (MAX_DEPTH != expectedDepth) {
