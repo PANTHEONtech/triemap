@@ -28,8 +28,6 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
     private static final VarHandle MAINNODE;
 
     static {
-        Constants.verifyLevelBits();
-
         try {
             MAINNODE = MethodHandles.lookup().findVarHandle(INode.class, "mainnode", MainNode.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {

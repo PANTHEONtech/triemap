@@ -131,7 +131,8 @@ class MutableTrieSetTest {
 
     @Test
     void equalsNullIsFalse() {
-        assertFalse(TrieSet.create().equals(null));
+        // Scratching around our hear due to SonarCloud
+        assertNotEquals(TrieSet.create(), null);
     }
 
     @Test

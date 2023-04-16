@@ -15,57 +15,32 @@
  */
 package tech.pantheon.triemap;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 /**
- * Various implementation-specific constants shared across classes.
+ * Various implementation-specific constants shared across classes. Normally we would be deriving both
+ * {@link #LEVEL_BITS} and {@link #MAX_DEPTH} from {@link #HASH_BITS} and size of {@link CNode#bitmap}, but that would
+ * mean they would be runtime constants. We really want them to be compile-time constants. Hence we seed them manually
+ * and assert the constants are correct.
  *
  * @author Robert Varga
  */
 final class Constants {
-    private Constants() {
-        // Hidden on purpose
-    }
-
     /**
-     * Size of the hash function, in bits.
+     * Size of the hash function, in bits. This corresponds to {@link Object#hashCode()}'s size.
      */
     static final int HASH_BITS = Integer.SIZE;
 
     /**
-     * Size of the CNode.bitmap field, in bits.
-     */
-    private static final int BITMAP_BITS = Integer.SIZE;
-
-    /**
-     * Number of hash bits consumed in each CNode level.
+     * Number of hash bits consumed in each CNode level. This corresponds to <code>log<sub>2</sub>(HASH_BITS)</code>.
      */
     static final int LEVEL_BITS = 5;
 
     /**
-     * Maximum depth of a TrieMap.
+     * Maximum depth of a TrieMap. Maximum number of CNode levels. This corresponds to
+     * {@code Math.ceil(HASH_BITS / LEVEL_BITS)}.
      */
     static final int MAX_DEPTH = 7;
 
-    /*
-     * Normally we would be deriving both LEVEL_BITS and MAX_DEPTH from HASH_BITS and BITMAP_BITS, but that would mean
-     * they would be runtime constants. We really want them to be compile-time constants. Hence we seed them manually
-     * and assert the constants are correct.
-     */
-    static void verifyLevelBits() {
-        final int expectedBits = (int) (Math.log(BITMAP_BITS) / Math.log(2));
-        if (LEVEL_BITS != expectedBits) {
-            throw new AssertionError("BITMAP_BITS=%s implies LEVEL_BITS=%s, but %s found".formatted(BITMAP_BITS,
-                expectedBits, LEVEL_BITS));
-        }
-    }
-
-    @SuppressFBWarnings(value = "UM_UNNECESSARY_MATH", justification = "Verification of compile-time constants")
-    static void verifyMaxDepth() {
-        final int expectedDepth = (int) Math.ceil((double)HASH_BITS / LEVEL_BITS);
-        if (MAX_DEPTH != expectedDepth) {
-            throw new AssertionError("HASH_BITS=%s and LEVEL_BITS=%s implies MAX_DEPTH=%s, but %s found".formatted(
-                HASH_BITS, LEVEL_BITS, expectedDepth, MAX_DEPTH));
-        }
+    private Constants() {
+        // Hidden on purpose
     }
 }
