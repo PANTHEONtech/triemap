@@ -86,7 +86,6 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
      */
     public abstract ImmutableTrieSet<E> immutableSnapshot();
 
-
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public final boolean remove(final Object o) {

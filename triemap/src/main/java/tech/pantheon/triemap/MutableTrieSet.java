@@ -22,6 +22,7 @@ package tech.pantheon.triemap;
  * @author Robert Varga
  */
 public final class MutableTrieSet<E> extends TrieSet<E> {
+    @java.io.Serial
     private static final long serialVersionUID = 0L;
 
     MutableTrieSet(final MutableTrieMap<E, Boolean> map) {
