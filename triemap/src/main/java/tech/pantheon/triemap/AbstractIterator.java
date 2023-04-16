@@ -15,6 +15,7 @@
  */
 package tech.pantheon.triemap;
 
+import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.Constants.MAX_DEPTH;
 
 import java.util.Iterator;
@@ -29,21 +30,22 @@ import java.util.NoSuchElementException;
  * @param <K> the type of entry keys
  * @param <V> the type of entry values
  */
-abstract class AbstractIterator<K, V> implements Iterator<Entry<K, V>> {
+abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
+        permits ImmutableIterator, MutableIterator {
     static {
         Constants.verifyMaxDepth();
     }
 
     private final BasicNode[][] nodeStack = new BasicNode[MAX_DEPTH][];
     private final int[] positionStack = new int[MAX_DEPTH];
-    private final TrieMap<K, V> map;
+    private final ImmutableTrieMap<K, V> map;
 
     private LNodeEntries<K, V> lnode;
     private EntryNode<K, V> current;
     private int depth = -1;
 
     AbstractIterator(final ImmutableTrieMap<K, V> map) {
-        this.map = map;
+        this.map = requireNonNull(map);
         readin(map.readRoot());
     }
 
