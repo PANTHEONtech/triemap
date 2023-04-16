@@ -43,12 +43,6 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
 
     @Override
     @SuppressWarnings("checkstyle:parameterName")
-    public final boolean add(final K e) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @SuppressWarnings("checkstyle:parameterName")
     public final boolean addAll(final Collection<? extends K> c) {
         throw new UnsupportedOperationException();
     }
