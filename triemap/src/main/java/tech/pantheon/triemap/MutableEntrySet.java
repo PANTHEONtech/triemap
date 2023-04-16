@@ -24,8 +24,8 @@ import java.util.Spliterator;
  * @param <K> the type of keys
  * @param <V> the type of values
  */
-final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
-    MutableEntrySet(final TrieMap<K, V> map) {
+final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V, MutableTrieMap<K, V>> {
+    MutableEntrySet(final MutableTrieMap<K, V> map) {
         super(map);
     }
 
@@ -35,7 +35,7 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
     }
 
     @Override
-    public AbstractIterator<K, V> iterator() {
+    public MutableIterator<K, V> iterator() {
         return map.iterator();
     }
 

@@ -28,8 +28,8 @@ import java.util.Spliterator;
  * @param <K> the type of entry keys
  * @param <V> the type of entry values
  */
-final class ImmutableEntrySet<K, V> extends AbstractEntrySet<K, V> {
-    ImmutableEntrySet(final TrieMap<K, V> map) {
+final class ImmutableEntrySet<K, V> extends AbstractEntrySet<K, V, ImmutableTrieMap<K, V>> {
+    ImmutableEntrySet(final ImmutableTrieMap<K, V> map) {
         super(map);
     }
 
