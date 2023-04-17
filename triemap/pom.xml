@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
-        <artifactId>bundle-parent</artifactId>
+        <artifactId>bnd-parent</artifactId>
         <version>12.0.4</version>
         <relativePath />
     </parent>
@@ -27,24 +27,20 @@
     <groupId>tech.pantheon.triemap</groupId>
     <artifactId>triemap</artifactId>
     <version>1.3.1-SNAPSHOT</version>
-    <packaging>bundle</packaging>
 
     <name>PANTHEON.tech :: TrieMap</name>
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
     <url>https://github.com/PantheonTechnologies/triemap</url>
 
+    <dependencies>
+        <dependency>
+            <groupId>biz.aQute.bnd</groupId>
+            <artifactId>biz.aQute.bnd.annotation</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <configuration>
-                    <instructions>
-                        <Bundle-DocURL>https://github.com/PANTHEONtech/triemap</Bundle-DocURL>
-                        <Bundle-SymbolicName>tech.pantheon.triemap</Bundle-SymbolicName>
-                    </instructions>
-                </configuration>
-            </plugin>
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <executions>

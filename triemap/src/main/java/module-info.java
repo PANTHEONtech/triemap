@@ -18,4 +18,5 @@ module tech.pantheon.triemap {
 
     requires static com.github.spotbugs.annotations;
     requires static org.eclipse.jdt.annotation;
+    requires static org.osgi.annotation.bundle;
 }
