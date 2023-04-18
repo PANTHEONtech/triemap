@@ -17,4 +17,7 @@
  * Implementation of {@link java.util.Map} on top
  * of a <a href="https://en.wikipedia.org/wiki/Ctrie">concurrent hash-trie</a>.
  */
+@Export
 package tech.pantheon.triemap;
+
+import org.osgi.annotation.bundle.Export;
