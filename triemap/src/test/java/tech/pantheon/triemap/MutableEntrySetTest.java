@@ -21,14 +21,14 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
 public class MutableEntrySetTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
+    private static final String VALUE2 = "value2";
 
     private MutableEntrySet<String, String> set;
     private MutableTrieMap<String, String> map;
@@ -82,9 +82,34 @@ public class MutableEntrySetTest {
 
     @Test
     public void testIterator() {
-        final Iterator<Entry<String, String>> it = set.iterator();
+        final var it = set.iterator();
         assertTrue(it.hasNext());
         assertEquals(new SimpleImmutableEntry<>(KEY, VALUE), it.next());
         assertFalse(it.hasNext());
+    }
+
+    @Test
+    public void testIteratorSetValue() {
+        final var it = set.iterator();
+        assertTrue(it.hasNext());
+
+        final var entry = it.next();
+        assertEquals(Map.entry(KEY, VALUE), entry);
+        assertFalse(it.hasNext());
+
+        entry.setValue(VALUE2);
+        assertEquals(Map.entry(KEY, VALUE2), entry);
+        assertEquals(Map.of(KEY, VALUE2), map);
+    }
+
+    @Test
+    public void testSpliteratorSetValue() {
+        final var sp = set.spliterator();
+        assertTrue(sp.tryAdvance(entry -> {
+            assertEquals(Map.entry(KEY, VALUE), entry);
+            entry.setValue(VALUE2);
+            assertEquals(Map.entry(KEY, VALUE2), entry);
+        }));
+        assertEquals(Map.of(KEY, VALUE2), map);
     }
 }

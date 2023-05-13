@@ -15,6 +15,8 @@
  */
 package tech.pantheon.triemap;
 
+import java.util.Collection;
+
 /**
  * An immutable TrieSet. Does not allow modifications.
  *
@@ -31,5 +33,11 @@ public final class ImmutableTrieSet<E> extends TrieSet<E> {
     @Override
     public ImmutableTrieSet<E> immutableSnapshot() {
         return this;
+    }
+
+    @Override
+    @SuppressWarnings("checkstyle:parameterName")
+    public boolean addAll(final Collection<? extends E> c) {
+        throw new UnsupportedOperationException();
     }
 }

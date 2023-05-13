@@ -43,12 +43,6 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
 
     @Override
     @SuppressWarnings("checkstyle:parameterName")
-    public final boolean add(final K e) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @SuppressWarnings("checkstyle:parameterName")
     public final boolean addAll(final Collection<? extends K> c) {
         throw new UnsupportedOperationException();
     }
@@ -57,11 +51,6 @@ abstract class AbstractKeySet<K> extends AbstractSet<K> {
     @SuppressWarnings("checkstyle:parameterName")
     public final boolean contains(final Object o) {
         return map.containsKey(o);
-    }
-
-    @Override
-    public final boolean isEmpty() {
-        return map.isEmpty();
     }
 
     @Override

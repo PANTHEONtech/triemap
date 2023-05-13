@@ -85,7 +85,6 @@ public abstract class TrieSet<E> implements Set<E>, Serializable {
      */
     public abstract ImmutableTrieSet<E> immutableSnapshot();
 
-
     @Override
     @SuppressWarnings("checkstyle:parameterName")
     public final boolean remove(final Object o) {
@@ -102,16 +101,6 @@ public abstract class TrieSet<E> implements Set<E>, Serializable {
     @SuppressWarnings("checkstyle:parameterName")
     public final boolean add(final E e) {
         return map.putIfAbsent(e, Boolean.TRUE) == null;
-    }
-
-    @Override
-    @SuppressWarnings("checkstyle:parameterName")
-    public final boolean addAll(final Collection<? extends E> c) {
-        boolean ret = false;
-        for (E e : c) {
-            ret |= add(e);
-        }
-        return ret;
     }
 
     @Override

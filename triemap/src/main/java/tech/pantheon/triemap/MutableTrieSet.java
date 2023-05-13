@@ -15,6 +15,8 @@
  */
 package tech.pantheon.triemap;
 
+import java.util.Collection;
+
 /**
  * A mutable TrieSet.
  *
@@ -31,5 +33,15 @@ public final class MutableTrieSet<E> extends TrieSet<E> {
     @Override
     public ImmutableTrieSet<E> immutableSnapshot() {
         return new ImmutableTrieSet<>(map().immutableSnapshot());
+    }
+
+    @Override
+    @SuppressWarnings("checkstyle:parameterName")
+    public boolean addAll(final Collection<? extends E> c) {
+        boolean ret = false;
+        for (var e : c) {
+            ret |= add(e);
+        }
+        return ret;
     }
 }

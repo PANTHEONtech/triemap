@@ -48,14 +48,14 @@ abstract class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>> {
             return false;
         }
 
-        final var e = (Entry<?, ?>) o;
-        final var key = e.getKey();
+        final var entry = (Entry<?, ?>) o;
+        final var key = entry.getKey();
         if (key == null) {
             return false;
         }
 
-        final var v = map.get(key);
-        return v != null && v.equals(e.getValue());
+        final var value = entry.getValue();
+        return value != null && value.equals(map.get(key));
     }
 
     @Override
@@ -66,7 +66,7 @@ abstract class AbstractEntrySet<K, V> extends AbstractSet<Entry<K, V>> {
     @Override
     public final Spliterator<Entry<K, V>> spliterator() {
         // TODO: this is backed by an Iterator, we should be able to do better
-        return Spliterators.spliterator(map.immutableIterator(), Long.MAX_VALUE, characteristics());
+        return Spliterators.spliterator(map.iterator(), Long.MAX_VALUE, characteristics());
     }
 
     abstract int characteristics();
