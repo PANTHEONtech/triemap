@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 class MutableEntrySetTest {
     private static final String KEY = "key";
     private static final String VALUE = "value";
+    private static final String VALUE2 = "value2";
 
     private MutableEntrySet<String, String> set;
     private MutableTrieMap<String, String> map;
@@ -85,5 +86,30 @@ class MutableEntrySetTest {
         assertTrue(it.hasNext());
         assertEquals(Map.entry(KEY, VALUE), it.next());
         assertFalse(it.hasNext());
+    }
+
+    @Test
+    void testIteratorSetValue() {
+        final var it = set.iterator();
+        assertTrue(it.hasNext());
+
+        final var entry = it.next();
+        assertEquals(Map.entry(KEY, VALUE), entry);
+        assertFalse(it.hasNext());
+
+        entry.setValue(VALUE2);
+        assertEquals(Map.entry(KEY, VALUE2), entry);
+        assertEquals(Map.of(KEY, VALUE2), map);
+    }
+
+    @Test
+    void testSpliteratorSetValue() {
+        final var sp = set.spliterator();
+        assertTrue(sp.tryAdvance(entry -> {
+            assertEquals(Map.entry(KEY, VALUE), entry);
+            entry.setValue(VALUE2);
+            assertEquals(Map.entry(KEY, VALUE2), entry);
+        }));
+        assertEquals(Map.of(KEY, VALUE2), map);
     }
 }

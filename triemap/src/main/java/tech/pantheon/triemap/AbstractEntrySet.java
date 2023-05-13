@@ -62,7 +62,7 @@ abstract sealed class AbstractEntrySet<K, V, M extends TrieMap<K, V>> extends Ab
     @Override
     public final Spliterator<Entry<K, V>> spliterator() {
         // TODO: this is backed by an Iterator, we should be able to do better
-        return Spliterators.spliterator(map.immutableIterator(), Long.MAX_VALUE, characteristics());
+        return Spliterators.spliterator(map.iterator(), Long.MAX_VALUE, characteristics());
     }
 
     abstract int characteristics();
