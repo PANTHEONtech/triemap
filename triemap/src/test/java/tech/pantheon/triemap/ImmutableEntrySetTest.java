@@ -16,10 +16,12 @@
 package tech.pantheon.triemap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,11 +55,46 @@ public class ImmutableEntrySetTest {
 
     @Test
     public void testRemoveAll() {
-        assertThrows(UnsupportedOperationException.class, () -> set.removeAll(Collections.emptyList()));
+        assertThrows(UnsupportedOperationException.class, () -> set.removeAll(List.of()));
     }
 
     @Test
     public void testRetainAll() {
-        assertThrows(UnsupportedOperationException.class, () -> set.retainAll(Collections.emptyList()));
+        assertThrows(UnsupportedOperationException.class, () -> set.retainAll(List.of()));
+    }
+
+    @Test
+    public void testIteratorSetValue() {
+        final var map = TrieMap.create();
+        map.put("a", "b");
+        assertEquals(Map.of("a", "b"), map);
+
+        final var snap = map.immutableSnapshot();
+        assertEquals(Map.of("a", "b"), snap);
+
+        final var it = snap.createEntrySet().iterator();
+        assertTrue(it.hasNext());
+
+        final var entry = it.next();
+        assertEquals(Map.entry("a", "b"), entry);
+        assertFalse(it.hasNext());
+
+        assertThrows(UnsupportedOperationException.class, () -> entry.setValue("c"));
+        assertEquals(Map.entry("a", "b"), entry);
+        assertEquals(Map.of("a", "b"), snap);
+    }
+
+    @Test
+    public void testSpliteratorSetValue() {
+        final var map = TrieMap.create();
+        map.put("a", "b");
+        assertEquals(Map.of("a", "b"), map);
+
+        final var snap = map.immutableSnapshot();
+        final var sp = snap.createEntrySet().spliterator();
+        assertTrue(sp.tryAdvance(entry -> {
+            assertThrows(UnsupportedOperationException.class, () -> entry.setValue("c"));
+        }));
+        assertEquals(Map.of("a", "b"), snap);
     }
 }
