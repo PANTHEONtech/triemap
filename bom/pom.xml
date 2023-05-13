@@ -27,7 +27,7 @@
 
     <groupId>tech.pantheon.triemap</groupId>
     <artifactId>bom</artifactId>
-    <version>1.3.1-SNAPSHOT</version>
+    <version>1.3.1</version>
     <packaging>pom</packaging>
 
     <name>PANTHEON.tech :: TrieMap :: Bill of Materials</name>
@@ -39,12 +39,12 @@
             <dependency>
                 <groupId>tech.pantheon.triemap</groupId>
                 <artifactId>triemap</artifactId>
-                <version>1.3.1-SNAPSHOT</version>
+                <version>1.3.1</version>
             </dependency>
             <dependency>
                 <groupId>tech.pantheon.triemap</groupId>
                 <artifactId>pt-triemap</artifactId>
-                <version>1.3.1-SNAPSHOT</version>
+                <version>1.3.1</version>
                 <type>xml</type>
                 <classifier>features</classifier>
             </dependency>
@@ -85,7 +85,7 @@
     <scm>
         <connection>scm:git:https://github.com/PantheonTechnologies/triemap.git</connection>
         <url>https://github.com/PantheonTechnologies/triemap</url>
-      <tag>HEAD</tag>
+      <tag>triemap-1.3.1</tag>
   </scm>
     <developers>
         <developer>
