@@ -16,10 +16,12 @@
 package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,5 +71,40 @@ class ImmutableEntrySetTest {
     void testRetainAll() {
         final var arg = List.of();
         assertThrows(UnsupportedOperationException.class, () -> set.retainAll(arg));
+    }
+
+    @Test
+    void testIteratorSetValue() {
+        final var map = TrieMap.create();
+        map.put("a", "b");
+        assertEquals(Map.of("a", "b"), map);
+
+        final var snap = map.immutableSnapshot();
+        assertEquals(Map.of("a", "b"), snap);
+
+        final var it = snap.createEntrySet().iterator();
+        assertTrue(it.hasNext());
+
+        final var entry = it.next();
+        assertEquals(Map.entry("a", "b"), entry);
+        assertFalse(it.hasNext());
+
+        assertThrows(UnsupportedOperationException.class, () -> entry.setValue("c"));
+        assertEquals(Map.entry("a", "b"), entry);
+        assertEquals(Map.of("a", "b"), snap);
+    }
+
+    @Test
+    void testSpliteratorSetValue() {
+        final var map = TrieMap.create();
+        map.put("a", "b");
+        assertEquals(Map.of("a", "b"), map);
+
+        final var snap = map.immutableSnapshot();
+        final var sp = snap.createEntrySet().spliterator();
+        assertTrue(sp.tryAdvance(entry -> {
+            assertThrows(UnsupportedOperationException.class, () -> entry.setValue("c"));
+        }));
+        assertEquals(Map.of("a", "b"), snap);
     }
 }
