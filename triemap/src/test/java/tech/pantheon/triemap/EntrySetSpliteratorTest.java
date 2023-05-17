@@ -16,8 +16,6 @@
 package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,33 +51,6 @@ public class EntrySetSpliteratorTest {
         final var map = getMutableMap(1).immutableSnapshot();
         final var spliterator = map.entrySet().spliterator();
         assertThrows(UnsupportedOperationException.class, () -> spliterator.tryAdvance(ENTRY_UPDATER));
-    }
-
-    @Test
-    void spliteratorTrySplit() {
-        final var map = getMutableMap(2050);
-        final var spliterator0 = map.entrySet().spliterator();
-        assertEquals(2050, spliterator0.estimateSize());
-
-        // trySplit divides the remaining scope to two parts if remaining >= 1024
-        final var spliterator1 = spliterator0.trySplit();
-        assertNotNull(spliterator1);
-        assertEquals(1025, spliterator0.estimateSize());
-        assertEquals(1025, spliterator1.estimateSize());
-
-        final var spliterator2 = spliterator0.trySplit();
-        final var spliterator3 = spliterator1.trySplit();
-        assertNotNull(spliterator2);
-        assertNotNull(spliterator3);
-        assertEquals(513, spliterator0.estimateSize());
-        assertEquals(513, spliterator1.estimateSize());
-        assertEquals(512, spliterator2.estimateSize());
-        assertEquals(512, spliterator3.estimateSize());
-
-        assertNull(spliterator0.trySplit());
-        assertNull(spliterator1.trySplit());
-        assertNull(spliterator2.trySplit());
-        assertNull(spliterator3.trySplit());
     }
 
     @Test

@@ -71,8 +71,11 @@ final class ImmutableEntrySet<K, V> extends AbstractEntrySet<K, V, ImmutableTrie
 
     @Override
     public Spliterator<Entry<K, V>> spliterator() {
-        return new EntrySetSpliterator(map,
-            Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL,
-            UnaryOperator.identity());
+        return new EntrySetSpliterator<>(map, characteristics(), UnaryOperator.identity());
+    }
+
+    @Override
+    int characteristics() {
+        return Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL;
     }
 }
