@@ -20,7 +20,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.AbstractSet;
 import java.util.Map.Entry;
 import java.util.Spliterator;
-import java.util.Spliterators;
 import org.eclipse.jdt.annotation.NonNull;
 
 /**
@@ -60,10 +59,7 @@ abstract sealed class AbstractEntrySet<K, V, M extends TrieMap<K, V>> extends Ab
     }
 
     @Override
-    public final Spliterator<Entry<K, V>> spliterator() {
-        // TODO: this is backed by an Iterator, we should be able to do better
-        return Spliterators.spliterator(map.iterator(), Long.MAX_VALUE, characteristics());
-    }
+    public abstract Spliterator<Entry<K, V>> spliterator();
 
     abstract int characteristics();
 }

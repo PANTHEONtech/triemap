@@ -61,7 +61,6 @@ final class MutableEntrySet<K, V> extends AbstractEntrySet<K, V, MutableTrieMap<
     @Override
     public Spliterator<Entry<K, V>> spliterator() {
         return new EntrySetSpliterator<>(map, characteristics(), entry -> new MutableEntry<>(map, entry));
-
     }
 
     @Override
