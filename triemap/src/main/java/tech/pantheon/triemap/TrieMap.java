@@ -19,7 +19,10 @@ import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.LookupResult.RESTART;
 
 import java.io.Serializable;
-import java.util.AbstractMap;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -34,15 +37,14 @@ import java.util.concurrent.ConcurrentMap;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  */
-public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K,V>, Serializable
+public abstract sealed class TrieMap<K, V> implements ConcurrentMap<K,V>, Serializable
         permits ImmutableTrieMap, MutableTrieMap {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
 
     private transient AbstractEntrySet<K, V, ?> entrySet;
-    // Note: AbstractMap.keySet is something we do not have access to. At some point we should just not subclass
-    //       AbstractMap and lower our memory footprint.
-    private transient AbstractKeySet<K, ?> theKeySet;
+    private transient AbstractKeySet<K, ?> keySet;
+    private transient AbstractCollection<V> values;
 
     TrieMap() {
         // Hidden on purpose
@@ -94,7 +96,23 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
 
     @Override
     public final boolean containsValue(final Object value) {
-        return super.containsValue(requireNonNull(value));
+        Iterator<Entry<K,V>> iterator = entrySet().iterator();
+        if (value == null) {
+            while (iterator.hasNext()) {
+                Entry<K,V> entry = iterator.next();
+                if (entry.getValue() == null) {
+                    return true;
+                }
+            }
+        } else {
+            while (iterator.hasNext()) {
+                Entry<K,V> entry = iterator.next();
+                if (value.equals(entry.getValue())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -106,7 +124,60 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     @Override
     public final Set<K> keySet() {
         final AbstractKeySet<K, ?> ret;
-        return (ret = theKeySet) != null ? ret : (theKeySet = createKeySet());
+        return (ret = keySet) != null ? ret : (keySet = createKeySet());
+    }
+
+    @Override
+    public Collection<V> values() {
+        final AbstractCollection<V> ret;
+        return (ret = values) != null ? ret : (values = createValues());
+    }
+
+    @Override
+    public void putAll(Map<? extends K, ? extends V> map) {
+        for (Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract boolean equals(Object anObject);
+
+    @Override
+    public abstract String toString();
+
+    private AbstractCollection<V> createValues() {
+        return new AbstractCollection<V>() {
+            public Iterator<V> iterator() {
+                AbstractEntrySet<K, V, ?> abstractEntrySet = (AbstractEntrySet<K, V, ?>)TrieMap.this.entrySet();
+                return new ValuesIterator<V>((AbstractIterator<K, V>)abstractEntrySet.iterator());
+            }
+
+            public int size() {
+                return TrieMap.this.size();
+            }
+
+            public boolean isEmpty() {
+                return TrieMap.this.isEmpty();
+            }
+
+            public void clear() {
+                TrieMap.this.clear();
+            }
+
+            public boolean contains(Object object) {
+                return TrieMap.this.containsValue(object);
+            }
+        };
+
     }
 
     @Override
