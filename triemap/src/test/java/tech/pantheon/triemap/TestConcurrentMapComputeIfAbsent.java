@@ -15,35 +15,31 @@
  */
 package tech.pantheon.triemap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-
 import org.junit.jupiter.api.Test;
 
-class TestConcurrentMapPutIfAbsent {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
+class TestConcurrentMapComputeIfAbsent {
     private static final int COUNT = 50 * 1000;
 
     @Test
-    void testConcurrentMapPutIfAbsent() {
+    void testConcurrentMapComputeIfAbsentReturnsComputedValue() {
         final var map = TrieMap.create();
-
         for (int i = 0; i < COUNT; i++) {
-            assertNull(map.putIfAbsent(i, i + 10));
-            assertEquals(i + 10, map.get(i));
+            assertEquals(Integer.toString(i), map.computeIfAbsent(i, Object::toString));
         }
     }
 
     @Test
-    void testConcurrentMapPutIfAbsentSkipsIfPresent() {
+    void testConcurrentMapComputeIfAbsentDoesNotComputeIfPresent() {
         final var map = TrieMap.create();
-
         for (int i = 0; i < COUNT; i++) {
-            map.put(i, i + 10);
-            assertEquals(i + 10, map.putIfAbsent(i, i + 20));
+            map.put(i, Integer.toString(i));
+            assertEquals(Integer.toString(i), map.computeIfAbsent(i,
+                    (ignored) -> fail("Should not have called function")));
         }
     }
-
 
     @Test
     void testConflictingHash() {
@@ -57,13 +53,13 @@ class TestConcurrentMapPutIfAbsent {
 
         final var map = TrieMap.<ZeroHashInt, ZeroHashInt>create();
         // Pre-populate an LNode
-        assertNull(map.putIfAbsent(k1, v1));
-        assertNull(map.putIfAbsent(k2, v2));
-        assertNull(map.putIfAbsent(k3, v3));
+        assertSame(v1, map.computeIfAbsent(k1, k -> v1));
+        assertSame(v2, map.computeIfAbsent(k2, k -> v2));
+        assertSame(v3, map.computeIfAbsent(k3, k -> v3));
 
         // Check with identical key
-        assertSame(v3, map.putIfAbsent(k3, v3));
+        assertSame(v3, map.computeIfAbsent(k3, k -> v3));
         // Check with equivalent key
-        assertSame(v3, map.putIfAbsent(k3dup, v3));
+        assertSame(v3, map.computeIfAbsent(k3dup, k -> v3));
     }
 }

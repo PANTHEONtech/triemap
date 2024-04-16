@@ -33,7 +33,7 @@ class TestConcurrentMapReplace {
             assertNull(map.replace(i, "lol"));
             assertFalse(map.replace(i, i, "lol2"));
             assertNull(map.put(i, i));
-            assertEquals(Integer.valueOf(i), map.replace(i, "lol"));
+            assertEquals(i, map.replace(i, "lol"));
             assertFalse(map.replace(i, i, "lol2"));
             assertTrue(map.replace(i, "lol", i));
         }
