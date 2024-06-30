@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 /**
- * Implementation of {@link java.util.Map} on top
+ * Implementation of {@link java.util.concurrent.ConcurrentMap} on top
  * of a <a href="https://en.wikipedia.org/wiki/Ctrie">concurrent hash-trie</a>.
  */
-@Export
+@org.osgi.annotation.bundle.Export
 package tech.pantheon.triemap;
-
-import org.osgi.annotation.bundle.Export;
