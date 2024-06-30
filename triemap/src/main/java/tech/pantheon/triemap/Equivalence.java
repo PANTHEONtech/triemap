@@ -36,11 +36,15 @@ abstract class Equivalence implements Serializable {
         static final Equals INSTANCE = new Equals();
 
         @Override
-        Object readResolve() {
+        Equivalence resolve() {
             return INSTANCE;
         }
     }
 
     @java.io.Serial
-    abstract Object readResolve();
+    final Object readResolve() {
+        return resolve();
+    }
+
+    abstract Equivalence resolve();
 }
