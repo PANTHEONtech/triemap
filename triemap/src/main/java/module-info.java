@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * An implementation of {@link java.util.concurrent.ConcurrentMap} based on
+ * <a href="https://en.wikipedia.org/wiki/Ctrie">concurrent hash-trie</a>.
+ */
 module tech.pantheon.triemap {
     exports tech.pantheon.triemap;
 

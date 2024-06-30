@@ -32,6 +32,10 @@
     <description>Java implementation of a concurrent trie hash map from Scala collections library</description>
     <url>https://github.com/PantheonTechnologies/triemap</url>
 
+    <properties>
+        <maven.javadoc.failOnWarnings>true</maven.javadoc.failOnWarnings>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>biz.aQute.bnd</groupId>

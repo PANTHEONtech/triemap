@@ -54,6 +54,12 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
         set = map.createKeySet();
     }
 
+    /**
+     * Create a new {@link MutableTrieSet}.
+     *
+     * @param <E> element type
+     * @return A new {@link MutableTrieSet}.
+     */
     public static <E> MutableTrieSet<E> create() {
         return new MutableTrieSet<>(TrieMap.create());
     }
@@ -193,6 +199,11 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
         return set.toString();
     }
 
+    /**
+     * Replace this set with its {@link SerializedForm}.
+     *
+     * @return {@link SerializedForm}
+     */
     @java.io.Serial
     final Object writeReplace() {
         return new SerializedForm(this);

@@ -48,6 +48,13 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         // Hidden on purpose
     }
 
+    /**
+     * Create a new {@link MutableTrieMap}.
+     *
+     * @param <K> key type
+     * @param <V> value type
+     * @return A new {@link MutableTrieMap}.
+     */
     public static <K, V> MutableTrieMap<K, V> create() {
         return new MutableTrieMap<>();
     }
@@ -186,6 +193,11 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         return hash;
     }
 
+    /**
+     * Replace this set with its {@link SerializationProxy}.
+     *
+     * @return {@link SerializationProxy}
+     */
     @java.io.Serial
     final Object writeReplace() {
         return new SerializationProxy(immutableSnapshot(), isReadOnly());
