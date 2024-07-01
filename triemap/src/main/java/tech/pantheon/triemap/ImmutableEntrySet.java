@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Spliterator;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 /**
  * {@link AbstractEntrySet} implementation guarding against attempts to mutate the underlying map.
@@ -66,6 +67,11 @@ final class ImmutableEntrySet<K, V> extends AbstractEntrySet<K, V, ImmutableTrie
     @Override
     public boolean removeIf(final Predicate<? super Entry<K, V>> filter) {
         throw unsupported();
+    }
+
+    @Override
+    public Spliterator<Entry<K, V>> spliterator() {
+        return new EntrySetSpliterator<>(map, characteristics(), UnaryOperator.identity());
     }
 
     @Override
