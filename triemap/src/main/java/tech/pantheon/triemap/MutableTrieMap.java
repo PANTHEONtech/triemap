@@ -131,6 +131,22 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
+    public int hashCode() {
+        return immutableSnapshot().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object anObject) {
+        return immutableSnapshot().equals(anObject);
+    }
+
+    @Override
+    public String toString() {
+        return immutableSnapshot().toString();
+    }
+
+
+    @Override
     MutableEntrySet<K, V> createEntrySet() {
         // FIXME: it would be nice to have a ReadWriteTrieMap with read-only iterator
         //        if (readOnlyEntrySet) return ImmutableEntrySet(this);
