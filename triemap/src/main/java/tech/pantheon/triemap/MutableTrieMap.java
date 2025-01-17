@@ -156,13 +156,15 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @SuppressWarnings("unchecked")
     INode<K, V> rdcssReadRoot(final boolean abort) {
         final var r = /* READ */ root;
-        if (r instanceof INode) {
-            return (INode<K, V>) r;
+        final INode<?, ?> ret;
+        if (r instanceof INode<?, ?> inode) {
+            ret = inode;
+        } else if (r instanceof RDCSS_Descriptor<?, ?> desc) {
+            ret = rdcssComplete(desc, abort);
+        } else {
+            throw new VerifyException("Unhandled root " + r);
         }
-        if (r instanceof RDCSS_Descriptor) {
-            return rdcssComplete((RDCSS_Descriptor<K, V>) r, abort);
-        }
-        throw new VerifyException("Unhandled root " + r);
+        return (INode<K, V>) ret;
     }
 
     void add(final K key, final V value) {
@@ -218,8 +220,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
-    private INode<K, V> rdcssComplete(final RDCSS_Descriptor<K, V> initial, final boolean abort) {
+    private INode<?, ?> rdcssComplete(final RDCSS_Descriptor<?, ?> initial, final boolean abort) {
         var desc = initial;
 
         while (true) {
@@ -240,15 +241,14 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 }
             }
 
-            if (next instanceof INode) {
-                return (INode<K, V>) next;
-            }
-            if (!(next instanceof RDCSS_Descriptor)) {
+            if (next instanceof INode<?, ?> inode) {
+                return inode;
+            } else if (next instanceof RDCSS_Descriptor<?, ?> nextDesc) {
+                // Tail recursion: return rdcssComplete(nextDesc, abort);
+                desc = nextDesc;
+            } else {
                 throw new VerifyException("Unhandled root " + next);
             }
-
-            // Tail recursion: return rdcssComplete(next, abort);
-            desc = (RDCSS_Descriptor<K, V>) next;
         }
     }
 
