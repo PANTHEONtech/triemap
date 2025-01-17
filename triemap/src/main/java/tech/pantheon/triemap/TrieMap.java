@@ -60,35 +60,26 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     }
 
     /**
-     * Returns a snapshot of this TrieMap. This operation is lock-free and
-     * linearizable. Modification operations on this Map and the returned one
-     * are isolated from each other.
+     * Returns a snapshot of this TrieMap. This operation is lock-free and linearizable. Modification operations on
+     * this Map and the returned one are isolated from each other.
      *
-     * <p>
-     * The snapshot is lazily updated - the first time some branch in the
-     * snapshot or this TrieMap are accessed, they are rewritten. This means
-     * that the work of rebuilding both the snapshot and this TrieMap is
-     * distributed across all the threads doing updates or accesses subsequent
-     * to the snapshot creation.
+     * <p>The snapshot is lazily updated - the first time some branch in the snapshot or this TrieMap are accessed,
+     * they are rewritten. This means that the work of rebuilding both the snapshot and this TrieMap is distributed
+     * across all the threads doing updates or accesses subsequent to the snapshot creation.
      *
      * @return A read-write TrieMap containing the contents of this map.
      */
     public abstract MutableTrieMap<K, V> mutableSnapshot();
 
     /**
-     * Returns a read-only snapshot of this TrieMap. This operation is lock-free
-     * and linearizable.
+     * Returns a read-only snapshot of this TrieMap. This operation is lock-free and linearizable.
      *
-     * <p>
-     * The snapshot is lazily updated - the first time some branch of this
-     * TrieMap are accessed, it is rewritten. The work of creating the snapshot
-     * is thus distributed across subsequent updates and accesses on this
-     * TrieMap by all threads. Note that the snapshot itself is never rewritten
-     * unlike when calling {@link #mutableSnapshot()}, but the obtained snapshot
-     * cannot be modified.
+     * <p>The snapshot is lazily updated - the first time some branch of this TrieMap are accessed, it is rewritten.
+     * The work of creating the snapshot is thus distributed across subsequent updates and accesses on this TrieMap
+     * by all threads. Note that the snapshot itself is never rewritten unlike when calling {@link #mutableSnapshot()},
+     * but the obtained snapshot cannot be modified.
      *
-     * <p>
-     * This method is used by other methods such as `size` and `iterator`.
+     * <p>This method is used by other methods such as `size` and `iterator`.
      *
      * @return A read-only TrieMap containing the contents of this map.
      */
@@ -160,12 +151,10 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     /**
      * Return an iterator over a TrieMap.
      *
-     * <p>
-     * If this is a read-only snapshot, it would return a read-only iterator.
+     * <p>If this is a read-only snapshot, it would return a read-only iterator.
      *
-     * <p>
-     * If it is the original TrieMap or a non-readonly snapshot, it would return
-     * an iterator that would allow for updates.
+     * <p>If it is the original TrieMap or a non-readonly snapshot, it would return an iterator that would allow for
+     * updates.
      *
      * @return An iterator.
      */
