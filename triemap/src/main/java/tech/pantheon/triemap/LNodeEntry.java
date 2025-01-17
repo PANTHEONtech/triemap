@@ -28,7 +28,7 @@ import org.eclipse.jdt.annotation.NonNull;
  * @param <K> the type of key
  * @param <V> the type of value
  */
-abstract class LNodeEntry<K, V> implements Entry<K, V> {
+abstract sealed class LNodeEntry<K, V> implements Entry<K, V> permits LNodeEntries {
     private final K key;
     private final V value;
 
