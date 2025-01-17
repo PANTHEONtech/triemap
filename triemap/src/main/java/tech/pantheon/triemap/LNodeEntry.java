@@ -27,7 +27,7 @@ import org.eclipse.jdt.annotation.NonNull;
  * @param <K> the type of key
  * @param <V> the type of value
  */
-abstract sealed class LNodeEntry<K, V> implements Entry<K, V> permits LNodeEntries {
+abstract sealed class LNodeEntry<K, V> extends AbstractEntry<K, V> permits LNodeEntries {
     private final K key;
     private final V value;
 
@@ -54,20 +54,5 @@ abstract sealed class LNodeEntry<K, V> implements Entry<K, V> permits LNodeEntri
     @SuppressWarnings("checkstyle:hiddenField")
     public final V setValue(final V value) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public final int hashCode() {
-        return EntryUtil.entryHashCode(key, value);
-    }
-
-    @Override
-    public final boolean equals(final Object obj) {
-        return EntryUtil.entryEquals(obj, key, value);
-    }
-
-    @Override
-    public final String toString() {
-        return EntryUtil.entryToString(key, value);
     }
 }

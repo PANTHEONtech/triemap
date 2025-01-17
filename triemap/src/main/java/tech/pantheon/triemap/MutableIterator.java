@@ -58,14 +58,14 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
      * <p>The behavior is similar to what Java 8's ConcurrentHashMap does, which is probably the most consistent
      * handling of this case without requiring expensive and revalidation.
      */
-    private static final class MutableEntry<K, V> implements Entry<K, V> {
+    static final class MutableEntry<K, V> extends AbstractEntry<K, V> {
         private final MutableTrieMap<K, V> map;
         private final Entry<K, V> delegate;
 
         @SuppressWarnings("null")
         private V newValue = null;
 
-        MutableEntry(final MutableTrieMap<K, V> map, final Entry<K, V> delegate) {
+        private MutableEntry(final MutableTrieMap<K, V> map, final Entry<K, V> delegate) {
             this.map = map;
             this.delegate = delegate;
         }
@@ -100,21 +100,6 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
             map.put(getKey(), value);
             newValue = value;
             return ret;
-        }
-
-        @Override
-        public int hashCode() {
-            return EntryUtil.entryHashCode(getKey(), getValue());
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            return EntryUtil.entryEquals(obj, getKey(), getValue());
-        }
-
-        @Override
-        public String toString() {
-            return EntryUtil.entryToString(getKey(), getValue());
         }
     }
 }

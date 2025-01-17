@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class LNodeEntryTest {
@@ -27,20 +26,15 @@ class LNodeEntryTest {
     private static final String KEY2 = "key2";
     private static final String VALUE = "value";
 
-    private LNodeEntry<String, String> entry;
-
-    @BeforeEach
-    void before() {
-        entry = LNodeEntries.map(KEY1, VALUE, KEY2, VALUE);
-    }
+    private final LNodeEntries<String, String> entry = LNodeEntries.map(KEY1, VALUE, KEY2, VALUE);
 
     @Test
     void testEntryUtil() {
-        assertEquals(EntryUtil.entryHashCode(KEY1, VALUE), entry.hashCode());
-        assertEquals(EntryUtil.entryToString(KEY1, VALUE), entry.toString());
+        assertEquals(AbstractEntry.hashCode(KEY1, VALUE), entry.hashCode());
+        assertEquals(AbstractEntry.toString(KEY1, VALUE), entry.toString());
 
         final var testEntry = Map.entry(KEY1, VALUE);
-        assertEquals(EntryUtil.entryEquals(testEntry, KEY1, VALUE), entry.equals(testEntry));
+        assertEquals(AbstractEntry.equals(testEntry, KEY1, VALUE), entry.equals(testEntry));
     }
 
     @Test

@@ -22,30 +22,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class EntryUtilTest {
+class AbstractEntryTest {
     @Test
     void testEqual() {
-        final Object key = new Object();
-        final Object value = new Object();
-        assertFalse(EntryUtil.entryEquals(null, key, value));
-        assertFalse(EntryUtil.entryEquals(key, key, value));
+        final var key = new Object();
+        final var value = new Object();
+        assertFalse(AbstractEntry.equals(null, key, value));
+        assertFalse(AbstractEntry.equals(key, key, value));
 
         final var entry = Map.entry(key, value);
-        assertTrue(EntryUtil.entryEquals(entry, key, value));
-        assertFalse(EntryUtil.entryEquals(entry, value, value));
-        assertFalse(EntryUtil.entryEquals(entry, key, key));
+        assertTrue(AbstractEntry.equals(entry, key, value));
+        assertFalse(AbstractEntry.equals(entry, value, value));
+        assertFalse(AbstractEntry.equals(entry, key, key));
     }
 
     @Test
     void testHash() {
-        final Object key = new Object();
-        final Object value = new Object();
-        assertEquals(key.hashCode() ^ value.hashCode(), EntryUtil.entryHashCode(key, value));
+        final var key = new Object();
+        final var value = new Object();
+        assertEquals(key.hashCode() ^ value.hashCode(), AbstractEntry.hashCode(key, value));
     }
 
     @Test
     void testString() {
-        assertEquals("foo=bar", EntryUtil.entryToString("foo", "bar"));
+        assertEquals("foo=bar", AbstractEntry.toString("foo", "bar"));
     }
-
 }

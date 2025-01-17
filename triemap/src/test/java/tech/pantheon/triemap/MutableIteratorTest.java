@@ -39,11 +39,11 @@ class MutableIteratorTest {
     void testEntryUtil() {
         final var entry = it.next();
 
-        assertEquals(EntryUtil.entryHashCode(KEY, VALUE), entry.hashCode());
-        assertEquals(EntryUtil.entryToString(KEY, VALUE), entry.toString());
+        assertEquals(AbstractEntry.hashCode(KEY, VALUE), entry.hashCode());
+        assertEquals(AbstractEntry.toString(KEY, VALUE), entry.toString());
 
         final var testEntry = Map.entry(KEY, VALUE);
-        assertEquals(EntryUtil.entryEquals(testEntry, KEY, VALUE), entry.equals(entry));
+        assertEquals(AbstractEntry.equals(testEntry, KEY, VALUE), entry.equals(entry));
     }
 
     @Test

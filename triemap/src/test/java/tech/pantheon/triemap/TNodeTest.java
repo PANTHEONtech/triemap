@@ -50,10 +50,10 @@ class TNodeTest {
 
     @Test
     void testEntryUtil() {
-        assertEquals(EntryUtil.entryHashCode(KEY, VALUE), tnode.hashCode());
-        assertEquals(EntryUtil.entryToString(KEY, VALUE), tnode.toString());
+        assertEquals(AbstractEntry.hashCode(KEY, VALUE), tnode.hashCode());
+        assertEquals(AbstractEntry.toString(KEY, VALUE), tnode.toString());
 
         final var entry = Map.entry(KEY, VALUE);
-        assertEquals(EntryUtil.entryEquals(entry, KEY, VALUE), tnode.equals(entry));
+        assertEquals(AbstractEntry.equals(entry, KEY, VALUE), tnode.equals(entry));
     }
 }
