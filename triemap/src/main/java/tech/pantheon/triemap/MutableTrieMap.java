@@ -220,49 +220,35 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @SuppressWarnings("unchecked")
     private INode<K, V> rdcssComplete(final RDCSS_Descriptor<K, V> initial, final boolean abort) {
-        Root r = initial;
+        var desc = initial;
 
         while (true) {
-            if (r instanceof INode) {
-                return (INode<K, V>) r;
-            }
-            if (!(r instanceof RDCSS_Descriptor)) {
-                throw new VerifyException("Unhandled root " + r);
-            }
+            final Root next;
 
-            final var desc = (RDCSS_Descriptor<K, V>) r;
             final var ov = desc.old;
-            final var exp = desc.expectedmain;
-            final var nv = desc.nv;
-
-            if (abort) {
-                r = casRoot(desc, ov);
-                if (r == desc) {
+            if (abort || ov.gcasRead(this) != desc.expectedmain) {
+                next = casRoot(desc, ov);
+                if (next == desc) {
                     return ov;
                 }
-
-                // Tail recursion: return RDCSS_Complete(abort);
-                continue;
-            }
-
-            final var oldmain = ov.gcasRead(this);
-            if (oldmain == exp) {
-                r = casRoot(desc, nv);
-                if (r == desc) {
+            } else {
+                final var nv = desc.nv;
+                next = casRoot(desc, nv);
+                if (next == desc) {
                     desc.committed = true;
                     return nv;
                 }
-
-                // Tail recursion: return RDCSS_Complete(abort);
-                continue;
             }
 
-            r = casRoot(desc, ov);
-            if (r == desc) {
-                return ov;
+            if (next instanceof INode) {
+                return (INode<K, V>) next;
+            }
+            if (!(next instanceof RDCSS_Descriptor)) {
+                throw new VerifyException("Unhandled root " + next);
             }
 
-            // Tail recursion: return RDCSS_Complete(abort);
+            // Tail recursion: return rdcssComplete(next, abort);
+            desc = (RDCSS_Descriptor<K, V>) next;
         }
     }
 
