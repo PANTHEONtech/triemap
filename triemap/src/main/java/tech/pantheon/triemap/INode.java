@@ -66,7 +66,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
 
             if (prev instanceof FailedNode) {
                 // try to commit to previous value
-                FailedNode<K, V> fn = (FailedNode<K, V>) prev;
+                final var fn = (FailedNode<K, V>) prev;
                 if (MAINNODE.compareAndSet(this, main, fn.readPrev())) {
                     return fn.readPrev();
                 }
@@ -139,7 +139,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
 
             if (m instanceof CNode) {
                 // 1) a multiway node
-                final CNode<K, V> cn = (CNode<K, V>) m;
+                final var cn = (CNode<K, V>) m;
                 final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
@@ -226,7 +226,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
 
             if (m instanceof CNode) {
                 // 1) a multiway node
-                final CNode<K, V> cn = (CNode<K, V>) m;
+                final var cn = (CNode<K, V>) m;
                 final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
@@ -235,7 +235,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
 
                 if ((bmp & flag) != 0) {
                     // 1a) insert below
-                    final BasicNode cnAtPos = cn.array[pos];
+                    final var cnAtPos = cn.array[pos];
                     if (cnAtPos instanceof INode) {
                         @SuppressWarnings("unchecked")
                         final var in = (INode<K, V>) cnAtPos;
