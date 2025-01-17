@@ -23,21 +23,16 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class LNodeEntriesTest {
-    private LNodeEntries<Integer, Boolean> map;
-
-    @BeforeEach
-    void before() {
-        map = LNodeEntries.map(1, TRUE, 2, TRUE);
-    }
+    private LNodeEntries<Integer, Boolean> map = LNodeEntries.map(1, TRUE, 2, TRUE);
 
     @Test
     void testReplaceInvalid() {
         final var lnode = new LNodeEntries.Single<>(1, TRUE);
-        assertThrows(VerifyException.class, () -> map.replace(lnode, FALSE));
+        final var ex = assertThrows(VerifyException.class, () -> map.replace(lnode, FALSE));
+        assertEquals("Failed to find entry 1=true", ex.getMessage());
     }
 
     @Test
