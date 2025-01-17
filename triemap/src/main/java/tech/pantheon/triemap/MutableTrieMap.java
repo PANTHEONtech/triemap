@@ -203,13 +203,14 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         return res;
     }
 
-    private boolean casRoot(final Root ov, final Root nv) {
-        return ROOT.compareAndSet(this, ov, nv);
+    private Root casRoot(final Root ov, final Root nv) {
+        return (Root) ROOT.compareAndExchange(this, ov, nv);
     }
 
     private boolean rdcssRoot(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
         final var desc = new RDCSS_Descriptor<>(ov, expectedmain, nv);
-        if (casRoot(ov, desc)) {
+        final var witness = casRoot(ov, desc);
+        if (witness == ov) {
             rdcssComplete(false);
             return /* READ */desc.committed;
         }
@@ -219,8 +220,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @SuppressWarnings("unchecked")
     private INode<K, V> rdcssComplete(final boolean abort) {
+        var r = /* READ */ root;
+
         while (true) {
-            final var r = /* READ */ root;
             if (r instanceof INode) {
                 return (INode<K, V>) r;
             }
@@ -234,7 +236,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             final var nv = desc.nv;
 
             if (abort) {
-                if (casRoot(desc, ov)) {
+                r = casRoot(desc, ov);
+                if (r == desc) {
                     return ov;
                 }
 
@@ -244,7 +247,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
             final var oldmain = ov.gcasRead(this);
             if (oldmain == exp) {
-                if (casRoot(desc, nv)) {
+                r = casRoot(desc, nv);
+                if (r == desc) {
                     desc.committed = true;
                     return nv;
                 }
@@ -253,7 +257,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 continue;
             }
 
-            if (casRoot(desc, ov)) {
+            r = casRoot(desc, ov);
+            if (r == desc) {
                 return ov;
             }
 
