@@ -67,12 +67,14 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
             if (prev instanceof FailedNode) {
                 // try to commit to previous value
                 final var fn = (FailedNode<K, V>) prev;
-                if (MAINNODE.compareAndSet(this, main, fn.readPrev())) {
+                final var witness = (MainNode<K, V>) MAINNODE.compareAndExchange(this, main, fn.readPrev());
+                if (witness == main) {
+                    // TODO: second read of FailedNode.prev. Can a FailedNode move?
                     return fn.readPrev();
                 }
 
-                // Tail recursion: return GCAS_Complete(/* READ */ mainnode, ct);
-                main = /* READ */ mainnode;
+                // Tail recursion: return GCAS_Complete(witness, ct);
+                main = witness;
                 continue;
             }
 
