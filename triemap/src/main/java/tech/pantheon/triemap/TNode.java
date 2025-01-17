@@ -52,16 +52,16 @@ final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
 
     @Override
     public int hashCode() {
-        return EntryUtil.entryHashCode(key, value);
+        return AbstractEntry.hashCode(key, value);
     }
 
     @Override
     public boolean equals(final Object obj) {
-        return EntryUtil.entryEquals(obj, key, value);
+        return AbstractEntry.equals(obj, key, value);
     }
 
     @Override
     public String toString() {
-        return EntryUtil.entryToString(key, value);
+        return AbstractEntry.toString(key, value);
     }
 }
