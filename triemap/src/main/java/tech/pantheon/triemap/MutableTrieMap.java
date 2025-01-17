@@ -212,7 +212,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         final var witness = casRoot(ov, desc);
         if (witness == ov) {
             rdcssComplete(desc, false);
-            return /* READ */ desc.committed;
+            return desc.readCommitted();
         }
 
         return false;
@@ -235,7 +235,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 final var nv = desc.nv;
                 next = casRoot(desc, nv);
                 if (next == desc) {
-                    desc.committed = true;
+                    desc.setCommitted();
                     return nv;
                 }
             }
@@ -262,13 +262,21 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         final MainNode<K, V> expectedmain;
         final INode<K, V> nv;
 
-        // FIXME: use VarHandle for access?
-        volatile boolean committed = false;
+        // TODO: GH-60: can we use getAcquire()/setRelease() here?
+        private volatile boolean committed;
 
         RDCSS_Descriptor(final INode<K, V> old, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
             this.old = old;
             this.expectedmain = expectedmain;
             this.nv = nv;
+        }
+
+        boolean readCommitted() {
+            return committed;
+        }
+
+        void setCommitted() {
+            committed = true;
         }
     }
 }
