@@ -160,7 +160,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             return (INode<K, V>) r;
         }
         if (r instanceof RDCSS_Descriptor) {
-            return rdcssComplete(abort);
+            return rdcssComplete((RDCSS_Descriptor<K, V>) r, abort);
         }
         throw new VerifyException("Unhandled root " + r);
     }
@@ -211,16 +211,16 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         final var desc = new RDCSS_Descriptor<>(ov, expectedmain, nv);
         final var witness = casRoot(ov, desc);
         if (witness == ov) {
-            rdcssComplete(false);
-            return /* READ */desc.committed;
+            rdcssComplete(desc, false);
+            return /* READ */ desc.committed;
         }
 
         return false;
     }
 
     @SuppressWarnings("unchecked")
-    private INode<K, V> rdcssComplete(final boolean abort) {
-        var r = /* READ */ root;
+    private INode<K, V> rdcssComplete(final RDCSS_Descriptor<K, V> initial, final boolean abort) {
+        Root r = initial;
 
         while (true) {
             if (r instanceof INode) {
