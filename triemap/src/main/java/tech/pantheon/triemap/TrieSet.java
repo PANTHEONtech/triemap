@@ -68,8 +68,7 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
      * Returns a snapshot of this TrieSet. This operation is lock-free and linearizable. Modification operations on this
      * Set and the returned one are isolated from each other.
      *
-     * <p>
-     * The snapshot is lazily updated - the first time some branch in the snapshot or this TrieSet are accessed, they
+     * <p>The snapshot is lazily updated - the first time some branch in the snapshot or this TrieSet are accessed, they
      * are rewritten. This means that the work of rebuilding both the snapshot and this TrieSet is distributed across
      * all the threads doing updates or accesses subsequent to the snapshot creation.
      *
@@ -82,8 +81,7 @@ public abstract sealed class TrieSet<E> implements Set<E>, Serializable permits 
     /**
      * Returns a read-only snapshot of this TrieSet. This operation is lock-free and linearizable.
      *
-     * <p>
-     * The snapshot is lazily updated - the first time some branch of this TrieSet are accessed, it is rewritten. The
+     * <p>The snapshot is lazily updated - the first time some branch of this TrieSet are accessed, it is rewritten. The
      * work of creating the snapshot is thus distributed across subsequent updates and accesses on this TrieSet by all
      * threads. Note that the snapshot itself is never rewritten unlike when calling {@link #mutableSnapshot()}, but the
      * obtained snapshot cannot be modified.
