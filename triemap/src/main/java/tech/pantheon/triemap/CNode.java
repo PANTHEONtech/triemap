@@ -163,28 +163,19 @@ final class CNode<K, V> extends MainNode<K, V> {
     // - otherwise, if there is at least one non-null node below, returns the version of this node with at least some
     //   null-inodes removed (those existing when the op began)
     // - if there are only null-i-nodes below, returns null
-    MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen newGen) {
-        final int bmp = bitmap;
+    MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen ngen) {
         final var arr = array;
-        final var tmparray = new Branch[arr.length];
-        int idx = 0;
-
-        while (idx < arr.length) {
-            // construct a new bitmap
-            var sub = arr[idx];
-            if (sub instanceof INode<?, ?> in) {
-                tmparray[idx] = resurrect(in, VerifyException.throwIfNull(in.gcasRead(ct)));
-            } else if (sub instanceof SNode) {
-                tmparray[idx] = sub;
-            }
-            idx += 1;
+        final int len = arr.length;
+        final var narr = new Branch[len];
+        for (int i = 0; i < len; i++) {
+            final var tmp = arr[i];
+            narr[i] = tmp instanceof INode<?, ?> in ? resurrect(in, ct) : tmp;
         }
-
-        return new CNode<K, V>(newGen, bmp, tmparray).toContracted(lev);
+        return new CNode<K, V>(ngen, bitmap, narr).toContracted(lev);
     }
 
-    private static Branch resurrect(final INode<?, ?> inode, final MainNode<?, ?> inodemain) {
-        return inodemain instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : inode;
+    private static Branch resurrect(final INode<?, ?> in, final TrieMap<?, ?> ct) {
+        return VerifyException.throwIfNull(in.gcasRead(ct)) instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : in;
     }
 
     @Override
