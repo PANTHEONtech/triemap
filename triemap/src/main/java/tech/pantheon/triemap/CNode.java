@@ -21,16 +21,16 @@ import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import java.util.concurrent.ThreadLocalRandom;
 
 final class CNode<K, V> extends MainNode<K, V> {
-    private static final BasicNode[] EMPTY_ARRAY = new BasicNode[0];
+    private static final Branch[] EMPTY_ARRAY = new Branch[0];
 
     final int bitmap;
-    final BasicNode[] array;
+    final Branch[] array;
     final Gen gen;
 
     // Since concurrent computation should lead to same results we can update this field without any synchronization.
     private volatile int csize = NO_SIZE;
 
-    private CNode(final Gen gen, final int bitmap, final BasicNode... array) {
+    private CNode(final Gen gen, final int bitmap, final Branch... array) {
         this.bitmap = bitmap;
         this.array = array;
         this.gen = gen;
@@ -56,8 +56,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         final int bmp = 1 << xidx | 1 << yidx;
 
         if (xidx == yidx) {
-            return new CNode<>(gen, bmp, new INode<>(gen, dual(first, firstHash, second, secondHash, lev + LEVEL_BITS,
-                gen)));
+            return new CNode<>(gen, bmp,
+                new INode<>(gen, dual(first, firstHash, second, secondHash, lev + LEVEL_BITS, gen)));
         }
 
         return xidx < yidx ? new CNode<>(gen, bmp, first, second) : new CNode<>(gen, bmp, second, first);
@@ -74,8 +74,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         return (sz = csize) != NO_SIZE ? sz : (csize = computeSize(ct));
     }
 
-    static VerifyException invalidElement(final BasicNode elem) {
-        throw new VerifyException("A CNode can contain only CNodes and SNodes, not " + elem);
+    static VerifyException invalidElement(final Branch elem) {
+        throw new VerifyException("A CNode can contain only INodes and SNodes, not " + elem);
     }
 
     // lends itself towards being parallelizable by choosing
@@ -102,7 +102,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         };
     }
 
-    private static int elementSize(final BasicNode elem, final ImmutableTrieMap<?, ?> ct) {
+    private static int elementSize(final Branch elem, final ImmutableTrieMap<?, ?> ct) {
         if (elem instanceof SNode) {
             return 1;
         } else if (elem instanceof INode<?, ?> inode) {
@@ -112,9 +112,9 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    CNode<K, V> updatedAt(final int pos, final BasicNode nn, final Gen newGen) {
+    CNode<K, V> updatedAt(final int pos, final Branch nn, final Gen newGen) {
         final int len = array.length;
-        final var narr = new BasicNode[len];
+        final var narr = new Branch[len];
         System.arraycopy(array, 0, narr, 0, len);
         narr[pos] = nn;
         return new CNode<>(newGen, bitmap, narr);
@@ -123,15 +123,15 @@ final class CNode<K, V> extends MainNode<K, V> {
     CNode<K, V> removedAt(final int pos, final int flag, final Gen newGen) {
         final var arr = array;
         final int len = arr.length;
-        final var narr = new BasicNode[len - 1];
+        final var narr = new Branch[len - 1];
         System.arraycopy(arr, 0, narr, 0, pos);
         System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
         return new CNode<>(newGen, bitmap ^ flag, narr);
     }
 
-    CNode<K, V> insertedAt(final int pos, final int flag, final BasicNode nn, final Gen newGen) {
+    CNode<K, V> insertedAt(final int pos, final int flag, final Branch nn, final Gen newGen) {
         final int len = array.length;
-        final var narr = new BasicNode[len + 1];
+        final var narr = new Branch[len + 1];
         System.arraycopy(array, 0, narr, 0, pos);
         narr[pos] = nn;
         System.arraycopy(array, pos, narr, pos + 1, len - pos);
@@ -146,7 +146,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         int idx = 0;
         final var arr = array;
         final int len = arr.length;
-        final var narr = new BasicNode[len];
+        final var narr = new Branch[len];
         while (idx < len) {
             final var elem = arr[idx];
             if (elem instanceof INode<?, ?> in) {
@@ -177,7 +177,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen newGen) {
         final int bmp = bitmap;
         final var arr = array;
-        final var tmparray = new BasicNode[arr.length];
+        final var tmparray = new Branch[arr.length];
         int idx = 0;
 
         while (idx < arr.length) {
@@ -194,7 +194,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         return new CNode<K, V>(newGen, bmp, tmparray).toContracted(lev);
     }
 
-    private static BasicNode resurrect(final INode<?, ?> inode, final MainNode<?, ?> inodemain) {
+    private static Branch resurrect(final INode<?, ?> inode, final MainNode<?, ?> inodemain) {
         return inodemain instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : inode;
     }
 

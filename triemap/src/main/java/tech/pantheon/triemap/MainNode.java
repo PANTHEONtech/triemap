@@ -18,7 +18,7 @@ package tech.pantheon.triemap;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 
-abstract sealed class MainNode<K, V> extends BasicNode permits CNode, FailedNode, LNode, TNode {
+abstract sealed class MainNode<K, V> permits CNode, FailedNode, LNode, TNode {
     static final int NO_SIZE = -1;
 
     private static final VarHandle PREV;
