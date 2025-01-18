@@ -432,19 +432,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
             clean(parent, ct, lev - LEVEL_BITS);
             return null;
         } else if (m instanceof LNode) {
-            final var ln = (LNode<K, V>) m;
-            final var entry = ln.get(key);
-            if (entry == null) {
-                // Key was not found, hence no modification is needed
-                return Result.empty();
-            }
-
-            if (cond != null && !cond.equals(entry.getValue())) {
-                // Value does not match
-                return Result.empty();
-            }
-
-            return gcas(ln, ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
+            return recRemove((LNode<K, V>) m, key, cond, hc, ct);
         } else {
             throw invalidElement(m);
         }
@@ -502,6 +490,22 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
         }
 
         return res;
+    }
+
+    private @Nullable Result<V> recRemove(final LNode<K, V> ln, final K key, final Object cond, final int hc,
+            final TrieMap<K, V> ct) {
+        final var entry = ln.get(key);
+        if (entry == null) {
+            // Key was not found, hence no modification is needed
+            return Result.empty();
+        }
+
+        if (cond != null && !cond.equals(entry.getValue())) {
+            // Value does not match
+            return Result.empty();
+        }
+
+        return gcas(ln, ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
     }
 
     private void cleanParent(final Object nonlive, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
