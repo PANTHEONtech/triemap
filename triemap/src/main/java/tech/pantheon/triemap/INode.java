@@ -463,15 +463,15 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
         } else if (sub instanceof SNode) {
             @SuppressWarnings("unchecked")
             final var sn = (SNode<K, V>) sub;
-            if (sn.hc == hc && key.equals(sn.key) && (cond == null || cond.equals(sn.value))) {
-                final var ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
-                if (gcas(cn, ncn, ct)) {
-                    res = sn.toResult();
-                } else {
-                    return null;
-                }
-            } else {
+            if (sn.hc != hc || !key.equals(sn.key) || cond != null && !cond.equals(sn.value)) {
                 return Result.empty();
+            }
+
+            final var ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
+            if (gcas(cn, ncn, ct)) {
+                res = sn.toResult();
+            } else {
+                return null;
             }
         } else {
             throw CNode.invalidElement(sub);
