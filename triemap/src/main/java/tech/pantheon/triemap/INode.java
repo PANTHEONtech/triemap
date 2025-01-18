@@ -458,7 +458,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
             } else if (gcas(cn, cn.renewed(startgen, ct), ct)) {
                 res = recRemove(key, cond, hc, lev, parent, startgen, ct);
             } else {
-                res = null;
+                return null;
             }
         } else if (sub instanceof SNode) {
             @SuppressWarnings("unchecked")
@@ -468,10 +468,10 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
                 if (gcas(cn, ncn, ct)) {
                     res = sn.toResult();
                 } else {
-                    res = null;
+                    return null;
                 }
             } else {
-                res = Result.empty();
+                return Result.empty();
             }
         } else {
             throw CNode.invalidElement(sub);
