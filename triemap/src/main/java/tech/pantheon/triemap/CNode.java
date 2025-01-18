@@ -139,22 +139,16 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     /**
-     * Returns a copy of this cnode such that all the i-nodes below it are
-     * copied to the specified generation `ngen`.
+     * Returns a copy of this cnode such that all the i-nodes below it are copied to the specified generation
+     * {@code ngen}.
      */
     CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
-        int idx = 0;
         final var arr = array;
         final int len = arr.length;
         final var narr = new Branch[len];
-        while (idx < len) {
-            final var elem = arr[idx];
-            if (elem instanceof INode<?, ?> in) {
-                narr[idx] = in.copyToGen(ngen, ct);
-            } else if (elem != null) {
-                narr[idx] = elem;
-            }
-            idx += 1;
+        for (int i = 0; i < len; i++) {
+            final var tmp = arr[i];
+            narr[i] = tmp instanceof INode<?, ?> in ? in.copyToGen(ngen, ct) : tmp;
         }
         return new CNode<>(ngen, bitmap, narr);
     }
