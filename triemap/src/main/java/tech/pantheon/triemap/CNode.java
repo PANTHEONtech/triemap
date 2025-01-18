@@ -161,13 +161,8 @@ final class CNode<K, V> extends MainNode<K, V> {
 
     @SuppressWarnings("unchecked")
     MainNode<K, V> toContracted(final int lev) {
-        if (array.length == 1 && lev > 0) {
-            if (array[0] instanceof SNode) {
-                return ((SNode<K, V>) array[0]).copyTombed();
-            }
-            return this;
-        }
-        return this;
+        return array.length == 1 && lev > 0 && array[0] instanceof SNode<?, ?> sn ? ((SNode<K, V>) sn).copyTombed()
+            : this;
     }
 
     // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
