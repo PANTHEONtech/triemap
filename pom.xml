@@ -43,6 +43,9 @@
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.install.skip>true</maven.install.skip>
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.basedir}/triemap/target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <build>
