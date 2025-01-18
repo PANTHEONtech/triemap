@@ -15,7 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map.Entry;
 
 /**
@@ -33,7 +32,7 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
 
     MutableIterator(final MutableTrieMap<K, V> map) {
         super(map.immutableSnapshot());
-        this.mutable = map;
+        mutable = map;
     }
 
     @Override
@@ -109,7 +108,6 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
             return EntryUtil.entryHashCode(getKey(), getValue());
         }
 
-        @SuppressFBWarnings(value = "EQ_UNUSUAL",  justification = "Equality handled by utility methods")
         @Override
         public boolean equals(final Object obj) {
             return EntryUtil.entryEquals(obj, getKey(), getValue());
