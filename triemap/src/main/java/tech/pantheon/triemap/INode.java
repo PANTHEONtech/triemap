@@ -22,6 +22,7 @@ import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> implements Branch, MutableTrieMap.Root {
@@ -42,6 +43,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     INode(final Gen gen, final MainNode<K, V> mainnode) {
         this.gen = gen;
         this.mainnode = mainnode;
+    }
+
+    @NonNull MainNode<K, V> gcasReadNonNull(final TrieMap<?, ?> ct) {
+        return VerifyException.throwIfNull(gcasRead(ct));
     }
 
     MainNode<K, V> gcasRead(final TrieMap<?, ?> ct) {
@@ -543,6 +548,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     int size(final ImmutableTrieMap<?, ?> ct) {
-        return VerifyException.throwIfNull(gcasRead(ct)).size(ct);
+        return gcasReadNonNull(ct).size(ct);
     }
 }
