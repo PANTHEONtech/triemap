@@ -477,11 +477,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
             throw CNode.invalidElement(sub);
         }
 
-        if (res == null || !res.isPresent()) {
-            return res;
-        }
-
-        if (parent != null) {
+        if (res != null && res.isPresent() && parent != null) {
             // never tomb at root
             final var n = gcasRead(ct);
             if (n instanceof TNode) {
