@@ -504,13 +504,12 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     private void cleanParent(final TNode<?, ?> tn, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
             final int lev, final Gen startgen) {
         while (true) {
-            final var pm = parent.gcasRead(ct);
-            if (!(pm instanceof CNode)) {
+            if (!(parent.gcasRead(ct) instanceof CNode<?, ?> cnode)) {
                 // parent is no longer a cnode, we're done
                 return;
             }
 
-            final var cn = (CNode<K, V>) pm;
+            final var cn = (CNode<K, V>) cnode;
             final int idx = hc >>> lev - LEVEL_BITS & 0x1f;
             final int bmp = cn.bitmap;
             final int flag = 1 << idx;
@@ -521,14 +520,17 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
             final int pos = Integer.bitCount(bmp & flag - 1);
             final var sub = cn.array[pos];
-            if (sub == this) {
-                final var ncn = cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(lev - LEVEL_BITS);
-                if (!parent.gcas(cn, ncn, ct) && ct.readRoot().gen == startgen) {
-                    // Tail recursion: cleanParent(tn, parent, ct, hc, lev, startgen);
-                    continue;
-                }
+            if (sub != this) {
+                // some other range is occupying our slot, we're done
+                return;
             }
-            break;
+
+            if (parent.gcas(cn, cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(lev - LEVEL_BITS), ct)
+                || ct.readRoot().gen != startgen) {
+                // (mumble-mumble) and we're done
+                return;
+            }
+            // Tail recursion: cleanParent(tn, parent, ct, hc, lev, startgen);
         }
     }
 
