@@ -536,9 +536,9 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     private void clean(final INode<K, V> nd, final TrieMap<K, V> ct, final int lev) {
-        final var m = nd.gcasRead(ct);
-        if (m instanceof CNode) {
-            final var cn = (CNode<K, V>) m;
+        if (nd.gcasRead(ct) instanceof CNode<?, ?> cnode) {
+            @SuppressWarnings("unchecked")
+            final var cn = (CNode<K, V>) cnode;
             nd.gcas(cn, cn.toCompressed(ct, lev, gen), ct);
         }
     }
