@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
  */
 abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
         permits ImmutableIterator, MutableIterator {
-    private final BasicNode[][] nodeStack = new BasicNode[MAX_DEPTH][];
+    private final Branch[][] nodeStack = new Branch[MAX_DEPTH][];
     private final int[] positionStack = new int[MAX_DEPTH];
     private final ImmutableTrieMap<K, V> map;
 

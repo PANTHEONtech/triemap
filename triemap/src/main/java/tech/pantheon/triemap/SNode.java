@@ -17,7 +17,7 @@ package tech.pantheon.triemap;
 
 import org.eclipse.jdt.annotation.NonNull;
 
-final class SNode<K, V> extends BasicNode implements EntryNode<K, V> {
+final class SNode<K, V> implements Branch, EntryNode<K, V> {
     final K key;
     final V value;
     final int hc;

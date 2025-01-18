@@ -24,7 +24,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.Nullable;
 
-final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
+final class INode<K, V> implements Branch, MutableTrieMap.Root {
     private static final VarHandle MAINNODE;
 
     static {
@@ -195,7 +195,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
         }
     }
 
-    static VerifyException invalidElement(final BasicNode elem) {
+    static VerifyException invalidElement(final MainNode<?, ?> elem) {
         throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 

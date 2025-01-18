@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 PANTHEON.tech, s.r.o. and others.
+ * (C) Copyright 2025 PANTHEON.tech, s.r.o. and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package tech.pantheon.triemap;
 
-abstract sealed class BasicNode permits MainNode, INode, SNode {
-
+/**
+ * A Branch: either an {@link INode} or an {@link SNode}.
+ */
+sealed interface Branch permits INode, SNode {
+    // Nothing else
 }
