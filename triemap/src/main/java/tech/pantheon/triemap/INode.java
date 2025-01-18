@@ -427,57 +427,7 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
         final var m = gcasRead(ct);
 
         if (m instanceof CNode) {
-            final var cn = (CNode<K, V>) m;
-            final int idx = hc >>> lev & 0x1f;
-            final int bmp = cn.bitmap;
-            final int flag = 1 << idx;
-            if ((bmp & flag) == 0) {
-                return Result.empty();
-            }
-
-            final int pos = Integer.bitCount(bmp & flag - 1);
-            final var sub = cn.array[pos];
-            final Result<V> res;
-            if (sub instanceof INode) {
-                @SuppressWarnings("unchecked")
-                final var in = (INode<K, V>) sub;
-                if (startgen == in.gen) {
-                    res = in.recRemove(key, cond, hc, lev + LEVEL_BITS, this, startgen, ct);
-                } else if (gcas(cn, cn.renewed(startgen, ct), ct)) {
-                    res = recRemove(key, cond, hc, lev, parent, startgen, ct);
-                } else {
-                    res = null;
-                }
-            } else if (sub instanceof SNode) {
-                @SuppressWarnings("unchecked")
-                final var sn = (SNode<K, V>) sub;
-                if (sn.hc == hc && key.equals(sn.key) && (cond == null || cond.equals(sn.value))) {
-                    final var ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
-                    if (gcas(cn, ncn, ct)) {
-                        res = sn.toResult();
-                    } else {
-                        res = null;
-                    }
-                } else {
-                    res = Result.empty();
-                }
-            } else {
-                throw CNode.invalidElement(sub);
-            }
-
-            if (res == null || !res.isPresent()) {
-                return res;
-            }
-
-            if (parent != null) {
-                // never tomb at root
-                final var n = gcasRead(ct);
-                if (n instanceof TNode) {
-                    cleanParent(n, parent, ct, hc, lev, startgen);
-                }
-            }
-
-            return res;
+            return recRemove((CNode<K, V>) m, key, cond, hc, lev, parent, startgen, ct);
         } else if (m instanceof TNode) {
             clean(parent, ct, lev - LEVEL_BITS);
             return null;
@@ -498,6 +448,60 @@ final class INode<K, V> extends BasicNode implements MutableTrieMap.Root {
         } else {
             throw invalidElement(m);
         }
+    }
+
+    private @Nullable Result<V> recRemove(final CNode<K, V> cn, final K key, final Object cond, final int hc,
+            final int lev, final INode<K, V> parent, final Gen startgen, final TrieMap<K, V> ct) {
+        final int idx = hc >>> lev & 0x1f;
+        final int bmp = cn.bitmap;
+        final int flag = 1 << idx;
+        if ((bmp & flag) == 0) {
+            return Result.empty();
+        }
+
+        final int pos = Integer.bitCount(bmp & flag - 1);
+        final var sub = cn.array[pos];
+        final Result<V> res;
+        if (sub instanceof INode) {
+            @SuppressWarnings("unchecked")
+            final var in = (INode<K, V>) sub;
+            if (startgen == in.gen) {
+                res = in.recRemove(key, cond, hc, lev + LEVEL_BITS, this, startgen, ct);
+            } else if (gcas(cn, cn.renewed(startgen, ct), ct)) {
+                res = recRemove(key, cond, hc, lev, parent, startgen, ct);
+            } else {
+                res = null;
+            }
+        } else if (sub instanceof SNode) {
+            @SuppressWarnings("unchecked")
+            final var sn = (SNode<K, V>) sub;
+            if (sn.hc == hc && key.equals(sn.key) && (cond == null || cond.equals(sn.value))) {
+                final var ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
+                if (gcas(cn, ncn, ct)) {
+                    res = sn.toResult();
+                } else {
+                    res = null;
+                }
+            } else {
+                res = Result.empty();
+            }
+        } else {
+            throw CNode.invalidElement(sub);
+        }
+
+        if (res == null || !res.isPresent()) {
+            return res;
+        }
+
+        if (parent != null) {
+            // never tomb at root
+            final var n = gcasRead(ct);
+            if (n instanceof TNode) {
+                cleanParent(n, parent, ct, hc, lev, startgen);
+            }
+        }
+
+        return res;
     }
 
     private void cleanParent(final Object nonlive, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
