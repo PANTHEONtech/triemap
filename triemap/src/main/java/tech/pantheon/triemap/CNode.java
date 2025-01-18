@@ -175,7 +175,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     private static Branch resurrect(final INode<?, ?> in, final TrieMap<?, ?> ct) {
-        return VerifyException.throwIfNull(in.gcasRead(ct)) instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : in;
+        return in.gcasReadNonNull(ct) instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : in;
     }
 
     @Override
