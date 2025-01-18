@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 class FailedNodeTest {
-    private final TNode<Object, Object> tnode = new TNode<>(new Object(), new Object(), 123);
-    private final FailedNode<Object, Object> failed = new FailedNode<>(tnode);
+    private final TNode<?, ?> tnode = new TNode<>(new Object(), new Object(), 123);
+    private final FailedNode<?, ?> failed = new FailedNode<>(tnode);
 
     @Test
     void testSize() {
