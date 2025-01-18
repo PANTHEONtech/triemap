@@ -477,12 +477,9 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             throw CNode.invalidElement(sub);
         }
 
-        if (res != null && res.isPresent() && parent != null) {
-            // never tomb at root
-            final var n = gcasRead(ct);
-            if (n instanceof TNode) {
-                cleanParent(n, parent, ct, hc, lev, startgen);
-            }
+        // never tomb at root
+        if (res != null && res.isPresent() && parent != null && gcasRead(ct) instanceof TNode<?, ?> tnode) {
+            cleanParent(tnode, parent, ct, hc, lev, startgen);
         }
 
         return res;
@@ -504,7 +501,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         return gcas(ln, ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
     }
 
-    private void cleanParent(final Object nonlive, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
+    private void cleanParent(final TNode<?, ?> tn, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
             final int lev, final Gen startgen) {
         while (true) {
             final var pm = parent.gcasRead(ct);
@@ -524,10 +521,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
             final int pos = Integer.bitCount(bmp & flag - 1);
             final var sub = cn.array[pos];
-            if (sub == this && nonlive instanceof TNode<?, ?> tn) {
+            if (sub == this) {
                 final var ncn = cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(lev - LEVEL_BITS);
                 if (!parent.gcas(cn, ncn, ct) && ct.readRoot().gen == startgen) {
-                    // Tail recursion: cleanParent(nonlive, parent, ct, hc, lev, startgen);
+                    // Tail recursion: cleanParent(tn, parent, ct, hc, lev, startgen);
                     continue;
                 }
             }
