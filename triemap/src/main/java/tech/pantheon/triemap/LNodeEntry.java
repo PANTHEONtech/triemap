@@ -15,7 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map.Entry;
 import org.eclipse.jdt.annotation.NonNull;
 
@@ -62,7 +61,6 @@ abstract class LNodeEntry<K, V> implements Entry<K, V> {
         return EntryUtil.entryHashCode(key, value);
     }
 
-    @SuppressFBWarnings(value = "EQ_UNUSUAL",  justification = "Equality handled by utility methods")
     @Override
     public final boolean equals(final Object obj) {
         return EntryUtil.entryEquals(obj, key, value);
