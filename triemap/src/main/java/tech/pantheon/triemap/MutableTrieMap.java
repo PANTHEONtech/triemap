@@ -36,11 +36,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
 
-    private static final VarHandle ROOT;
+    private static final VarHandle VH;
 
     static {
         try {
-            ROOT = MethodHandles.lookup().findVarHandle(MutableTrieMap.class, "root", Root.class);
+            VH = MethodHandles.lookup().findVarHandle(MutableTrieMap.class, "root", Root.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -206,7 +206,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     private Root casRoot(final Root ov, final Root nv) {
-        return (Root) ROOT.compareAndExchange(this, ov, nv);
+        return (Root) VH.compareAndExchange(this, ov, nv);
     }
 
     private boolean rdcssRoot(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
