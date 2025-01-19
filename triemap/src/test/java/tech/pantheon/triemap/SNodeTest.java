@@ -38,8 +38,8 @@ class SNodeTest {
     void testCopyTombed() {
         final var tnode = snode.copyTombed();
         assertEquals(snode.hashCode(), tnode.hashCode());
-        assertSame(snode.getKey(), tnode.getKey());
-        assertSame(snode.getValue(), tnode.getValue());
+        assertSame(snode.key(), tnode.key());
+        assertSame(snode.value(), tnode.value());
     }
 
     @Test

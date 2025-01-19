@@ -26,7 +26,7 @@ abstract sealed class AbstractEntry<K, V> implements DefaultEntry<K, V>
         permits LNodeEntry, MutableIterator.MutableEntry {
     @Override
     public final int hashCode() {
-        return hashCode(getKey(), getValue());
+        return hashCode(key(), value());
     }
 
     static final int hashCode(final Object key, final Object value) {
@@ -35,7 +35,7 @@ abstract sealed class AbstractEntry<K, V> implements DefaultEntry<K, V>
 
     @Override
     public final boolean equals(final Object obj) {
-        return equals(obj, getKey(), getValue());
+        return equals(obj, key(), value());
     }
 
     static final boolean equals(final Object obj, final Object key, final Object value) {
@@ -44,7 +44,7 @@ abstract sealed class AbstractEntry<K, V> implements DefaultEntry<K, V>
 
     @Override
     public final String toString() {
-        return toString(getKey(), getValue());
+        return toString(key(), value());
     }
 
     static final String toString(final Object key, final Object value) {

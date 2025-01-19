@@ -26,6 +26,23 @@ import java.util.Map.Entry;
  * @param <V> the type of value
  */
 sealed interface DefaultEntry<K, V> extends Entry<K, V> permits AbstractEntry, SNode, TNode {
+
+    K key();
+
+    @Override
+    @Deprecated
+    default K getKey() {
+        return key();
+    }
+
+    V value();
+
+    @Override
+    @Deprecated
+    default V getValue() {
+        return value();
+    }
+
     @Override
     default V setValue(final V value) {
         throw new UnsupportedOperationException();
