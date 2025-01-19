@@ -61,51 +61,55 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
     private MainNode<K, V> gcasComplete(final MainNode<K, V> oldmain, final TrieMap<?, ?> ct) {
         var main = oldmain;
+
         while (main != null) {
             // complete the GCAS
-            final var prev = /* READ */ main.readPrev();
-            final var ctr = ct.readRoot(true);
+            var prev = /* READ */ main.readPrev();
             if (prev == null) {
                 return main;
             }
 
-            if (prev instanceof FailedNode) {
-                // try to commit to previous value
-                final var fn = (FailedNode<K, V>) prev;
-                final var witness = (MainNode<K, V>) MAINNODE.compareAndExchange(this, main, fn.readPrev());
-                if (witness == main) {
-                    // TODO: second read of FailedNode.prev. Can a FailedNode move?
-                    return fn.readPrev();
+            while (true) {
+                final var ctr = ct.readRoot(true);
+                if (prev instanceof FailedNode) {
+                    // try to commit to previous value
+                    final var fn = (FailedNode<K, V>) prev;
+                    final var witness = (MainNode<K, V>) MAINNODE.compareAndExchange(this, main, fn.readPrev());
+                    if (witness == main) {
+                        // TODO: second read of FailedNode.prev. Can a FailedNode move?
+                        return fn.readPrev();
+                    }
+
+                    // Tail recursion: return GCAS_Complete(witness, ct);
+                    main = witness;
+                    break;
                 }
 
-                // Tail recursion: return GCAS_Complete(witness, ct);
-                main = witness;
-                continue;
-            }
+                // Assume that you've read the root from the generation G.
+                // Assume that the snapshot algorithm is correct.
+                // ==> you can only reach nodes in generations <= G.
+                // ==> `gen` is <= G.
+                // We know that `ctr.gen` is >= G.
+                // ==> if `ctr.gen` = `gen` then they are both equal to G.
+                // ==> otherwise, we know that either `ctr.gen` > G, `gen` < G,
+                // or both
+                //
+                // Note: we deal with the abort case first
+                if (ctr.gen != gen || ct.isReadOnly()) {
+                    // try to abort
+                    main.abortPrev(prev);
+                    // Tail recursion: return GCAS_Complete(/* READ */ mainnode, ct);
+                    main = /* READ */ mainnode;
+                    break;
+                }
 
-            // Assume that you've read the root from the generation G.
-            // Assume that the snapshot algorithm is correct.
-            // ==> you can only reach nodes in generations <= G.
-            // ==> `gen` is <= G.
-            // We know that `ctr.gen` is >= G.
-            // ==> if `ctr.gen` = `gen` then they are both equal to G.
-            // ==> otherwise, we know that either `ctr.gen` > G, `gen` < G,
-            // or both
-            if (ctr.gen == gen && !ct.isReadOnly()) {
                 // try to commit
-                if (main.casPrev(prev, null)) {
+                final var witness = main.commitPrev(prev);
+                if (witness == prev || witness == null) {
                     return main;
                 }
-
-                // Tail recursion: return GCAS_Complete(m, ct);
-                continue;
+                prev = witness;
             }
-
-            // try to abort
-            main.casPrev(prev, new FailedNode<>(prev));
-
-            // Tail recursion: return GCAS_Complete(/* READ */ mainnode, ct);
-            main = /* READ */ mainnode;
         }
 
         return null;

@@ -15,6 +15,8 @@
  */
 package tech.pantheon.triemap;
 
+import static java.util.Objects.requireNonNull;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 
@@ -55,15 +57,19 @@ abstract sealed class MainNode<K, V> permits CNode, FailedNode, LNode, TNode {
      */
     abstract int size(ImmutableTrieMap<?, ?> ct);
 
-    final boolean casPrev(final MainNode<K, V> oldval, final MainNode<K, V> nval) {
-        return PREV.compareAndSet(this, oldval, nval);
-    }
-
     final void writePrev(final MainNode<K, V> nval) {
         prev = nval;
     }
 
     final MainNode<K, V> readPrev() {
         return prev;
+    }
+
+    final MainNode<K, V> commitPrev(final MainNode<K, V> expected) {
+        return (MainNode<K, V>) PREV.compareAndExchange(this, requireNonNull(expected), null);
+    }
+
+    final void abortPrev(final MainNode<K, V> expected) {
+        PREV.compareAndSet(this, expected, new FailedNode<>(expected));
     }
 }
