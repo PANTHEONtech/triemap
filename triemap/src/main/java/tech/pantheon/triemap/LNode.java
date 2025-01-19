@@ -42,7 +42,7 @@ final class LNode<K, V> extends MainNode<K, V> {
         // remove() can never happen.
         return size != 2 ? new LNode<>(map, size - 1)
             // create it tombed so that it gets compressed on subsequent accesses
-            : new TNode<>(map.getKey(), map.getValue(), hc);
+            : new TNode<>(map.key(), map.value(), hc);
     }
 
     MainNode<K, V> replaceChild(final LNodeEntry<K, V> entry, final V value) {

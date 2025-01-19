@@ -31,6 +31,16 @@ final class TNode<K, V> extends MainNode<K, V> implements DefaultEntry<K, V> {
     }
 
     @Override
+    public K key() {
+        return key;
+    }
+
+    @Override
+    public V value() {
+        return value;
+    }
+
+    @Override
     int trySize() {
         return 1;
     }
@@ -38,16 +48,6 @@ final class TNode<K, V> extends MainNode<K, V> implements DefaultEntry<K, V> {
     @Override
     int size(final ImmutableTrieMap<?, ?> ct) {
         return 1;
-    }
-
-    @Override
-    public K getKey() {
-        return key;
-    }
-
-    @Override
-    public V getValue() {
-        return value;
     }
 
     @Override

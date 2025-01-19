@@ -43,7 +43,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
 
         // Used in remove() only
         Multiple(final LNodeEntries<K, V> entry) {
-            this(entry.getKey(), entry.getValue(), null);
+            this(entry.key(), entry.value(), null);
         }
 
         Multiple(final K key, final V value, final LNodeEntries<K, V> next) {
@@ -77,7 +77,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         // We do not perform recursion on purpose here, so we do not run out of stack if the key hashing fails.
         var entry = this;
         do {
-            if (key.equals(entry.getKey())) {
+            if (key.equals(entry.key())) {
                 return entry;
             }
 
@@ -92,9 +92,8 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
     }
 
     final LNodeEntries<K, V> replace(final LNodeEntry<K, V> entry, final V value) {
-        final LNodeEntries<K, V> removed;
-        return (removed = remove(entry)) == null ? new Single<>(entry.getKey(), value)
-                : new Multiple<>(entry.getKey(), value, removed);
+        final var removed = remove(entry);
+        return removed == null ? new Single<>(entry.key(), value) : new Multiple<>(entry.key(), value, removed);
     }
 
     final LNodeEntries<K, V> remove(final LNodeEntry<K, V> entry) {

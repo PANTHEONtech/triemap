@@ -33,12 +33,12 @@ final class SNode<K, V> implements Branch, DefaultEntry<K, V> {
     }
 
     @Override
-    public K getKey() {
+    public K key() {
         return key;
     }
 
     @Override
-    public V getValue() {
+    public V value() {
         return value;
     }
 

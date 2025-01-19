@@ -38,7 +38,7 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
         if (lastReturned == null) {
             throw new IllegalStateException();
         }
-        mutable.remove(lastReturned.getKey());
+        mutable.remove(lastReturned.key());
         lastReturned = null;
     }
 
@@ -70,8 +70,8 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
         }
 
         @Override
-        public K getKey() {
-            return delegate.getKey();
+        public K key() {
+            return delegate.key();
         }
 
         /**
@@ -82,8 +82,8 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
          *     concurrent modifications, nor does it throw {@link IllegalStateException} if the entry is removed.
          */
         @Override
-        public V getValue() {
-            return newValue != null ? newValue : delegate.getValue();
+        public V value() {
+            return newValue != null ? newValue : delegate.value();
         }
 
         /**
@@ -95,8 +95,8 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
          */
         @Override
         public V setValue(final V value) {
-            final var ret = getValue();
-            map.put(getKey(), value);
+            final var ret = value();
+            map.put(key(), value);
             newValue = value;
             return ret;
         }

@@ -313,7 +313,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
         if (cond == ABSENT) {
             return entry.toResult();
-        } else if (cond == null || cond == PRESENT || cond.equals(entry.getValue())) {
+        } else if (cond == null || cond == PRESENT || cond.equals(entry.value())) {
             return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
         }
         return Result.empty();
@@ -384,7 +384,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             } else if (m instanceof LNode) {
                 // 5) an l-node
                 final var entry = ((LNode<K, V>) m).get(key);
-                return entry != null ? entry.getValue() : null;
+                return entry != null ? entry.value() : null;
             } else {
                 throw invalidElement(m);
             }
@@ -487,7 +487,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             return Result.empty();
         }
 
-        if (cond != null && !cond.equals(entry.getValue())) {
+        if (cond != null && !cond.equals(entry.value())) {
             // Value does not match
             return Result.empty();
         }

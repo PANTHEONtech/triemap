@@ -36,12 +36,12 @@ abstract sealed class LNodeEntry<K, V> extends AbstractEntry<K, V> permits LNode
     }
 
     @Override
-    public final K getKey() {
+    public final K key() {
         return key;
     }
 
     @Override
-    public final V getValue() {
+    public final V value() {
         return value;
     }
 
