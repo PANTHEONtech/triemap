@@ -176,7 +176,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     } else if (cnAtPos instanceof SNode) {
                         @SuppressWarnings("unchecked")
                         final var sn = (SNode<K, V>) cnAtPos;
-                        if (sn.hc == hc && key.equals(sn.key)) {
+                        if (sn.matches(hc, key)) {
                             return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct);
                         }
 
@@ -259,7 +259,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 // 1a) insert below
                 final var cnAtPos = cn.array[pos];
                 if (cnAtPos instanceof SNode<?, ?> sn) {
-                    return insertIf(cn, pos, sn, sn.hc == hc && key.equals(sn.key), key, val, hc, cond, lev, ct);
+                    return insertIf(cn, pos, sn, key, val, hc, cond, lev, ct);
                 }
                 if (!(cnAtPos instanceof INode<?, ?> inode)) {
                     throw CNode.invalidElement(cnAtPos);
@@ -286,17 +286,16 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
     }
 
-    private @Nullable Result<V> insertIf(final CNode<K, V> cn, final int pos, final SNode<?, ?> snode,
-            final boolean match, final K key, final V val, final int hc, final Object cond, final int lev,
-            final TrieMap<K, V> ct) {
+    private @Nullable Result<V> insertIf(final CNode<K, V> cn, final int pos, final SNode<?, ?> snode, final K key,
+            final V val, final int hc, final Object cond, final int lev, final TrieMap<K, V> ct) {
         @SuppressWarnings("unchecked")
         final var sn = (SNode<K, V>) snode;
-        if (!match) {
+        if (!sn.matches(hc, key)) {
             return cond == null || cond == ABSENT ? insertDual(ct, cn, pos, sn, key, val, hc, lev) : Result.empty();
         }
         if (cond == ABSENT) {
             return sn.toResult();
-        } else if (cond == null || cond == PRESENT || cond.equals(sn.value)) {
+        } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
             return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct) ? sn.toResult() : null;
         }
         return Result.empty();
@@ -374,7 +373,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     // 2) singleton node
                     @SuppressWarnings("unchecked")
                     final var sn = (SNode<K, V>) sub;
-                    return sn.hc == hc && key.equals(sn.key) ? sn.value : null;
+                    return sn.matches(hc, key) ? sn.value() : null;
                 } else {
                     throw CNode.invalidElement(sub);
                 }
@@ -457,15 +456,14 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         } else if (sub instanceof SNode) {
             @SuppressWarnings("unchecked")
             final var sn = (SNode<K, V>) sub;
-            if (sn.hc != hc || !key.equals(sn.key) || cond != null && !cond.equals(sn.value)) {
-                return Result.empty();
-            }
-
-            final var ncn = cn.removedAt(pos, flag, gen).toContracted(lev);
-            if (gcas(cn, ncn, ct)) {
-                res = sn.toResult();
+            if (sn.matches(hc, key) && (cond == null || cond.equals(sn.value()))) {
+                if (gcas(cn, cn.removedAt(pos, flag, gen).toContracted(lev), ct)) {
+                    res = sn.toResult();
+                } else {
+                    return null;
+                }
             } else {
-                return null;
+                return Result.empty();
             }
         } else {
             throw CNode.invalidElement(sub);
