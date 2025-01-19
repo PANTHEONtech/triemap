@@ -15,12 +15,14 @@
  */
 package tech.pantheon.triemap;
 
+import static java.util.Objects.requireNonNull;
+
 final class FailedNode<K, V> extends MainNode<K, V> {
     private final MainNode<K, V> prev;
 
     FailedNode(final MainNode<K, V> prev) {
         super(prev);
-        this.prev = prev;
+        this.prev = requireNonNull(prev);
     }
 
     @Override
