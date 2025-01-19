@@ -256,29 +256,8 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                         }
 
                         return null;
-                    } else if (cnAtPos instanceof SNode) {
-                        @SuppressWarnings("unchecked")
-                        final var sn = (SNode<K, V>) cnAtPos;
-                        if (cond == null) {
-                            if (sn.hc == hc && key.equals(sn.key)) {
-                                return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)
-                                    ? sn.toResult() : null;
-                            }
-                            return insertDual(ct, cn, pos, sn, key, val, hc, lev);
-                        } else if (cond == ABSENT) {
-                            return sn.hc == hc && key.equals(sn.key) ? sn.toResult()
-                                : insertDual(ct, cn, pos, sn, key, val, hc, lev);
-                        } else if (cond == PRESENT) {
-                            if (sn.hc == hc && key.equals(sn.key)) {
-                                return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)
-                                    ? sn.toResult() : null;
-                            }
-                            return Result.empty();
-                        } else if (sn.hc == hc && key.equals(sn.key) && cond.equals(sn.value)) {
-                            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)
-                                ? sn.toResult() : null;
-                        }
-                        return Result.empty();
+                    } else if (cnAtPos instanceof SNode<?, ?> sn) {
+                        return insertIf(cn, pos, sn, sn.hc == hc && key.equals(sn.key), key, val, hc, cond, lev, ct);
                     }
                     throw CNode.invalidElement(cnAtPos);
                 } else if (cond == null || cond == ABSENT) {
@@ -317,6 +296,22 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             }
             throw invalidElement(m);
         }
+    }
+
+    private @Nullable Result<V> insertIf(final CNode<K, V> cn, final int pos, final SNode<?, ?> snode,
+            final boolean match, final K key, final V val, final int hc, final Object cond, final int lev,
+            final TrieMap<K, V> ct) {
+        @SuppressWarnings("unchecked")
+        final var sn = (SNode<K, V>) snode;
+        if (!match) {
+            return cond == null || cond == ABSENT ? insertDual(ct, cn, pos, sn, key, val, hc, lev) : Result.empty();
+        }
+        if (cond == null || cond == PRESENT || cond.equals(sn.value)) {
+            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct) ? sn.toResult() : null;
+        } else if (cond == ABSENT) {
+            return sn.toResult();
+        }
+        return Result.empty();
     }
 
     private boolean insertln(final LNode<K, V> ln, final K key, final V val, final TrieMap<K, V> ct) {
