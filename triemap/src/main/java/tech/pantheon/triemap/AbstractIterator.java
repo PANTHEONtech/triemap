@@ -37,7 +37,7 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
     private final ImmutableTrieMap<K, V> map;
 
     private LNodeEntries<K, V> lnode;
-    private EntryNode<K, V> current;
+    private DefaultEntry<K, V> current;
     private int depth = -1;
 
     AbstractIterator(final ImmutableTrieMap<K, V> map) {
@@ -52,7 +52,7 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
 
     @Override
     public final Entry<K, V> next() {
-        final Entry<K, V> entry;
+        final DefaultEntry<K, V> entry;
 
         // Check LNode iterator first
         if (lnode != null) {
@@ -79,7 +79,7 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
      * @param entry An immutable entry, guaranteed to be non-null
      * @return Wrapped entry, may not be null
      */
-    abstract Entry<K, V> wrapEntry(Entry<K, V> entry);
+    abstract Entry<K, V> wrapEntry(DefaultEntry<K, V> entry);
 
     /**
      * Read the contents of an INode's main node.

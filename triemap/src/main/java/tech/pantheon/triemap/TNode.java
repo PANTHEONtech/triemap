@@ -15,7 +15,7 @@
  */
 package tech.pantheon.triemap;
 
-final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
+final class TNode<K, V> extends MainNode<K, V> implements DefaultEntry<K, V> {
     final K key;
     final V value;
     final int hc;

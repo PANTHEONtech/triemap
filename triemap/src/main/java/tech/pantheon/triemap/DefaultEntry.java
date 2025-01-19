@@ -18,14 +18,14 @@ package tech.pantheon.triemap;
 import java.util.Map.Entry;
 
 /**
- * Common marker interface for nodes which act as an immutable {@link Entry}.
+ * Our {@link Entry} implementations are immutable by default.
  *
  * @author Robert Varga
  *
  * @param <K> the type of key
  * @param <V> the type of value
  */
-sealed interface EntryNode<K, V> extends Entry<K, V> permits SNode, TNode {
+sealed interface DefaultEntry<K, V> extends Entry<K, V> permits AbstractEntry, SNode, TNode {
     @Override
     default V setValue(final V value) {
         throw new UnsupportedOperationException();
