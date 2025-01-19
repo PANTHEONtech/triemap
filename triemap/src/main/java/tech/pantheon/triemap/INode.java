@@ -261,50 +261,32 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                         final var sn = (SNode<K, V>) cnAtPos;
                         if (cond == null) {
                             if (sn.hc == hc && key.equals(sn.key)) {
-                                if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return sn.toResult();
-                                }
-
-                                return null;
+                                return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)
+                                    ? sn.toResult() : null;
                             }
-
                             return insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == ABSENT) {
-                            if (sn.hc == hc && key.equals(sn.key)) {
-                                return sn.toResult();
-                            }
-
-                            return insertDual(ct, cn, pos, sn, key, val, hc, lev);
+                            return sn.hc == hc && key.equals(sn.key) ? sn.toResult()
+                                : insertDual(ct, cn, pos, sn, key, val, hc, lev);
                         } else if (cond == PRESENT) {
                             if (sn.hc == hc && key.equals(sn.key)) {
-                                if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return sn.toResult();
-                                }
-                                return null;
+                                return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)
+                                    ? sn.toResult() : null;
                             }
-
                             return Result.empty();
-                        } else {
-                            if (sn.hc == hc && key.equals(sn.key) && cond.equals(sn.value)) {
-                                if (gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)) {
-                                    return sn.toResult();
-                                }
-
-                                return null;
-                            }
-
-                            return Result.empty();
+                        } else if (sn.hc == hc && key.equals(sn.key) && cond.equals(sn.value)) {
+                            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct)
+                                ? sn.toResult() : null;
                         }
-                    } else {
-                        throw CNode.invalidElement(cnAtPos);
+                        return Result.empty();
                     }
+                    throw CNode.invalidElement(cnAtPos);
                 } else if (cond == null || cond == ABSENT) {
                     final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
                     final var ncnode = rn.insertedAt(pos, flag, new SNode<>(key, val, hc), gen);
                     return gcas(cn, ncnode, ct) ? Result.empty() : null;
-                } else {
-                    return Result.empty();
                 }
+                return Result.empty();
             } else if (m instanceof TNode) {
                 clean(parent, ct, lev - LEVEL_BITS);
                 return null;
@@ -330,12 +312,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
                 } else if (entry != null && cond.equals(entry.getValue())) {
                     return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
-                } else {
-                    return Result.empty();
                 }
-            } else {
-                throw invalidElement(m);
+                return Result.empty();
             }
+            throw invalidElement(m);
         }
     }
 
