@@ -23,11 +23,11 @@ import java.lang.invoke.VarHandle;
 abstract sealed class MainNode<K, V> permits CNode, FailedNode, LNode, TNode {
     static final int NO_SIZE = -1;
 
-    private static final VarHandle PREV;
+    private static final VarHandle VH;
 
     static {
         try {
-            PREV = MethodHandles.lookup().findVarHandle(MainNode.class, "prev", MainNode.class);
+            VH = MethodHandles.lookup().findVarHandle(MainNode.class, "prev", MainNode.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -66,10 +66,10 @@ abstract sealed class MainNode<K, V> permits CNode, FailedNode, LNode, TNode {
     }
 
     final MainNode<K, V> commitPrev(final MainNode<K, V> expected) {
-        return (MainNode<K, V>) PREV.compareAndExchange(this, requireNonNull(expected), null);
+        return (MainNode<K, V>) VH.compareAndExchange(this, requireNonNull(expected), null);
     }
 
     final void abortPrev(final MainNode<K, V> expected) {
-        PREV.compareAndSet(this, expected, new FailedNode<>(expected));
+        VH.compareAndSet(this, expected, new FailedNode<>(expected));
     }
 }
