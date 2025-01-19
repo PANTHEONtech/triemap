@@ -328,11 +328,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                         return Result.empty();
                     }
                     return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
-                } else {
-                    if (entry == null || !cond.equals(entry.getValue())) {
-                        return Result.empty();
-                    }
+                } else if (entry != null && cond.equals(entry.getValue())) {
                     return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
+                } else {
+                    return Result.empty();
                 }
             } else {
                 throw invalidElement(m);
