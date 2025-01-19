@@ -15,8 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import java.util.Map.Entry;
-
 /**
  * Specialized immutable iterator for use with {@link ImmutableEntrySet}.
  *
@@ -28,7 +26,7 @@ import java.util.Map.Entry;
 final class MutableIterator<K, V> extends AbstractIterator<K, V> {
     private final MutableTrieMap<K, V> mutable;
 
-    private Entry<K, V> lastReturned;
+    private MutableEntry<K, V> lastReturned;
 
     MutableIterator(final MutableTrieMap<K, V> map) {
         super(map.immutableSnapshot());
@@ -45,9 +43,10 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
     }
 
     @Override
-    Entry<K, V> wrapEntry(final Entry<K, V> entry) {
-        lastReturned = entry;
-        return new MutableEntry<>(mutable, entry);
+    MutableEntry<K, V> wrapEntry(final DefaultEntry<K, V> entry) {
+        final var ret = new MutableEntry<>(mutable, entry);
+        lastReturned = ret;
+        return ret;
     }
 
     /**
@@ -60,12 +59,12 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
      */
     static final class MutableEntry<K, V> extends AbstractEntry<K, V> {
         private final MutableTrieMap<K, V> map;
-        private final Entry<K, V> delegate;
+        private final DefaultEntry<K, V> delegate;
 
         @SuppressWarnings("null")
         private V newValue = null;
 
-        private MutableEntry(final MutableTrieMap<K, V> map, final Entry<K, V> delegate) {
+        private MutableEntry(final MutableTrieMap<K, V> map, final DefaultEntry<K, V> delegate) {
             this.map = map;
             this.delegate = delegate;
         }

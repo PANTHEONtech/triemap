@@ -15,12 +15,11 @@
  */
 package tech.pantheon.triemap;
 
-import java.util.Map.Entry;
 import org.eclipse.jdt.annotation.NonNull;
 
 /**
- * A single entry in {@link LNodeEntries}, implements {@link Entry} in order to prevent instantiation of objects for
- * iteration.
+ * A single entry in {@link LNodeEntries}, implements {@link DefaultEntry} in order to prevent instantiation of objects
+ * for iteration.
  *
  * @author Robert Varga
  *
@@ -48,11 +47,5 @@ abstract sealed class LNodeEntry<K, V> extends AbstractEntry<K, V> permits LNode
 
     final @NonNull Result<V> toResult() {
         return new Result<>(value);
-    }
-
-    @Override
-    @SuppressWarnings("checkstyle:hiddenField")
-    public final V setValue(final V value) {
-        throw new UnsupportedOperationException();
     }
 }

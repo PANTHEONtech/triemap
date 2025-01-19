@@ -22,7 +22,8 @@ import java.util.Map.Entry;
  *
  * @author Robert Varga
  */
-abstract sealed class AbstractEntry<K, V> implements Entry<K, V> permits LNodeEntry, MutableIterator.MutableEntry {
+abstract sealed class AbstractEntry<K, V> implements DefaultEntry<K, V>
+        permits LNodeEntry, MutableIterator.MutableEntry {
     @Override
     public final int hashCode() {
         return hashCode(getKey(), getValue());

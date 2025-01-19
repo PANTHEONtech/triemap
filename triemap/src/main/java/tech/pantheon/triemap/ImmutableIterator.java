@@ -15,8 +15,6 @@
  */
 package tech.pantheon.triemap;
 
-import java.util.Map.Entry;
-
 /**
  * Specialized immutable iterator for use with {@link ImmutableEntrySet}.
  *
@@ -31,7 +29,7 @@ final class ImmutableIterator<K, V> extends AbstractIterator<K, V> {
     }
 
     @Override
-    Entry<K, V> wrapEntry(final Entry<K, V> entry) {
+    DefaultEntry<K, V> wrapEntry(final DefaultEntry<K, V> entry) {
         return entry;
     }
 }
