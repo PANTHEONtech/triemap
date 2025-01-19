@@ -240,32 +240,35 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 final int mask = flag - 1;
                 final int pos = Integer.bitCount(bmp & mask);
 
-                if ((bmp & flag) != 0) {
-                    // 1a) insert below
-                    final var cnAtPos = cn.array[pos];
-                    if (cnAtPos instanceof INode) {
-                        @SuppressWarnings("unchecked")
-                        final var in = (INode<K, V>) cnAtPos;
-                        if (startgen == in.gen) {
-                            return in.recInsertIf(key, val, hc, cond, lev + LEVEL_BITS, this, startgen, ct);
+                if ((bmp & flag) == 0) {
+                    // not found
+                    if (cond == null || cond == ABSENT) {
+                        final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
+                        if (!gcas(cn, rn.insertedAt(pos, flag, new SNode<>(key, val, hc), gen), ct)) {
+                            return null;
                         }
-
-                        if (gcas(cn, cn.renewed(startgen, ct), ct)) {
-                            // Tail recursion: return rec_insertif(k, v, hc, cond, lev, parent, startgen, ct);
-                            continue;
-                        }
-
-                        return null;
-                    } else if (cnAtPos instanceof SNode<?, ?> sn) {
-                        return insertIf(cn, pos, sn, sn.hc == hc && key.equals(sn.key), key, val, hc, cond, lev, ct);
                     }
-                    throw CNode.invalidElement(cnAtPos);
-                } else if (cond == null || cond == ABSENT) {
-                    final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-                    final var ncnode = rn.insertedAt(pos, flag, new SNode<>(key, val, hc), gen);
-                    return gcas(cn, ncnode, ct) ? Result.empty() : null;
+                    return Result.empty();
                 }
-                return Result.empty();
+
+                // 1a) insert below
+                final var cnAtPos = cn.array[pos];
+                if (cnAtPos instanceof SNode<?, ?> sn) {
+                    return insertIf(cn, pos, sn, sn.hc == hc && key.equals(sn.key), key, val, hc, cond, lev, ct);
+                }
+                if (!(cnAtPos instanceof INode<?, ?> inode)) {
+                    throw CNode.invalidElement(cnAtPos);
+                }
+                @SuppressWarnings("unchecked")
+                final var in = (INode<K, V>) inode;
+                if (startgen == in.gen) {
+                    return in.recInsertIf(key, val, hc, cond, lev + LEVEL_BITS, this, startgen, ct);
+                }
+                if (!gcas(cn, cn.renewed(startgen, ct), ct)) {
+                    return null;
+                }
+
+                // Tail recursion: return rec_insertif(k, v, hc, cond, lev, parent, startgen, ct);
             } else if (m instanceof TNode) {
                 clean(parent, ct, lev - LEVEL_BITS);
                 return null;
@@ -293,8 +296,9 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
                 }
                 return Result.empty();
+            } else {
+                throw invalidElement(m);
             }
-            throw invalidElement(m);
         }
     }
 
@@ -306,10 +310,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         if (!match) {
             return cond == null || cond == ABSENT ? insertDual(ct, cn, pos, sn, key, val, hc, lev) : Result.empty();
         }
-        if (cond == null || cond == PRESENT || cond.equals(sn.value)) {
-            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct) ? sn.toResult() : null;
-        } else if (cond == ABSENT) {
+        if (cond == ABSENT) {
             return sn.toResult();
+        } else if (cond == null || cond == PRESENT || cond.equals(sn.value)) {
+            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct) ? sn.toResult() : null;
         }
         return Result.empty();
     }
