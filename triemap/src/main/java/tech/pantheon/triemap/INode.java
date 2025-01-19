@@ -272,30 +272,9 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             } else if (m instanceof TNode) {
                 clean(parent, ct, lev - LEVEL_BITS);
                 return null;
-            } else if (m instanceof LNode) {
+            } else if (m instanceof LNode<?, ?> ln) {
                 // 3) an l-node
-                final var ln = (LNode<K, V>) m;
-                final var entry = ln.get(key);
-
-                if (cond == null) {
-                    if (entry != null) {
-                        return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
-                    }
-                    return insertln(ln, key, val, ct) ? Result.empty() : null;
-                } else if (cond == ABSENT) {
-                    if (entry != null) {
-                        return entry.toResult();
-                    }
-                    return insertln(ln, key, val, ct) ? Result.empty() : null;
-                } else if (cond == PRESENT) {
-                    if (entry == null) {
-                        return Result.empty();
-                    }
-                    return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
-                } else if (entry != null && cond.equals(entry.getValue())) {
-                    return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
-                }
-                return Result.empty();
+                return insertIf(ln, key, val, cond, ct);
             } else {
                 throw invalidElement(m);
             }
@@ -314,6 +293,23 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             return sn.toResult();
         } else if (cond == null || cond == PRESENT || cond.equals(sn.value)) {
             return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct) ? sn.toResult() : null;
+        }
+        return Result.empty();
+    }
+
+    private @Nullable Result<V> insertIf(final LNode<?, ?> lnode, final K key, final V val, final Object cond,
+            final TrieMap<K, V> ct) {
+        @SuppressWarnings("unchecked")
+        final var ln = (LNode<K, V>) lnode;
+        final var entry = ln.get(key);
+
+        if (entry == null) {
+            return cond != null && cond != ABSENT || insertln(ln, key, val, ct) ? Result.empty() : null;
+        }
+        if (cond == ABSENT) {
+            return entry.toResult();
+        } else if (cond == null || cond == PRESENT || cond.equals(entry.getValue())) {
+            return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
         }
         return Result.empty();
     }
