@@ -25,8 +25,8 @@ final class LNode<K, V> extends MainNode<K, V> {
         this.size = size;
     }
 
-    LNode(final K k1, final V v1, final K k2, final V v2) {
-        this(LNodeEntries.map(k1, v1, k2, v2), 2);
+    LNode(final SNode<K, V> first, final SNode<K, V> second) {
+        this(LNodeEntries.map(first.key(), first.value(), second.key(), second.value()), 2);
     }
 
     LNode<K, V> insertChild(final K key, final V value) {

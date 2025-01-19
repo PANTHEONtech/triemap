@@ -42,13 +42,13 @@ final class CNode<K, V> extends MainNode<K, V> {
 
     static <K, V> MainNode<K,V> dual(final SNode<K, V> snode, final K key, final V value, final int hc, final int lev,
             final Gen gen) {
-        return dual(snode, snode.hc, new SNode<>(key, value, hc), hc, lev, gen);
+        return dual(snode, snode.hc(), new SNode<>(key, value, hc), hc, lev, gen);
     }
 
     private static <K, V> MainNode<K,V> dual(final SNode<K, V> first, final int firstHash, final SNode<K, V> second,
             final int secondHash, final int lev, final Gen gen) {
         if (lev >= HASH_BITS) {
-            return new LNode<>(first.key, first.value, second.key, second.value);
+            return new LNode<>(first, second);
         }
 
         final int xidx = firstHash >>> lev & 0x1f;

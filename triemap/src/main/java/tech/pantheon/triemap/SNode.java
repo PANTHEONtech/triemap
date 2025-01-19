@@ -17,29 +17,13 @@ package tech.pantheon.triemap;
 
 import org.eclipse.jdt.annotation.NonNull;
 
-final class SNode<K, V> implements Branch, DefaultEntry<K, V> {
-    final K key;
-    final V value;
-    final int hc;
-
-    SNode(final K key, final V value, final int hc) {
-        this.key = key;
-        this.value = value;
-        this.hc = hc;
-    }
-
+record SNode<K, V>(K key, V value, int hc) implements Branch, DefaultEntry<K, V> {
     TNode<K, V> copyTombed() {
         return new TNode<>(key, value, hc);
     }
 
-    @Override
-    public K key() {
-        return key;
-    }
-
-    @Override
-    public V value() {
-        return value;
+    boolean matches(final int otherHc, final Object otherKey) {
+        return hc == otherHc && otherKey.equals(key);
     }
 
     @NonNull Result<V> toResult() {
