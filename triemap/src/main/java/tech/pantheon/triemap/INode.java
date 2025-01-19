@@ -26,11 +26,11 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> implements Branch, MutableTrieMap.Root {
-    private static final VarHandle MAINNODE;
+    private static final VarHandle VH;
 
     static {
         try {
-            MAINNODE = MethodHandles.lookup().findVarHandle(INode.class, "mainnode", MainNode.class);
+            VH = MethodHandles.lookup().findVarHandle(INode.class, "mainNode", MainNode.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -38,11 +38,11 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
     private final Gen gen;
 
-    private volatile MainNode<K, V> mainnode;
+    private volatile MainNode<K, V> mainNode;
 
-    INode(final Gen gen, final MainNode<K, V> mainnode) {
+    INode(final Gen gen, final MainNode<K, V> mainNode) {
         this.gen = gen;
-        this.mainnode = mainnode;
+        this.mainNode = mainNode;
     }
 
     @NonNull MainNode<K, V> gcasReadNonNull(final TrieMap<?, ?> ct) {
@@ -50,7 +50,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     MainNode<K, V> gcasRead(final TrieMap<?, ?> ct) {
-        return gcasComplete(/* READ */ mainnode, ct);
+        return gcasComplete(/* READ */ mainNode, ct);
     }
 
     private MainNode<K, V> gcasComplete(final MainNode<K, V> oldmain, final TrieMap<?, ?> ct) {
@@ -68,7 +68,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 if (prev instanceof FailedNode) {
                     // try to commit to previous value
                     final var fn = (FailedNode<K, V>) prev;
-                    final var witness = (MainNode<K, V>) MAINNODE.compareAndExchange(this, main, fn.readPrev());
+                    final var witness = (MainNode<K, V>) VH.compareAndExchange(this, main, fn.readPrev());
                     if (witness == main) {
                         // TODO: second read of FailedNode.prev. Can a FailedNode move?
                         return fn.readPrev();
@@ -93,7 +93,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     // try to abort
                     main.abortPrev(prev);
                     // Tail recursion: return GCAS_Complete(mainnode, ct);
-                    nextMain = /* READ */ mainnode;
+                    nextMain = /* READ */ mainNode;
                     break;
                 }
 
@@ -119,7 +119,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
         // TODO: this should not be needed: callers should have used the proper constructor
         newMain.writePrev(oldMain);
-        if (MAINNODE.compareAndSet(this, oldMain, newMain)) {
+        if (VH.compareAndSet(this, oldMain, newMain)) {
             gcasComplete(newMain, ct);
             return /* READ */ newMain.readPrev() == null;
         }
