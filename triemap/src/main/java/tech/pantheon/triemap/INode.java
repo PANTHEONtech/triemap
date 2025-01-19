@@ -50,25 +50,19 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     MainNode<K, V> gcasRead(final TrieMap<?, ?> ct) {
-        final var main = /* READ */ mainnode;
-        final var prevval = /* READ */ main.readPrev();
-        if (prevval == null) {
-            return main;
-        }
-
-        return gcasComplete(main, ct);
+        return gcasComplete(/* READ */ mainnode, ct);
     }
 
     private MainNode<K, V> gcasComplete(final MainNode<K, V> oldmain, final TrieMap<?, ?> ct) {
+        // complete the GCAS
         var main = oldmain;
-
-        while (main != null) {
-            // complete the GCAS
+        while (true) {
             var prev = /* READ */ main.readPrev();
             if (prev == null) {
                 return main;
             }
 
+            final MainNode<K, V> nextMain;
             while (true) {
                 final var ctr = ct.readRoot(true);
                 if (prev instanceof FailedNode) {
@@ -81,7 +75,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     }
 
                     // Tail recursion: return GCAS_Complete(witness, ct);
-                    main = witness;
+                    nextMain = witness;
                     break;
                 }
 
@@ -98,8 +92,8 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 if (ctr.gen != gen || ct.isReadOnly()) {
                     // try to abort
                     main.abortPrev(prev);
-                    // Tail recursion: return GCAS_Complete(/* READ */ mainnode, ct);
-                    main = /* READ */ mainnode;
+                    // Tail recursion: return GCAS_Complete(mainnode, ct);
+                    nextMain = /* READ */ mainnode;
                     break;
                 }
 
@@ -108,20 +102,27 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 if (witness == prev || witness == null) {
                     return main;
                 }
+
+                // Tail recursion: probably a failed node
                 prev = witness;
             }
-        }
 
-        return null;
+            if (nextMain == null) {
+                return null;
+            }
+
+            // Tail recursion: return GCAS_Complete(nextMain, ct);
+            main = nextMain;
+        }
     }
 
     private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
+        // TODO: this should not be needed: callers should have used the proper constructor
         newMain.writePrev(oldMain);
         if (MAINNODE.compareAndSet(this, oldMain, newMain)) {
             gcasComplete(newMain, ct);
             return /* READ */ newMain.readPrev() == null;
         }
-
         return false;
     }
 
