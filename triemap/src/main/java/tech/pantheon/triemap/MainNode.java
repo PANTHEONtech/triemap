@@ -15,32 +15,15 @@
  */
 package tech.pantheon.triemap;
 
-import static java.util.Objects.requireNonNull;
-
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-
-abstract sealed class MainNode<K, V> permits CNode, FailedNode, LNode, TNode {
+abstract sealed class MainNode<K, V> extends INode.Main<K, V> permits CNode, INode.FailedNode, LNode, TNode {
     static final int NO_SIZE = -1;
 
-    private static final VarHandle VH;
-
-    static {
-        try {
-            VH = MethodHandles.lookup().findVarHandle(MainNode.class, "prev", MainNode.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
-
-    private volatile MainNode<K, V> prev;
-
     MainNode() {
-        prev = null;
+        super();
     }
 
     MainNode(final MainNode<K, V> prev) {
-        this.prev = prev;
+        super(prev);
     }
 
     /**
@@ -56,20 +39,4 @@ abstract sealed class MainNode<K, V> permits CNode, FailedNode, LNode, TNode {
      * @return The actual number of entries.
      */
     abstract int size(ImmutableTrieMap<?, ?> ct);
-
-    final void writePrev(final MainNode<K, V> nval) {
-        prev = nval;
-    }
-
-    final MainNode<K, V> readPrev() {
-        return prev;
-    }
-
-    final MainNode<K, V> commitPrev(final MainNode<K, V> expected) {
-        return (MainNode<K, V>) VH.compareAndExchange(this, requireNonNull(expected), null);
-    }
-
-    final void abortPrev(final MainNode<K, V> expected) {
-        VH.compareAndSet(this, expected, new FailedNode<>(expected));
-    }
 }
