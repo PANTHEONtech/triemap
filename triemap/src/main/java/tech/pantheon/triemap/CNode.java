@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static tech.pantheon.triemap.Constants.HASH_BITS;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
+import static tech.pantheon.triemap.Constants.MAX_DEPTH;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -40,27 +41,39 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, EMPTY_ARRAY);
     }
 
-    static <K, V> MainNode<K,V> dual(final SNode<K, V> snode, final K key, final V value, final int hc, final int lev,
-            final Gen gen) {
-        return dual(snode, snode.hc(), new SNode<>(key, value, hc), hc, lev, gen);
-    }
+    static <K, V> MainNode<K,V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
+            final int initLev, final Gen gen) {
+        final var second = new SNode<>(key, value, hc);
+        final var fhc = first.hc();
 
-    private static <K, V> MainNode<K,V> dual(final SNode<K, V> first, final int firstHash, final SNode<K, V> second,
-            final int secondHash, final int lev, final Gen gen) {
-        if (lev >= HASH_BITS) {
-            return new LNode<>(first, second);
+        // recursion control
+        final var bmps = new int[MAX_DEPTH];
+        int len = 0;
+        int lev = initLev;
+
+        while (true) {
+            MainNode<K, V> deepest;
+            if (lev < HASH_BITS) {
+                final int xidx = fhc >>> lev & 0x1f;
+                final int yidx = hc >>> lev & 0x1f;
+                final int bmp = 1 << xidx | 1 << yidx;
+                if (xidx == yidx) {
+                    // enter recursion: save bitmap and increment lev
+                    bmps[len++] = bmp;
+                    lev += LEVEL_BITS;
+                    continue;
+                }
+                deepest = xidx < yidx ? new CNode<>(gen, bmp, first, second) : new CNode<>(gen, bmp, second, first);
+            } else {
+                deepest = new LNode<>(first, second);
+            }
+
+            while (len > 0) {
+                // exit recursion: load bitmap and wrap deepest with a CNode
+                deepest = new CNode<>(gen, bmps[--len], new INode<>(gen, deepest));
+            }
+            return deepest;
         }
-
-        final int xidx = firstHash >>> lev & 0x1f;
-        final int yidx = secondHash >>> lev & 0x1f;
-        final int bmp = 1 << xidx | 1 << yidx;
-
-        if (xidx == yidx) {
-            return new CNode<>(gen, bmp,
-                new INode<>(gen, dual(first, firstHash, second, secondHash, lev + LEVEL_BITS, gen)));
-        }
-
-        return xidx < yidx ? new CNode<>(gen, bmp, first, second) : new CNode<>(gen, bmp, second, first);
     }
 
     @Override
