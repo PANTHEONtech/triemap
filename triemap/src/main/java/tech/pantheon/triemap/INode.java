@@ -503,6 +503,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 return;
             }
 
+            @SuppressWarnings("unchecked")
             final var cn = (CNode<K, V>) cnode;
             final int idx = hc >>> lev - LEVEL_BITS & 0x1f;
             final int bmp = cn.bitmap;
