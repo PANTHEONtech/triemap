@@ -15,6 +15,7 @@
  */
 package tech.pantheon.triemap;
 
+import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import static tech.pantheon.triemap.LookupResult.RESTART;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
@@ -26,11 +27,75 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> implements Branch, MutableTrieMap.Root {
-    private static final VarHandle VH;
+
+    abstract static sealed class Main<K, V> permits MainNode {
+        private static final VarHandle PREV_VH;
+
+        static {
+            try {
+                PREV_VH = MethodHandles.lookup().findVarHandle(Main.class, "prev", MainNode.class);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
+
+        private volatile MainNode<K, V> prev;
+
+        Main() {
+            prev = null;
+        }
+
+        Main(final MainNode<K, V> prev) {
+            this.prev = prev;
+        }
+
+        final void writePrev(final MainNode<K, V> nval) {
+            prev = nval;
+        }
+
+        final MainNode<K, V> readPrev() {
+            return prev;
+        }
+
+        final MainNode<K, V> commitPrev(final MainNode<K, V> expected) {
+            return (MainNode<K, V>) PREV_VH.compareAndExchange(this, requireNonNull(expected), null);
+        }
+
+        final void abortPrev(final MainNode<K, V> expected) {
+            PREV_VH.compareAndSet(this, expected, new FailedNode<>(expected));
+        }
+    }
+
+    // Visible for testing
+    static final class FailedNode<K, V> extends MainNode<K, V> {
+        private final MainNode<K, V> prev;
+
+        FailedNode(final MainNode<K, V> prev) {
+            super(prev);
+            this.prev = requireNonNull(prev);
+        }
+
+        @Override
+        int trySize() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        int size(final ImmutableTrieMap<?, ?> ct) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String toString() {
+            return "FailedNode(" + prev + ")";
+        }
+    }
+
+    private static final VarHandle MAIN_VH;
 
     static {
         try {
-            VH = MethodHandles.lookup().findVarHandle(INode.class, "mainNode", MainNode.class);
+            MAIN_VH = MethodHandles.lookup().findVarHandle(INode.class, "mainNode", MainNode.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -68,7 +133,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 if (prev instanceof FailedNode) {
                     // try to commit to previous value
                     final var fn = (FailedNode<K, V>) prev;
-                    final var witness = (MainNode<K, V>) VH.compareAndExchange(this, main, fn.readPrev());
+                    final var witness = (MainNode<K, V>) MAIN_VH.compareAndExchange(this, main, fn.readPrev());
                     if (witness == main) {
                         // TODO: second read of FailedNode.prev. Can a FailedNode move?
                         return fn.readPrev();
@@ -119,7 +184,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
         // TODO: this should not be needed: callers should have used the proper constructor
         newMain.writePrev(oldMain);
-        if (VH.compareAndSet(this, oldMain, newMain)) {
+        if (MAIN_VH.compareAndSet(this, oldMain, newMain)) {
             gcasComplete(newMain, ct);
             return /* READ */ newMain.readPrev() == null;
         }
