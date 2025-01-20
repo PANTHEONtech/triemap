@@ -21,6 +21,7 @@ import static tech.pantheon.triemap.LookupResult.RESTART;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
@@ -29,16 +30,9 @@ import org.eclipse.jdt.annotation.Nullable;
 final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
     abstract static sealed class Main<K, V> permits MainNode {
-        private static final VarHandle PREV_VH;
-
-        static {
-            try {
-                PREV_VH = MethodHandles.lookup().findVarHandle(Main.class, "prev", MainNode.class);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
-
+        @SuppressFBWarnings(value = "URF_UNREAD_FIELD",
+            justification = "https://github.com/spotbugs/spotbugs/issues/2749")
+        @SuppressWarnings("unused")
         private volatile MainNode<K, V> prev;
 
         Main() {
@@ -47,22 +41,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
         Main(final MainNode<K, V> prev) {
             this.prev = prev;
-        }
-
-        final void writePrev(final MainNode<K, V> nval) {
-            prev = nval;
-        }
-
-        final MainNode<K, V> readPrev() {
-            return prev;
-        }
-
-        final MainNode<K, V> commitPrev(final MainNode<K, V> expected) {
-            return (MainNode<K, V>) PREV_VH.compareAndExchange(this, requireNonNull(expected), null);
-        }
-
-        final void abortPrev(final MainNode<K, V> expected) {
-            PREV_VH.compareAndSet(this, expected, new FailedNode<>(expected));
         }
     }
 
@@ -92,10 +70,13 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     private static final VarHandle MAIN_VH;
+    private static final VarHandle PREV_VH;
 
     static {
+        final var lookup = MethodHandles.lookup();
         try {
-            MAIN_VH = MethodHandles.lookup().findVarHandle(INode.class, "mainNode", MainNode.class);
+            MAIN_VH = lookup.findVarHandle(INode.class, "mainNode", MainNode.class);
+            PREV_VH = MethodHandles.lookup().findVarHandle(Main.class, "prev", MainNode.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -122,7 +103,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         // complete the GCAS
         var main = oldmain;
         while (true) {
-            var prev = /* READ */ main.readPrev();
+            var prev = /* READ */ readPrev(main);
             if (prev == null) {
                 return main;
             }
@@ -133,10 +114,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 if (prev instanceof FailedNode) {
                     // try to commit to previous value
                     final var fn = (FailedNode<K, V>) prev;
-                    final var witness = (MainNode<K, V>) MAIN_VH.compareAndExchange(this, main, fn.readPrev());
+                    final var witness = (MainNode<K, V>) MAIN_VH.compareAndExchange(this, main, readPrev(fn));
                     if (witness == main) {
                         // TODO: second read of FailedNode.prev. Can a FailedNode move?
-                        return fn.readPrev();
+                        return readPrev(fn);
                     }
 
                     // Tail recursion: return GCAS_Complete(witness, ct);
@@ -156,14 +137,14 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 // Note: we deal with the abort case first
                 if (ctr.gen != gen || ct.isReadOnly()) {
                     // try to abort
-                    main.abortPrev(prev);
+                    PREV_VH.compareAndSet(main, prev, new FailedNode<>(prev));
                     // Tail recursion: return GCAS_Complete(mainnode, ct);
                     nextMain = /* READ */ mainNode;
                     break;
                 }
 
                 // try to commit
-                final var witness = main.commitPrev(prev);
+                final var witness = (MainNode<K, V>) PREV_VH.compareAndExchange(main, prev, null);
                 if (witness == prev || witness == null) {
                     return main;
                 }
@@ -183,12 +164,16 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
     private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
         // TODO: this should not be needed: callers should have used the proper constructor
-        newMain.writePrev(oldMain);
+        PREV_VH.setVolatile(newMain, oldMain);
         if (MAIN_VH.compareAndSet(this, oldMain, newMain)) {
             gcasComplete(newMain, ct);
-            return /* READ */ newMain.readPrev() == null;
+            return /* READ */ readPrev(newMain) == null;
         }
         return false;
+    }
+
+    private static <K, V> MainNode<K, V> readPrev(final MainNode<K, V> main) {
+        return (MainNode<K, V>) PREV_VH.getVolatile(main);
     }
 
     private INode<K, V> inode(final MainNode<K, V> cn) {
