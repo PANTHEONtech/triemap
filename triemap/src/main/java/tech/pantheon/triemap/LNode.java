@@ -20,17 +20,19 @@ final class LNode<K, V> extends MainNode<K, V> {
     private final LNodeEntries<K, V> entries;
     private final int size;
 
-    private LNode(final LNodeEntries<K, V> entries, final int size) {
+    private LNode(final LNode<K, V> prev, final LNodeEntries<K, V> entries, final int size) {
+        super(prev);
         this.entries = entries;
         this.size = size;
     }
 
     LNode(final SNode<K, V> first, final SNode<K, V> second) {
-        this(LNodeEntries.map(first.key(), first.value(), second.key(), second.value()), 2);
+        entries = LNodeEntries.map(first.key(), first.value(), second.key(), second.value());
+        size = 2;
     }
 
     LNode<K, V> insertChild(final K key, final V value) {
-        return new LNode<>(entries.insert(key, value), size + 1);
+        return new LNode<>(this, entries.insert(key, value), size + 1);
     }
 
     MainNode<K, V> removeChild(final LNodeEntry<K, V> entry, final int hc) {
@@ -40,13 +42,13 @@ final class LNode<K, V> extends MainNode<K, V> {
 
         // If the returned LNode would have only one element, we turn it into a TNode, hence above null return from
         // remove() can never happen.
-        return size != 2 ? new LNode<>(map, size - 1)
+        return size != 2 ? new LNode<>(this, map, size - 1)
             // create it tombed so that it gets compressed on subsequent accesses
-            : new TNode<>(map.key(), map.value(), hc);
+            : new TNode<>(this, map.key(), map.value(), hc);
     }
 
-    MainNode<K, V> replaceChild(final LNodeEntry<K, V> entry, final V value) {
-        return new LNode<>(entries.replace(entry, value), size);
+    LNode<K, V> replaceChild(final LNodeEntry<K, V> entry, final V value) {
+        return new LNode<>(this, entries.replace(entry, value), size);
     }
 
     LNodeEntry<K, V> get(final K key) {

@@ -15,13 +15,21 @@
  */
 package tech.pantheon.triemap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import tech.pantheon.triemap.INode.FailedGcas;
 
 class INodeTest {
     @Test
     void testInvalidElement() {
         assertThrows(VerifyException.class, () -> INode.invalidElement(null));
+    }
+
+    @Test
+    void testFailedGcasToString() {
+        final var tnode = new TNode<>(new CNode<>(new Gen()), new Object(), new Object(), 123);
+        assertEquals("FailedNode(" + tnode + ")", new FailedGcas<>(tnode).toString());
     }
 }

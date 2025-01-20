@@ -18,8 +18,8 @@ package tech.pantheon.triemap;
 import org.eclipse.jdt.annotation.NonNull;
 
 record SNode<K, V>(K key, V value, int hc) implements Branch, EntryNode<K, V> {
-    TNode<K, V> copyTombed() {
-        return new TNode<>(key, value, hc);
+    TNode<K, V> copyTombed(final CNode<K, V> prev) {
+        return new TNode<>(prev, key, value, hc);
     }
 
     boolean matches(final int otherHc, final Object otherKey) {

@@ -20,7 +20,15 @@ final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
     final V value;
     final int hc;
 
-    TNode(final K key, final V value, final int hc) {
+    TNode(final CNode<K, V> prev, final K key, final V value, final int hc) {
+        super(prev);
+        this.key = key;
+        this.value = value;
+        this.hc = hc;
+    }
+
+    TNode(final LNode<K, V> prev, final K key, final V value, final int hc) {
+        super(prev);
         this.key = key;
         this.value = value;
         this.hc = hc;

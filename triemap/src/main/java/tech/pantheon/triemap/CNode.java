@@ -20,6 +20,7 @@ import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import static tech.pantheon.triemap.Constants.MAX_DEPTH;
 
 import java.util.concurrent.ThreadLocalRandom;
+import org.eclipse.jdt.annotation.Nullable;
 
 final class CNode<K, V> extends MainNode<K, V> {
     private static final Branch[] EMPTY_ARRAY = new Branch[0];
@@ -31,6 +32,13 @@ final class CNode<K, V> extends MainNode<K, V> {
     // Since concurrent computation should lead to same results we can update this field without any synchronization.
     private volatile int csize = NO_SIZE;
 
+    private CNode(final CNode<K, V> prev, final Gen gen, final int bitmap, final Branch... array) {
+        super(prev);
+        this.bitmap = bitmap;
+        this.array = array;
+        this.gen = gen;
+    }
+
     private CNode(final Gen gen, final int bitmap, final Branch... array) {
         this.bitmap = bitmap;
         this.array = array;
@@ -41,7 +49,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, EMPTY_ARRAY);
     }
 
-    static <K, V> MainNode<K,V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
+    static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
             final int initLev, final Gen gen) {
         final var second = new SNode<>(key, value, hc);
         final var fhc = first.hc();
@@ -125,30 +133,39 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    CNode<K, V> updatedAt(final int pos, final Branch nn, final Gen newGen) {
-        final int len = array.length;
-        final var narr = new Branch[len];
-        System.arraycopy(array, 0, narr, 0, len);
-        narr[pos] = nn;
-        return new CNode<>(newGen, bitmap, narr);
+    CNode<K, V> updatedAt(final int pos, final Branch nn, final Gen ngen) {
+        return toUpdatedAt(this, pos, nn, ngen);
     }
 
-    CNode<K, V> removedAt(final int pos, final int flag, final Gen newGen) {
+    CNode<K, V> updatedAt(final int pos, final K key, final V val, final int hc, final Gen ngen) {
+        return updatedAt(pos, new SNode<>(key, val, hc), ngen);
+    }
+
+    CNode<K, V> removedAt(final int pos, final int flag, final Gen ngen) {
         final var arr = array;
         final int len = arr.length;
         final var narr = new Branch[len - 1];
         System.arraycopy(arr, 0, narr, 0, pos);
         System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
-        return new CNode<>(newGen, bitmap ^ flag, narr);
+        return new CNode<>(this, ngen, bitmap ^ flag, narr);
     }
 
-    CNode<K, V> insertedAt(final int pos, final int flag, final Branch nn, final Gen newGen) {
+    CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag, final K key,
+            final V value, final int hc) {
         final int len = array.length;
         final var narr = new Branch[len + 1];
         System.arraycopy(array, 0, narr, 0, pos);
-        narr[pos] = nn;
+        narr[pos] = new SNode<>(key, value, hc);
         System.arraycopy(array, pos, narr, pos + 1, len - pos);
-        return new CNode<>(newGen, bitmap | flag, narr);
+        return new CNode<>(prev, ngen, bitmap | flag, narr);
+    }
+
+    CNode<K, V> toUpdatedAt(final CNode<K, V> prev, final int pos, final Branch nn, final Gen newGen) {
+        final int len = array.length;
+        final var narr = new Branch[len];
+        System.arraycopy(array, 0, narr, 0, len);
+        narr[pos] = nn;
+        return new CNode<>(prev, newGen, bitmap, narr);
     }
 
     /**
@@ -163,13 +180,12 @@ final class CNode<K, V> extends MainNode<K, V> {
             final var tmp = arr[i];
             narr[i] = tmp instanceof INode<?, ?> in ? in.copyToGen(ngen, ct) : tmp;
         }
-        return new CNode<>(ngen, bitmap, narr);
+        return new CNode<>(this, ngen, bitmap, narr);
     }
 
-    @SuppressWarnings("unchecked")
-    MainNode<K, V> toContracted(final int lev) {
-        return array.length == 1 && lev > 0 && array[0] instanceof SNode<?, ?> sn ? ((SNode<K, V>) sn).copyTombed()
-            : this;
+    MainNode<K, V> toContracted(final CNode<K, V> prev, final int lev) {
+        final var sn = onlySNode(array, lev);
+        return sn == null ? new CNode<>(prev, gen, bitmap, array) : sn.copyTombed(prev);
     }
 
     // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
@@ -184,11 +200,17 @@ final class CNode<K, V> extends MainNode<K, V> {
             final var tmp = arr[i];
             narr[i] = tmp instanceof INode<?, ?> in ? resurrect(in, ct) : tmp;
         }
-        return new CNode<K, V>(ngen, bitmap, narr).toContracted(lev);
+        final var sn = onlySNode(narr, lev);
+        return sn != null ? sn.copyTombed(this) : new CNode<>(this, ngen, bitmap, narr);
     }
 
     private static Branch resurrect(final INode<?, ?> in, final TrieMap<?, ?> ct) {
         return in.gcasReadNonNull(ct) instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : in;
+    }
+
+    @SuppressWarnings("unchecked")
+    private @Nullable SNode<K, V> onlySNode(final Branch[] arr, final int lev) {
+        return arr.length == 1 && lev > 0 && arr[0] instanceof SNode<?, ?> sn ? (SNode<K, V>) sn : null;
     }
 
     @Override
