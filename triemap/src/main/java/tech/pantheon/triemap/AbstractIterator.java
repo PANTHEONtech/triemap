@@ -37,7 +37,7 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
     private final ImmutableTrieMap<K, V> map;
 
     private LNodeEntries<K, V> lnode;
-    private DefaultEntry<K, V> current;
+    private EntryNode<K, V> current;
     private int depth = -1;
 
     AbstractIterator(final ImmutableTrieMap<K, V> map) {

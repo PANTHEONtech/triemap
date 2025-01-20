@@ -25,7 +25,7 @@ import java.util.Map.Entry;
  * @param <K> the type of key
  * @param <V> the type of value
  */
-sealed interface DefaultEntry<K, V> extends Entry<K, V> permits AbstractEntry, SNode, TNode {
+sealed interface DefaultEntry<K, V> extends Entry<K, V> permits AbstractEntry, EntryNode {
 
     K key();
 
