@@ -15,14 +15,32 @@
  */
 package tech.pantheon.triemap;
 
-abstract sealed class MainNode<K, V> extends INode.Main<K, V> permits CNode, INode.FailedNode, LNode, TNode {
+/**
+ * A {@link MainNode}: one of {@link CNode}, {@link LNode} or {@link TNode}.
+ */
+abstract sealed class MainNode<K, V> extends INode.TryGcas<K, V> permits CNode, LNode, TNode {
+
     static final int NO_SIZE = -1;
 
+    /**
+     * Constructor for {@link CorLNode}, e.g. {@link CNode} and {@link LNode}, instances which are considered already
+     * committed.
+     */
     MainNode() {
         super();
     }
 
-    MainNode(final MainNode<K, V> prev) {
+    /**
+     * Constructor for instances which are succeeding a previous {@link CNode} node.
+     */
+    MainNode(final CNode<K, V> prev) {
+        super(prev);
+    }
+
+    /**
+     * Constructor for instances which are succeeding a previous {@link LNode} node.
+     */
+    MainNode(final LNode<K, V> prev) {
         super(prev);
     }
 

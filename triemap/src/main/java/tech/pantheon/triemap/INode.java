@@ -25,58 +25,86 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> implements Branch, MutableTrieMap.Root {
-
-    abstract static sealed class Main<K, V> permits MainNode {
-        @SuppressFBWarnings(value = "URF_UNREAD_FIELD",
-            justification = "https://github.com/spotbugs/spotbugs/issues/2749")
-        @SuppressWarnings("unused")
-        private volatile MainNode<K, V> prev;
-
-        Main() {
-            prev = null;
-        }
-
-        Main(final MainNode<K, V> prev) {
-            this.prev = prev;
-        }
+    /**
+     * A GCAS-protected {@link MainNode}. This can be effectively either a {@link FailedGcas} or a {@link MainNode}.
+     */
+    private sealed interface Gcas<K, V> permits FailedGcas, TryGcas {
+        // Nothing else
     }
 
+    /**
+     * A {@link MainNode} that needs to be restored into the stream.
+     */
     // Visible for testing
-    static final class FailedNode<K, V> extends MainNode<K, V> {
-        private final MainNode<K, V> prev;
-
-        FailedNode(final MainNode<K, V> prev) {
-            super(prev);
-            this.prev = requireNonNull(prev);
-        }
-
-        @Override
-        int trySize() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        int size(final ImmutableTrieMap<?, ?> ct) {
-            throw new UnsupportedOperationException();
+    @NonNullByDefault
+    record FailedGcas<K, V>(MainNode<K, V> orig) implements Gcas<K, V> {
+        FailedGcas {
+            requireNonNull(orig);
         }
 
         @Override
         public String toString() {
-            return "FailedNode(" + prev + ")";
+            return "FailedNode(" + orig + ")";
         }
     }
 
+    /**
+     * A {@link MainNode} has potentially some restoration work attached to it. The work is tracked in {@code prev}
+     * field and undergoes different lifecycles based on which constructor is invoked.
+     *
+     * <p>When we start with a non-null {@link CorLNode}, we are the next step in committing that node. That settles
+     * in {@code gcasComplete()} to either {@code null} on success or to {@link FailedGcas} on failure.
+     *
+     * <p>Once we have observed a {@code null}, we switch to tracking read-side consistency and {@code prev} can get
+     * intermittently to clean up work, which will go away once last referent is gone.
+     */
+    abstract static sealed class TryGcas<K, V> implements Gcas<K, V> permits MainNode {
+        @SuppressFBWarnings(value = "UUF_UNUSED_FIELD",
+            justification = "https://github.com/spotbugs/spotbugs/issues/2749")
+        // Never accessed directly, always go through PREV_VH
+        private volatile Gcas<K, V> prev;
+
+        private TryGcas(final Gcas<K, V> prev) {
+            // plain store lurking in shadows cast by final fields in subclasses
+            PREV_VH.set(this, prev);
+        }
+
+        /**
+         * Constructor for GCAS states which are considered committed.
+         */
+        TryGcas() {
+            this((Gcas<K, V>) null);
+        }
+
+        /**
+         * Constructor for GCAS states which follow an {@link CNode} previous state.
+         */
+        TryGcas(final CNode<K, V> prev) {
+            this((Gcas<K, V>) requireNonNull(prev));
+        }
+
+        /**
+         * Constructor for GCAS states which follow an {@link LNode} previous state.
+         */
+        TryGcas(final LNode<K, V> prev) {
+            this((Gcas<K, V>) requireNonNull(prev));
+        }
+    }
+
+    // VarHandle for operations on "mainNode" field
     private static final VarHandle MAIN_VH;
+    // VarHandle for operations on 'TryGcas.prev' field
     private static final VarHandle PREV_VH;
 
     static {
         final var lookup = MethodHandles.lookup();
         try {
-            MAIN_VH = lookup.findVarHandle(INode.class, "mainNode", MainNode.class);
-            PREV_VH = MethodHandles.lookup().findVarHandle(Main.class, "prev", MainNode.class);
+            MAIN_VH = lookup.findVarHandle(INode.class, "main", MainNode.class);
+            PREV_VH = MethodHandles.lookup().findVarHandle(TryGcas.class, "prev", Gcas.class);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -84,11 +112,14 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
     private final Gen gen;
 
-    private volatile MainNode<K, V> mainNode;
+    @SuppressFBWarnings(value = "UUF_UNUSED_FIELD",
+        justification = "https://github.com/spotbugs/spotbugs/issues/2749")
+    // Never accessed directly, always go through MAIN_VH
+    private volatile MainNode<K, V> main;
 
     INode(final Gen gen, final MainNode<K, V> mainNode) {
+        MAIN_VH.set(this, mainNode);
         this.gen = gen;
-        this.mainNode = mainNode;
     }
 
     @NonNull MainNode<K, V> gcasReadNonNull(final TrieMap<?, ?> ct) {
@@ -96,88 +127,91 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     MainNode<K, V> gcasRead(final TrieMap<?, ?> ct) {
-        return gcasComplete(/* READ */ mainNode, ct);
+        return gcasComplete((MainNode<K, V>) MAIN_VH.getVolatile(this), ct);
     }
 
-    private MainNode<K, V> gcasComplete(final MainNode<K, V> oldmain, final TrieMap<?, ?> ct) {
-        // complete the GCAS
-        var main = oldmain;
-        while (true) {
-            var prev = /* READ */ readPrev(main);
-            if (prev == null) {
-                return main;
-            }
-
-            final MainNode<K, V> nextMain;
-            while (true) {
-                final var ctr = ct.readRoot(true);
-                if (prev instanceof FailedNode) {
-                    // try to commit to previous value
-                    final var fn = (FailedNode<K, V>) prev;
-                    final var witness = (MainNode<K, V>) MAIN_VH.compareAndExchange(this, main, readPrev(fn));
-                    if (witness == main) {
-                        // TODO: second read of FailedNode.prev. Can a FailedNode move?
-                        return readPrev(fn);
-                    }
-
-                    // Tail recursion: return GCAS_Complete(witness, ct);
-                    nextMain = witness;
-                    break;
-                }
-
-                // Assume that you've read the root from the generation G.
-                // Assume that the snapshot algorithm is correct.
-                // ==> you can only reach nodes in generations <= G.
-                // ==> `gen` is <= G.
-                // We know that `ctr.gen` is >= G.
-                // ==> if `ctr.gen` = `gen` then they are both equal to G.
-                // ==> otherwise, we know that either `ctr.gen` > G, `gen` < G,
-                // or both
-                //
-                // Note: we deal with the abort case first
-                if (ctr.gen != gen || ct.isReadOnly()) {
-                    // try to abort
-                    PREV_VH.compareAndSet(main, prev, new FailedNode<>(prev));
-                    // Tail recursion: return GCAS_Complete(mainnode, ct);
-                    nextMain = /* READ */ mainNode;
-                    break;
-                }
-
-                // try to commit
-                final var witness = (MainNode<K, V>) PREV_VH.compareAndExchange(main, prev, null);
-                if (witness == prev || witness == null) {
-                    return main;
-                }
-
-                // Tail recursion: probably a failed node
-                prev = witness;
-            }
-
-            if (nextMain == null) {
-                return null;
-            }
-
-            // Tail recursion: return GCAS_Complete(nextMain, ct);
-            main = nextMain;
-        }
-    }
-
-    private boolean gcas(final MainNode<K, V> oldMain, final MainNode<K, V> newMain, final TrieMap<?, ?> ct) {
-        // TODO: this should not be needed: callers should have used the proper constructor
-        PREV_VH.setVolatile(newMain, oldMain);
-        if (MAIN_VH.compareAndSet(this, oldMain, newMain)) {
-            gcasComplete(newMain, ct);
-            return /* READ */ readPrev(newMain) == null;
+    private boolean gcasWrite(final MainNode<K, V> next, final TrieMap<?, ?> ct) {
+        // note: plain read of 'next', i.e. take a look at what we are about to CAS-out
+        if (MAIN_VH.compareAndSet(this, VerifyException.throwIfNull(PREV_VH.get(next)), next)) {
+            // established as write, now try to complete it and report if we have succeeded
+            gcasComplete(next, ct);
+            return PREV_VH.getVolatile(next) == null;
         }
         return false;
     }
 
-    private static <K, V> MainNode<K, V> readPrev(final MainNode<K, V> main) {
-        return (MainNode<K, V>) PREV_VH.getVolatile(main);
+    private MainNode<K, V> gcasComplete(final MainNode<K, V> firstMain, final TrieMap<?, ?> ct) {
+        // complete the GCAS starting at firstMain
+        var currentMain = firstMain;
+
+        while (true) {
+            var prev = (Gcas<K, V>) PREV_VH.getVolatile(currentMain);
+            if (prev == null) {
+                // Validated, we are done
+                return currentMain;
+            }
+
+            final MainNode<K, V> nextMain;
+            while (true) {
+                if (prev instanceof FailedGcas<K, V> prevFailed) {
+                    // pick up insert failure where the other case left off:
+                    final var orig = prevFailed.orig;
+                    // try to commit to previous value
+                    final var witness = (MainNode<K, V>) MAIN_VH.compareAndExchange(this, currentMain, orig);
+                    if (witness == currentMain) {
+                        // successful: counts as a valid read
+                        return orig;
+                    }
+
+                    // Tail recursion: gcasComplete(witness, ct);
+                    nextMain = witness;
+                    break;
+                } else if (prev instanceof MainNode<K, V> prevMain) {
+                    // Assume that you've read the root from the generation G.
+                    // Assume that the snapshot algorithm is correct.
+                    // ==> you can only reach nodes in generations <= G.
+                    // ==> `gen` is <= G.
+                    // We know that `ctr.gen` is >= G.
+                    // ==> if `ctr.gen` = `gen` then they are both equal to G.
+                    // ==> otherwise, we know that either `ctr.gen` > G, `gen` < G,
+                    // or both
+                    //
+                    // Note: we deal with the abort case first
+                    final var ctr = ct.readRoot(true);
+                    if (ctr.gen != gen || ct.isReadOnly()) {
+                        // try to abort
+                        PREV_VH.compareAndSet(currentMain, prev, new FailedGcas<>(prevMain));
+                        // Tail recursion: gcasComplete(mainNode, ct)
+                        nextMain = (MainNode<K, V>) MAIN_VH.getVolatile(this);
+                        break;
+                    }
+
+                    // try to commit
+                    final var witness = (Gcas<K, V>) PREV_VH.compareAndExchange(currentMain, prev, null);
+                    if (witness == prev || witness == null) {
+                        // successful commit: it was either us or someone racing with us
+                        return currentMain;
+                    }
+
+                    // internal recursion: same main, different prev
+                    prev = witness;
+                } else {
+                    throw new VerifyException("Unexpected gcas " + prev);
+                }
+            }
+
+            if (nextMain == null) {
+                // TODO: when can this happen?
+                return null;
+            }
+
+            // Tail recursion: gcasComplete(nextMain, ct)
+            currentMain = nextMain;
+        }
     }
 
-    private INode<K, V> inode(final MainNode<K, V> cn) {
-        return new INode<>(gen, cn);
+    private INode<K, V> inode(final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
+        return new INode<>(gen, CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, gen));
     }
 
     INode<K, V> copyToGen(final Gen ngen, final TrieMap<?, ?> ct) {
@@ -217,7 +251,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                         if (startgen == in.gen) {
                             return in.recInsert(key, val, hc, lev + LEVEL_BITS, this, startgen, ct);
                         }
-                        if (gcas(cn, cn.renewed(startgen, ct), ct)) {
+                        if (gcasWrite(cn.renewed(startgen, ct), ct)) {
                             // Tail recursion: return rec_insert(k, v, hc, lev, parent, startgen, ct);
                             continue;
                         }
@@ -227,21 +261,18 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                         @SuppressWarnings("unchecked")
                         final var sn = (SNode<K, V>) cnAtPos;
                         if (sn.matches(hc, key)) {
-                            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct);
+                            return gcasWrite(cn.updatedAt(pos, key, val, hc, gen), ct);
                         }
 
                         final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-                        final var nn = rn.updatedAt(pos, inode(CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, gen)),
-                            gen);
-                        return gcas(cn, nn, ct);
+                        return gcasWrite(rn.updatedAt(pos, inode(sn, key, val, hc, lev), gen), ct);
                     } else {
                         throw CNode.invalidElement(cnAtPos);
                     }
                 }
 
                 final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-                final var ncnode = rn.insertedAt(pos, flag, new SNode<>(key, val, hc), gen);
-                return gcas(cn, ncnode, ct);
+                return gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), ct);
             } else if (m instanceof TNode) {
                 clean(parent, ct, lev - LEVEL_BITS);
                 return false;
@@ -262,8 +293,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     private @Nullable Result<V> insertDual(final TrieMap<K, V> ct, final CNode<K, V> cn, final int pos,
             final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
         final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-        final var nn = rn.updatedAt(pos, inode(CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, gen)), gen);
-        return gcas(cn, nn, ct) ? Result.empty() : null;
+        return gcasWrite(rn.toUpdatedAt(cn, pos, inode(sn, key, val, hc, lev), gen), ct) ? Result.empty() : null;
     }
 
     /**
@@ -299,7 +329,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     // not found
                     if (cond == null || cond == ABSENT) {
                         final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-                        if (!gcas(cn, rn.insertedAt(pos, flag, new SNode<>(key, val, hc), gen), ct)) {
+                        if (!gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), ct)) {
                             return null;
                         }
                     }
@@ -319,7 +349,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 if (startgen == in.gen) {
                     return in.recInsertIf(key, val, hc, cond, lev + LEVEL_BITS, this, startgen, ct);
                 }
-                if (!gcas(cn, cn.renewed(startgen, ct), ct)) {
+                if (!gcasWrite(cn.renewed(startgen, ct), ct)) {
                     return null;
                 }
 
@@ -346,7 +376,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         if (cond == ABSENT) {
             return sn.toResult();
         } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
-            return gcas(cn, cn.updatedAt(pos, new SNode<>(key, val, hc), gen), ct) ? sn.toResult() : null;
+            return gcasWrite(cn.updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
         }
         return Result.empty();
     }
@@ -369,11 +399,11 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     private boolean insertln(final LNode<K, V> ln, final K key, final V val, final TrieMap<K, V> ct) {
-        return gcas(ln, ln.insertChild(key, val), ct);
+        return gcasWrite(ln.insertChild(key, val), ct);
     }
 
     private boolean replaceln(final LNode<K, V> ln, final LNodeEntry<K, V> entry, final V val, final TrieMap<K, V> ct) {
-        return gcas(ln, ln.replaceChild(entry, val), ct);
+        return gcasWrite(ln.replaceChild(entry, val), ct);
     }
 
     /**
@@ -413,7 +443,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                         return in.recLookup(key, hc, lev + LEVEL_BITS, this, startgen, ct);
                     }
 
-                    if (gcas(cn, cn.renewed(startgen, ct), ct)) {
+                    if (gcasWrite(cn.renewed(startgen, ct), ct)) {
                         // Tail recursion: return rec_lookup(k, hc, lev, parent, startgen, ct);
                         continue;
                     }
@@ -498,7 +528,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             final var in = (INode<K, V>) sub;
             if (startgen == in.gen) {
                 res = in.recRemove(key, cond, hc, lev + LEVEL_BITS, this, startgen, ct);
-            } else if (gcas(cn, cn.renewed(startgen, ct), ct)) {
+            } else if (gcasWrite(cn.renewed(startgen, ct), ct)) {
                 res = recRemove(key, cond, hc, lev, parent, startgen, ct);
             } else {
                 return null;
@@ -507,7 +537,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             @SuppressWarnings("unchecked")
             final var sn = (SNode<K, V>) sub;
             if (sn.matches(hc, key) && (cond == null || cond.equals(sn.value()))) {
-                if (gcas(cn, cn.removedAt(pos, flag, gen).toContracted(lev), ct)) {
+                if (gcasWrite(cn.removedAt(pos, flag, gen).toContracted(cn, lev), ct)) {
                     res = sn.toResult();
                 } else {
                     return null;
@@ -540,7 +570,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             return Result.empty();
         }
 
-        return gcas(ln, ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
+        return gcasWrite(ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
     }
 
     private void cleanParent(final TNode<?, ?> tn, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
@@ -568,7 +598,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 return;
             }
 
-            if (parent.gcas(cn, cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(lev - LEVEL_BITS), ct)
+            if (parent.gcasWrite(cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(cn, lev - LEVEL_BITS), ct)
                 || ct.readRoot().gen != startgen) {
                 // (mumble-mumble) and we're done
                 return;
@@ -581,7 +611,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         if (nd.gcasRead(ct) instanceof CNode<?, ?> cnode) {
             @SuppressWarnings("unchecked")
             final var cn = (CNode<K, V>) cnode;
-            nd.gcas(cn, cn.toCompressed(ct, lev, gen), ct);
+            nd.gcasWrite(cn.toCompressed(ct, lev, gen), ct);
         }
     }
 

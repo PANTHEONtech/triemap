@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SNodeTest {
@@ -27,16 +26,11 @@ class SNodeTest {
     private static final String VALUE = "value";
     private static final int HASH = 1337;
 
-    private SNode<String, String> snode;
-
-    @BeforeEach
-    void before() {
-        snode = new SNode<>(KEY, VALUE, HASH);
-    }
+    private final SNode<String, String> snode = new SNode<>(KEY, VALUE, HASH);
 
     @Test
     void testCopyTombed() {
-        final var tnode = snode.copyTombed();
+        final var tnode = snode.copyTombed(new CNode<>(new Gen()));
         assertEquals(snode.hashCode(), tnode.hashCode());
         assertSame(snode.key(), tnode.key());
         assertSame(snode.value(), tnode.value());
