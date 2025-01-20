@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import tech.pantheon.triemap.INode.FailedNode;
 
 class FailedNodeTest {
     private final TNode<?, ?> tnode = new TNode<>(new Object(), new Object(), 123);
