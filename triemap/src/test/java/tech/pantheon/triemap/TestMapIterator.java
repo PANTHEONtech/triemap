@@ -119,6 +119,6 @@ class TestMapIterator {
 
     private static void failAdvance(final Iterator<?> it) {
         assertFalse(it.hasNext());
-        assertThrows(NoSuchElementException.class, () -> it.next());
+        assertThrows(NoSuchElementException.class, it::next);
     }
 }
