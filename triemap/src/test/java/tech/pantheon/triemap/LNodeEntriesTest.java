@@ -26,7 +26,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class LNodeEntriesTest {
-    private LNodeEntries<Integer, Boolean> map = LNodeEntries.map(1, TRUE, 2, TRUE);
+    private LNodeEntries<Integer, Boolean> map = LNodeEntries.of(1, TRUE, 2, TRUE);
 
     @Test
     void testReplaceInvalid() {
@@ -41,7 +41,7 @@ class LNodeEntriesTest {
         assertEquals(map.next(), modified.next());
         assertEquals(Map.entry(1, FALSE), modified);
 
-        final var trimmed = modified.remove(modified);
+        final var trimmed = modified.removeEntry(modified);
         assertEquals(Map.entry(2, TRUE), trimmed.replace(trimmed, TRUE));
     }
 
@@ -51,22 +51,22 @@ class LNodeEntriesTest {
         assertEquals(map, modified.next());
         assertEquals(Map.entry(2, FALSE), modified);
 
-        final var trimmed = modified.remove(modified);
+        final var trimmed = modified.removeEntry(modified);
         assertEquals(Map.entry(1, TRUE), trimmed.replace(trimmed, TRUE));
     }
 
     @Test
     void testRemoveHead() {
-        final var modified = map.remove(map);
+        final var modified = map.removeEntry(map);
         assertSame(map.next(), modified);
-        assertNull(modified.remove(modified));
+        assertNull(modified.removeEntry(modified));
     }
 
     @Test
     void testRemoveTail() {
-        final LNodeEntries<Integer, Boolean> modified = map.remove(map.next());
+        final LNodeEntries<Integer, Boolean> modified = map.removeEntry(map.next());
         assertEquals(map, modified);
-        assertNull(modified.remove(modified));
+        assertNull(modified.removeEntry(modified));
     }
 
     /**
@@ -76,7 +76,7 @@ class LNodeEntriesTest {
     void testGetOverflow() {
         // 30K seems to be enough to trigger the problem locally
         for (int i = 3; i < 30000; ++i) {
-            map = map.insert(i, TRUE);
+            map = map.insertEntry(i, TRUE);
         }
 
         assertNull(map.findEntry(0));

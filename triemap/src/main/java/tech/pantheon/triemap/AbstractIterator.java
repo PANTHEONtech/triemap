@@ -88,17 +88,16 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
      */
     private void readin(final INode<K, V> in) {
         final var m = in.gcasRead(map);
-        if (m instanceof CNode) {
+        if (m instanceof CNode<K, V> cn) {
             // Enter the next level
-            final var cn = (CNode<K, V>) m;
             depth++;
             nodeStack[depth] = cn.array;
             positionStack[depth] = -1;
             advance();
-        } else if (m instanceof TNode) {
-            current = (TNode<K, V>) m;
-        } else if (m instanceof LNode) {
-            lnode = ((LNode<K, V>) m).entries();
+        } else if (m instanceof TNode<K, V> tn) {
+            current = tn;
+        } else if (m instanceof LNode<K, V> ln) {
+            lnode = ln.entries;
         } else if (m == null) {
             current = null;
         }
