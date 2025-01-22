@@ -472,18 +472,8 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             } else {
                 return null;
             }
-        } else if (sub instanceof SNode) {
-            @SuppressWarnings("unchecked")
-            final var sn = (SNode<K, V>) sub;
-            if (sn.matches(hc, key) && (cond == null || cond.equals(sn.value()))) {
-                if (gcasWrite(cn.removedAt(pos, flag, gen).toContracted(cn, lev), ct)) {
-                    res = sn.toResult();
-                } else {
-                    return null;
-                }
-            } else {
-                return Result.empty();
-            }
+        } else if (sub instanceof SNode<?, ?> sn) {
+            res = cn.remove(this, flag, pos, sn, key, hc, cond, lev, ct);
         } else {
             throw CNode.invalidElement(sub);
         }

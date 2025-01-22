@@ -84,6 +84,16 @@ final class CNode<K, V> extends MainNode<K, V> {
         return Result.empty();
     }
 
+    @Nullable Result<V> remove(final INode<K, V> in, final int flag, final int pos, final SNode<?, ?> snode,
+            final K key, final int hc, final Object cond, final int lev, final TrieMap<K, V> ct) {
+        @SuppressWarnings("unchecked")
+        final var sn = (SNode<K, V>) snode;
+        if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
+            return Result.empty();
+        }
+        return in.gcasWrite(removedAt(pos, flag, gen).toContracted(this, lev), ct) ? sn.toResult() : null;
+    }
+
     static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
             final int initLev, final Gen gen) {
         final var second = new SNode<>(key, value, hc);
