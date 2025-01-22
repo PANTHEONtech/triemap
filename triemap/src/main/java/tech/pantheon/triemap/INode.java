@@ -307,9 +307,8 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         while (true) {
             final var m = gcasRead(ct);
 
-            if (m instanceof CNode) {
+            if (m instanceof CNode<K, V> cn) {
                 // 1) a multiway node
-                final var cn = (CNode<K, V>) m;
                 final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
@@ -348,9 +347,9 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             } else if (m instanceof TNode) {
                 clean(parent, ct, lev - LEVEL_BITS);
                 return null;
-            } else if (m instanceof LNode<?, ?> ln) {
+            } else if (m instanceof LNode<K, V> ln) {
                 // 3) an l-node
-                return insertIf(ln, key, val, cond, ct);
+                return ln.insertIf(this, key, val, cond, ct);
             } else {
                 throw invalidElement(m);
             }
@@ -370,33 +369,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             return gcasWrite(cn.updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
         }
         return Result.empty();
-    }
-
-    private @Nullable Result<V> insertIf(final LNode<?, ?> lnode, final K key, final V val, final Object cond,
-            final TrieMap<K, V> ct) {
-        @SuppressWarnings("unchecked")
-        final var ln = (LNode<K, V>) lnode;
-        final var entry = ln.get(key);
-
-        if (entry == null) {
-            return cond != null && cond != ABSENT || insertln(ln, key, val, ct) ? Result.empty() : null;
-        }
-        if (cond == ABSENT) {
-            return entry.toResult();
-        } else if (cond == null || cond == PRESENT || cond.equals(entry.value())) {
-            return replaceln(ln, entry, val, ct) ? entry.toResult() : null;
-        }
-        return Result.empty();
-    }
-
-    // FIXME: should live in LNode
-    private boolean insertln(final LNode<K, V> ln, final K key, final V val, final TrieMap<K, V> ct) {
-        return gcasWrite(ln.insertChild(key, val), ct);
-    }
-
-    // FIXME: should live in LNode
-    private boolean replaceln(final LNode<K, V> ln, final LNodeEntry<K, V> entry, final V val, final TrieMap<K, V> ct) {
-        return gcasWrite(ln.replaceChild(entry, val), ct);
     }
 
     /**
