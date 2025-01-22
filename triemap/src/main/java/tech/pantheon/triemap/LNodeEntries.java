@@ -102,8 +102,8 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         return Result.empty();
     }
 
-    @Nullable Result<V> remove(final INode<K, V> in, final LNode<K, V> ln, final K key, final Object cond, final int hc,
-            final TrieMap<K, V> ct) {
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
+            final Object cond, final int hc) {
         final var entry = findEntry(key);
         if (entry == null) {
             // Key was not found, hence no modification is needed

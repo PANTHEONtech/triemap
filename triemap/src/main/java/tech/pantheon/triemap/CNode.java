@@ -84,14 +84,27 @@ final class CNode<K, V> extends MainNode<K, V> {
         return Result.empty();
     }
 
-    @Nullable Result<V> remove(final INode<K, V> in, final int flag, final int pos, final SNode<?, ?> snode,
-            final K key, final int hc, final Object cond, final int lev, final TrieMap<K, V> ct) {
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int flag, final int pos,
+            final SNode<?, ?> snode, final K key, final int hc, final Object cond, final int lev) {
         @SuppressWarnings("unchecked")
         final var sn = (SNode<K, V>) snode;
         if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
             return Result.empty();
         }
-        return in.gcasWrite(removedAt(pos, flag, gen).toContracted(this, lev), ct) ? sn.toResult() : null;
+
+        final var arr = array;
+        final int len = arr.length;
+        final var narr = new Branch[len - 1];
+        System.arraycopy(arr, 0, narr, 0, pos);
+        System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
+        final var onlySN = onlySNode(narr, lev);
+        return in.gcasWrite(onlySN != null ? onlySN.copyTombed(this) : new CNode<>(this, gen, bitmap ^ flag, narr), ct)
+            ? sn.toResult() : null;
+    }
+
+    MainNode<K, V> toContracted(final CNode<K, V> prev, final int lev) {
+        final var sn = onlySNode(array, lev);
+        return sn == null ? new CNode<>(prev, gen, bitmap, array) : sn.copyTombed(prev);
     }
 
     static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
@@ -226,11 +239,6 @@ final class CNode<K, V> extends MainNode<K, V> {
             narr[i] = tmp instanceof INode<?, ?> in ? in.copyToGen(ngen, ct) : tmp;
         }
         return new CNode<>(this, ngen, bitmap, narr);
-    }
-
-    MainNode<K, V> toContracted(final CNode<K, V> prev, final int lev) {
-        final var sn = onlySNode(array, lev);
-        return sn == null ? new CNode<>(prev, gen, bitmap, array) : sn.copyTombed(prev);
     }
 
     // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
