@@ -17,14 +17,12 @@ package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
-import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> implements Branch, MutableTrieMap.Root {
     /**
@@ -277,75 +275,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     // visible for testing
     static VerifyException invalidElement(final MainNode<?, ?> elem) {
         throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
-    }
-
-    /**
-     * Inserts a new key value pair, given that a specific condition is met.
-     *
-     * @param cond
-     *            null - don't care if the key was there
-     *            KEY_ABSENT - key wasn't there
-     *            KEY_PRESENT - key was there
-     *            other value `val` - key must be bound to `val`
-     * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
-     */
-    @Nullable Result<V> recInsertIf(final K key, final V val, final int hc, final Object cond, final int lev,
-            final INode<K, V> parent, final TrieMap<K, V> ct) {
-        return recInsertIf(key, val, hc, cond, lev, parent, gen, ct);
-    }
-
-    private @Nullable Result<V> recInsertIf(final K key, final V val, final int hc, final Object cond, final int lev,
-            final INode<K, V> parent, final Gen startgen, final TrieMap<K, V> ct) {
-        while (true) {
-            final var m = gcasRead(ct);
-
-            if (m instanceof CNode<K, V> cn) {
-                // 1) a multiway node
-                final int idx = hc >>> lev & 0x1f;
-                final int flag = 1 << idx;
-                final int bmp = cn.bitmap;
-                final int mask = flag - 1;
-                final int pos = Integer.bitCount(bmp & mask);
-
-                if ((bmp & flag) == 0) {
-                    // not found
-                    if (cond == null || cond == ABSENT) {
-                        final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-                        if (!gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), ct)) {
-                            return null;
-                        }
-                    }
-                    return Result.empty();
-                }
-
-                // 1a) insert below
-                final var cnAtPos = cn.array[pos];
-                if (cnAtPos instanceof SNode<?, ?> sn) {
-                    return cn.insertIf(this, pos, sn, key, val, hc, cond, lev, ct);
-                }
-                if (!(cnAtPos instanceof INode<?, ?> inode)) {
-                    throw CNode.invalidElement(cnAtPos);
-                }
-                @SuppressWarnings("unchecked")
-                final var in = (INode<K, V>) inode;
-                if (startgen == in.gen) {
-                    return in.recInsertIf(key, val, hc, cond, lev + LEVEL_BITS, this, startgen, ct);
-                }
-                if (!gcasWrite(cn.renewed(startgen, ct), ct)) {
-                    return null;
-                }
-
-                // Tail recursion: return rec_insertif(k, v, hc, cond, lev, parent, startgen, ct);
-            } else if (m instanceof TNode) {
-                clean(parent, ct, lev - LEVEL_BITS);
-                return null;
-            } else if (m instanceof LNode<K, V> ln) {
-                // 3) an l-node
-                return ln.entries.insertIf(this, ln, key, val, cond, ct);
-            } else {
-                throw invalidElement(m);
-            }
-        }
     }
 
     void clean(final INode<K, V> nd, final TrieMap<K, V> ct, final int lev) {
