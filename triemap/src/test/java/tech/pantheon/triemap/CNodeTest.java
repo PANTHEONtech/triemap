@@ -28,6 +28,6 @@ class CNodeTest {
 
     @Test
     void testInvalidElement() {
-        assertThrows(VerifyException.class, () -> CNode.invalidElement(null));
+        assertThrows(VerifyException.class, () -> TrieMap.invalidElement((CNode<?, ?>) null));
     }
 }

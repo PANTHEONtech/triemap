@@ -51,8 +51,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, EMPTY_ARRAY);
     }
 
-    boolean insert(final INode<K, V> in, final int pos, final SNode<K, V> sn, final K key, final V val, final int hc,
-            final int lev, final TrieMap<K, V> ct) {
+    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final SNode<K, V> sn,
+            final K key, final V val, final int hc, final int lev) {
         final CNode<K, V> next;
         if (!sn.matches(hc, key)) {
             final var rn = gen == in.gen ? this : renewed(gen, ct);
@@ -153,10 +153,6 @@ final class CNode<K, V> extends MainNode<K, V> {
         return (sz = csize) != NO_SIZE ? sz : (csize = computeSize(ct));
     }
 
-    static VerifyException invalidElement(final Branch elem) {
-        throw new VerifyException("A CNode can contain only INodes and SNodes, not " + elem);
-    }
-
     // lends itself towards being parallelizable by choosing
     // a random starting offset in the array
     // => if there are concurrent size computations, they start
@@ -187,7 +183,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         } else if (elem instanceof INode<?, ?> inode) {
             return inode.size(ct);
         } else {
-            throw invalidElement(elem);
+            throw TrieMap.invalidElement(elem);
         }
     }
 
@@ -195,17 +191,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         return toUpdatedAt(this, pos, nn, ngen);
     }
 
-    CNode<K, V> updatedAt(final int pos, final K key, final V val, final int hc, final Gen ngen) {
+    private CNode<K, V> updatedAt(final int pos, final K key, final V val, final int hc, final Gen ngen) {
         return updatedAt(pos, new SNode<>(key, val, hc), ngen);
-    }
-
-    CNode<K, V> removedAt(final int pos, final int flag, final Gen ngen) {
-        final var arr = array;
-        final int len = arr.length;
-        final var narr = new Branch[len - 1];
-        System.arraycopy(arr, 0, narr, 0, pos);
-        System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
-        return new CNode<>(this, ngen, bitmap ^ flag, narr);
     }
 
     CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag, final K key,
@@ -218,12 +205,12 @@ final class CNode<K, V> extends MainNode<K, V> {
         return new CNode<>(prev, ngen, bitmap | flag, narr);
     }
 
-    CNode<K, V> toUpdatedAt(final CNode<K, V> prev, final int pos, final Branch nn, final Gen newGen) {
+    private CNode<K, V> toUpdatedAt(final CNode<K, V> prev, final int pos, final Branch nn, final Gen ngen) {
         final int len = array.length;
         final var narr = new Branch[len];
         System.arraycopy(array, 0, narr, 0, len);
         narr[pos] = nn;
-        return new CNode<>(prev, newGen, bitmap, narr);
+        return new CNode<>(prev, ngen, bitmap, narr);
     }
 
     /**
