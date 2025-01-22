@@ -49,6 +49,18 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, EMPTY_ARRAY);
     }
 
+    boolean insert(final INode<K, V> in, final int pos, final SNode<K, V> sn, final K key, final V val, final int hc,
+            final int lev, final TrieMap<K, V> ct) {
+        final CNode<K, V> next;
+        if (!sn.matches(hc, key)) {
+            final var rn = gen == in.gen ? this : renewed(gen, ct);
+            next = rn.updatedAt(pos, new INode<>(in, sn, key, val, hc, lev), gen);
+        } else {
+            next = updatedAt(pos, key, val, hc, gen);
+        }
+        return in.gcasWrite(next, ct);
+    }
+
     static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
             final int initLev, final Gen gen) {
         final var second = new SNode<>(key, value, hc);
