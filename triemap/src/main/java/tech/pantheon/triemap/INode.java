@@ -19,7 +19,6 @@ import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import static tech.pantheon.triemap.LookupResult.RESTART;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
-import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
@@ -276,15 +275,9 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
     }
 
+    // visible for testing
     static VerifyException invalidElement(final MainNode<?, ?> elem) {
         throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
-    }
-
-    private @Nullable Result<V> insertDual(final TrieMap<K, V> ct, final CNode<K, V> cn, final int pos,
-            final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
-        final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-        return gcasWrite(rn.toUpdatedAt(cn, pos, new INode<>(this, sn, key, val, hc, lev), gen), ct)
-            ? Result.empty() : null;
     }
 
     /**
@@ -329,7 +322,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 // 1a) insert below
                 final var cnAtPos = cn.array[pos];
                 if (cnAtPos instanceof SNode<?, ?> sn) {
-                    return insertIf(cn, pos, sn, key, val, hc, cond, lev, ct);
+                    return cn.insertIf(this, pos, sn, key, val, hc, cond, lev, ct);
                 }
                 if (!(cnAtPos instanceof INode<?, ?> inode)) {
                     throw CNode.invalidElement(cnAtPos);
@@ -354,21 +347,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 throw invalidElement(m);
             }
         }
-    }
-
-    private @Nullable Result<V> insertIf(final CNode<K, V> cn, final int pos, final SNode<?, ?> snode, final K key,
-            final V val, final int hc, final Object cond, final int lev, final TrieMap<K, V> ct) {
-        @SuppressWarnings("unchecked")
-        final var sn = (SNode<K, V>) snode;
-        if (!sn.matches(hc, key)) {
-            return cond == null || cond == ABSENT ? insertDual(ct, cn, pos, sn, key, val, hc, lev) : Result.empty();
-        }
-        if (cond == ABSENT) {
-            return sn.toResult();
-        } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
-            return gcasWrite(cn.updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
-        }
-        return Result.empty();
     }
 
     /**

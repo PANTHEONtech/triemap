@@ -18,6 +18,8 @@ package tech.pantheon.triemap;
 import static tech.pantheon.triemap.Constants.HASH_BITS;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import static tech.pantheon.triemap.Constants.MAX_DEPTH;
+import static tech.pantheon.triemap.PresencePredicate.ABSENT;
+import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
 import java.util.concurrent.ThreadLocalRandom;
 import org.eclipse.jdt.annotation.Nullable;
@@ -59,6 +61,27 @@ final class CNode<K, V> extends MainNode<K, V> {
             next = updatedAt(pos, key, val, hc, gen);
         }
         return in.gcasWrite(next, ct);
+    }
+
+    @Nullable Result<V> insertIf(final INode<K, V> in, final int pos, final SNode<?, ?> snode, final K key,
+            final V val, final int hc, final Object cond, final int lev, final TrieMap<K, V> ct) {
+        @SuppressWarnings("unchecked")
+        final var sn = (SNode<K, V>) snode;
+        if (!sn.matches(hc, key)) {
+            if (cond == null || cond == ABSENT) {
+                final var ngen = in.gen;
+                final var rn = gen == ngen ? this : renewed(ngen, ct);
+                return in.gcasWrite(rn.toUpdatedAt(this, pos, new INode<>(in, sn, key, val, hc, lev), ngen), ct)
+                    ? Result.empty() : null;
+            }
+            return Result.empty();
+        }
+        if (cond == ABSENT) {
+            return sn.toResult();
+        } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
+            return in.gcasWrite(updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
+        }
+        return Result.empty();
     }
 
     static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
