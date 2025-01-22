@@ -16,10 +16,15 @@
 package tech.pantheon.triemap;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 
 record SNode<K, V>(K key, V value, int hc) implements Branch, EntryNode<K, V> {
     TNode<K, V> copyTombed(final CNode<K, V> prev) {
         return new TNode<>(prev, key, value, hc);
+    }
+
+    @Nullable V lookup(final int hc, final K key) {
+        return matches(hc, key) ? value : null;
     }
 
     boolean matches(final int otherHc, final Object otherKey) {
