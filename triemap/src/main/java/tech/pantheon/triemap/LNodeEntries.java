@@ -15,6 +15,11 @@
  */
 package tech.pantheon.triemap;
 
+import static tech.pantheon.triemap.PresencePredicate.ABSENT;
+import static tech.pantheon.triemap.PresencePredicate.PRESENT;
+
+import org.eclipse.jdt.annotation.Nullable;
+
 /**
  * Similar to Scala&apos;s ListMap, this is a single-linked list of set of map entries. Aside from the java.util.Set
  * contract, this class fulfills the requirements for an immutable map entryset.
@@ -61,7 +66,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         super(key, value);
     }
 
-    static <K,V> LNodeEntries<K, V> map(final K k1, final V v1, final K k2, final V v2) {
+    static <K,V> LNodeEntries<K, V> of(final K k1, final V v1, final K k2, final V v2) {
         return new Multiple<>(k1, v1, new Single<>(k2, v2));
     }
 
@@ -73,7 +78,70 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
      */
     abstract LNodeEntries<K, V> next();
 
-    final LNodeEntry<K, V> findEntry(final K key) {
+    final @Nullable V lookup(final K key) {
+        final var entry = findEntry(key);
+        return entry != null ? entry.value() : null;
+    }
+
+    final boolean insert(final INode<K, V> in, final LNode<K, V> ln, final K key, final V val, final TrieMap<K, V> ct) {
+        final var entry = findEntry(key);
+        return in.gcasWrite(entry == null ? toInserted(ln, key, val) : toReplaced(ln, entry, val), ct);
+    }
+
+    @Nullable Result<V> insertIf(final INode<K, V> in, final LNode<K, V> ln, final K key, final V val,
+            final Object cond, final TrieMap<K, V> ct) {
+        final var entry = findEntry(key);
+        if (entry == null) {
+            return cond != null && cond != ABSENT || in.gcasWrite(toInserted(ln, key, val), ct) ? Result.empty() : null;
+        }
+        if (cond == ABSENT) {
+            return entry.toResult();
+        } else if (cond == null || cond == PRESENT || cond.equals(entry.value())) {
+            return in.gcasWrite(toReplaced(ln, entry, val), ct) ? entry.toResult() : null;
+        }
+        return Result.empty();
+    }
+
+    @Nullable Result<V> remove(final INode<K, V> in, final LNode<K, V> ln, final K key, final Object cond, final int hc,
+            final TrieMap<K, V> ct) {
+        final var entry = findEntry(key);
+        if (entry == null) {
+            // Key was not found, hence no modification is needed
+            return Result.empty();
+        }
+        if (cond != null && !cond.equals(entry.value())) {
+            // Value does not match
+            return Result.empty();
+        }
+
+        // While remove() can return null, that case will never happen here, as we are starting off with two entries
+        // so we cannot observe a null return here.
+        final var map = VerifyException.throwIfNull(removeEntry(entry));
+
+        // If the returned LNode would have only one element, we turn it intoa TNode, so it can be turned into SNode on
+        // next lookup
+        final var size = ln.size;
+        final var next = size == 2 ? new TNode<>(ln, map.key(), map.value(), hc) : new LNode<>(ln, map, size - 1);
+
+        return in.gcasWrite(next, ct) ? entry.toResult() : null;
+    }
+
+    private LNode<K, V> toInserted(final LNode<K, V> ln, final K key, final V val) {
+        return new LNode<>(ln, insertEntry(key, val), ln.size + 1);
+    }
+
+    private LNode<K, V> toReplaced(final LNode<K, V> ln, final LNodeEntry<K, V> entry, final V val) {
+        return new LNode<>(ln, replace(entry, val), ln.size);
+    }
+
+    // Visible for testing
+    final LNodeEntries<K, V> replace(final LNodeEntry<K, V> entry, final V value) {
+        final var removed = removeEntry(entry);
+        return removed == null ? new Single<>(entry.key(), value) : new Multiple<>(entry.key(), value, removed);
+    }
+
+    // Visible for testing
+    final @Nullable LNodeEntry<K, V> findEntry(final K key) {
         // We do not perform recursion on purpose here, so we do not run out of stack if the key hashing fails.
         var entry = this;
         do {
@@ -87,16 +155,13 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         return null;
     }
 
-    final LNodeEntries<K,V> insert(final K key, final V value) {
+    // Visible for testing
+    final LNodeEntries<K, V> insertEntry(final K key, final V value) {
         return new Multiple<>(key, value, this);
     }
 
-    final LNodeEntries<K, V> replace(final LNodeEntry<K, V> entry, final V value) {
-        final var removed = remove(entry);
-        return removed == null ? new Single<>(entry.key(), value) : new Multiple<>(entry.key(), value, removed);
-    }
-
-    final LNodeEntries<K, V> remove(final LNodeEntry<K, V> entry) {
+    // Visible for testing
+    final LNodeEntries<K, V> removeEntry(final LNodeEntry<K, V> entry) {
         if (entry == this) {
             return next();
         }

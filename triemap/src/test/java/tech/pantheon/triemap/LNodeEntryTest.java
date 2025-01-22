@@ -26,7 +26,7 @@ class LNodeEntryTest {
     private static final String KEY2 = "key2";
     private static final String VALUE = "value";
 
-    private final LNodeEntries<String, String> entry = LNodeEntries.map(KEY1, VALUE, KEY2, VALUE);
+    private final LNodeEntries<String, String> entry = LNodeEntries.of(KEY1, VALUE, KEY2, VALUE);
 
     @Test
     void testEntryUtil() {

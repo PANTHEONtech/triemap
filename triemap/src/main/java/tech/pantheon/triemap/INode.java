@@ -269,7 +269,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 clean(parent, ct, lev - LEVEL_BITS);
                 return false;
             } else if (m instanceof LNode<K, V> ln) {
-                return ln.insert(this, key, val, ct);
+                return ln.entries.insert(this, ln, key, val, ct);
             } else {
                 throw invalidElement(m);
             }
@@ -349,7 +349,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 return null;
             } else if (m instanceof LNode<K, V> ln) {
                 // 3) an l-node
-                return ln.insertIf(this, key, val, cond, ct);
+                return ln.entries.insertIf(this, ln, key, val, cond, ct);
             } else {
                 throw invalidElement(m);
             }
@@ -424,7 +424,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 return cleanReadOnly(tn, lev, parent, ct, key, hc);
             } else if (m instanceof LNode<K, V> ln) {
                 // 5) an l-node
-                return ln.lookup(key);
+                return ln.entries.lookup(key);
             } else {
                 throw invalidElement(m);
             }
@@ -466,7 +466,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             clean(parent, ct, lev - LEVEL_BITS);
             return null;
         } else if (m instanceof LNode<K, V> ln) {
-            return ln.remove(this, key, cond, hc, ct);
+            return ln.entries.remove(this, ln, key, cond, hc, ct);
         } else {
             throw invalidElement(m);
         }
