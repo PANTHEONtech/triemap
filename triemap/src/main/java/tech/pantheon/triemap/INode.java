@@ -450,9 +450,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                     return RESTART;
                 } else if (sub instanceof SNode) {
                     // 2) singleton node
-                    @SuppressWarnings("unchecked")
-                    final var sn = (SNode<K, V>) sub;
-                    return sn.matches(hc, key) ? sn.value() : null;
+                    return ((SNode<K, V>) sub).lookup(hc, key);
                 } else {
                     throw CNode.invalidElement(sub);
                 }
