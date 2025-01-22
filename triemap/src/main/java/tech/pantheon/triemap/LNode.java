@@ -15,6 +15,9 @@
  */
 package tech.pantheon.triemap;
 
+import static tech.pantheon.triemap.PresencePredicate.ABSENT;
+import static tech.pantheon.triemap.PresencePredicate.PRESENT;
+
 import org.eclipse.jdt.annotation.Nullable;
 
 final class LNode<K, V> extends MainNode<K, V> {
@@ -28,43 +31,17 @@ final class LNode<K, V> extends MainNode<K, V> {
         this.size = size;
     }
 
+    private LNode(final LNode<K, V> prev, final K key, final V value) {
+        this(prev, prev.entries.insert(key, value), prev.size + 1);
+    }
+
+    private LNode(final LNode<K, V> prev, final LNodeEntry<K, V> entry, final V value) {
+        this(prev, prev.entries.replace(entry, value), prev.size);
+    }
+
     LNode(final SNode<K, V> first, final SNode<K, V> second) {
         entries = LNodeEntries.map(first.key(), first.value(), second.key(), second.value());
         size = 2;
-    }
-
-    @Nullable V lookup(final K key) {
-        final var entry = entries.findEntry(key);
-        return entry != null ? entry.value() : null;
-    }
-
-    boolean insert(final INode<K, V> in, final K key, final V val, final TrieMap<K, V> ct) {
-        final var entry = get(key);
-        return in.gcasWrite(entry != null ? replaceChild(entry, val) : insertChild(key, val), ct);
-    }
-
-    LNode<K, V> insertChild(final K key, final V value) {
-        return new LNode<>(this, entries.insert(key, value), size + 1);
-    }
-
-    MainNode<K, V> removeChild(final LNodeEntry<K, V> entry, final int hc) {
-        // While remove() can return null, that case will never happen here, as we are starting off with two entries
-        // so we cannot observe a null return here.
-        final var map = VerifyException.throwIfNull(entries.remove(entry));
-
-        // If the returned LNode would have only one element, we turn it into a TNode, hence above null return from
-        // remove() can never happen.
-        return size != 2 ? new LNode<>(this, map, size - 1)
-            // create it tombed so that it gets compressed on subsequent accesses
-            : new TNode<>(this, map.key(), map.value(), hc);
-    }
-
-    LNode<K, V> replaceChild(final LNodeEntry<K, V> entry, final V value) {
-        return new LNode<>(this, entries.replace(entry, value), size);
-    }
-
-    LNodeEntry<K, V> get(final K key) {
-        return entries.findEntry(key);
     }
 
     LNodeEntries<K, V> entries() {
@@ -79,5 +56,46 @@ final class LNode<K, V> extends MainNode<K, V> {
     @Override
     int size(final ImmutableTrieMap<?, ?> ct) {
         return size;
+    }
+
+    LNodeEntry<K, V> get(final K key) {
+        return entries.findEntry(key);
+    }
+
+    @Nullable V lookup(final K key) {
+        final var entry = entries.findEntry(key);
+        return entry != null ? entry.value() : null;
+    }
+
+    boolean insert(final INode<K, V> in, final K key, final V val, final TrieMap<K, V> ct) {
+        final var entry = entries.findEntry(key);
+        return in.gcasWrite(entry != null ? new LNode<>(this, entry, val) : new LNode<>(this, key, val), ct);
+    }
+
+    @Nullable Result<V> insertIf(final INode<K, V> in, final K key, final V val, final Object cond,
+            final TrieMap<K, V> ct) {
+        final var entry = entries.findEntry(key);
+        if (entry == null) {
+            return cond != null && cond != ABSENT || in.gcasWrite(new LNode<>(this, key, val), ct)
+                ? Result.empty() : null;
+        }
+        if (cond == ABSENT) {
+            return entry.toResult();
+        } else if (cond == null || cond == PRESENT || cond.equals(entry.value())) {
+            return in.gcasWrite(new LNode<>(this, entry, val), ct) ? entry.toResult() : null;
+        }
+        return Result.empty();
+    }
+
+    MainNode<K, V> removeChild(final LNodeEntry<K, V> entry, final int hc) {
+        // While remove() can return null, that case will never happen here, as we are starting off with two entries
+        // so we cannot observe a null return here.
+        final var map = VerifyException.throwIfNull(entries.remove(entry));
+
+        // If the returned LNode would have only one element, we turn it into a TNode, hence above null return from
+        // remove() can never happen.
+        return size != 2 ? new LNode<>(this, map, size - 1)
+            // create it tombed so that it gets compressed on subsequent accesses
+            : new TNode<>(this, map.key(), map.value(), hc);
     }
 }
