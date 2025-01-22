@@ -63,8 +63,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         return in.gcasWrite(next, ct);
     }
 
-    @Nullable Result<V> insertIf(final INode<K, V> in, final int pos, final SNode<?, ?> snode, final K key,
-            final V val, final int hc, final Object cond, final int lev, final TrieMap<K, V> ct) {
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
+            final SNode<?, ?> snode, final K key, final V val, final int hc, final Object cond, final int lev) {
         @SuppressWarnings("unchecked")
         final var sn = (SNode<K, V>) snode;
         if (!sn.matches(hc, key)) {

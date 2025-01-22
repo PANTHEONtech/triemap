@@ -88,8 +88,8 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         return in.gcasWrite(entry == null ? toInserted(ln, key, val) : toReplaced(ln, entry, val), ct);
     }
 
-    @Nullable Result<V> insertIf(final INode<K, V> in, final LNode<K, V> ln, final K key, final V val,
-            final Object cond, final TrieMap<K, V> ct) {
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
+            final V val, final Object cond) {
         final var entry = findEntry(key);
         if (entry == null) {
             return cond != null && cond != ABSENT || in.gcasWrite(toInserted(ln, key, val), ct) ? Result.empty() : null;

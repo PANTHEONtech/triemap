@@ -191,10 +191,80 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Result<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = readRoot().recInsertIf(key, value, hc, cond, 0, null, this);
+            res = recInsertIf(readRoot(), key, value, hc, cond);
         } while (res == null);
 
         return res;
+    }
+
+    /**
+     * Inserts a new key value pair, given that a specific condition is met.
+     *
+     * @param cond
+     *            null - don't care if the key was there
+     *            KEY_ABSENT - key wasn't there
+     *            KEY_PRESENT - key was there
+     *            other value `val` - key must be bound to `val`
+     * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
+     */
+    private @Nullable Result<V> recInsertIf(final INode<K, V> first, final K key, final V val, final int hc,
+            final Object cond) {
+        final var startgen = first.gen;
+        INode<K, V> parent = null;
+        var current = first;
+        int lev = 0;
+
+        while (true) {
+            final var m = current.gcasRead(this);
+
+            if (m instanceof CNode<K, V> cn) {
+                // 1) a multiway node
+                final int idx = hc >>> lev & 0x1f;
+                final int flag = 1 << idx;
+                final int bmp = cn.bitmap;
+                final int mask = flag - 1;
+                final int pos = Integer.bitCount(bmp & mask);
+
+                if ((bmp & flag) == 0) {
+                    // not found
+                    if (cond == null || cond == ABSENT) {
+                        final var gen = current.gen;
+                        final var rn = cn.gen == gen ? cn : cn.renewed(gen, this);
+                        if (!current.gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), this)) {
+                            return null;
+                        }
+                    }
+                    return Result.empty();
+                }
+
+                // 1a) insert below
+                final var cnAtPos = cn.array[pos];
+                if (cnAtPos instanceof INode<?, ?> inode) {
+                    @SuppressWarnings("unchecked")
+                    final var in = (INode<K, V>) inode;
+                    if (startgen != in.gen && !current.gcasWrite(cn.renewed(startgen, this), this)) {
+                        return null;
+                    }
+
+                    // enter next level
+                    parent = current;
+                    current = in;
+                    lev += LEVEL_BITS;
+                } else if (cnAtPos instanceof SNode<?, ?> sn) {
+                    return cn.insertIf(this, current, pos, sn, key, val, hc, cond, lev);
+                } else {
+                    throw CNode.invalidElement(cnAtPos);
+                }
+            } else if (m instanceof TNode) {
+                current.clean(parent, this, lev - LEVEL_BITS);
+                return null;
+            } else if (m instanceof LNode<K, V> ln) {
+                // 3) an l-node
+                return ln.entries.insertIf(this, current, ln, key, val, cond);
+            } else {
+                throw INode.invalidElement(m);
+            }
+        }
     }
 
     private @NonNull Result<V> removehc(final K key, final Object cond, final int hc) {
