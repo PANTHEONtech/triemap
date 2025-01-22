@@ -421,9 +421,8 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         while (true) {
             final var m = gcasRead(ct);
 
-            if (m instanceof CNode) {
+            if (m instanceof CNode<K, V> cn) {
                 // 1) a multinode
-                final var cn = (CNode<K, V>) m;
                 final int idx = hc >>> lev & 0x1f;
                 final int flag = 1 << idx;
                 final int bmp = cn.bitmap;
@@ -457,13 +456,12 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
                 } else {
                     throw CNode.invalidElement(sub);
                 }
-            } else if (m instanceof TNode) {
+            } else if (m instanceof TNode<K, V> tn) {
                 // 3) non-live node
-                return cleanReadOnly((TNode<K, V>) m, lev, parent, ct, key, hc);
-            } else if (m instanceof LNode) {
+                return cleanReadOnly(tn, lev, parent, ct, key, hc);
+            } else if (m instanceof LNode<K, V> ln) {
                 // 5) an l-node
-                final var entry = ((LNode<K, V>) m).get(key);
-                return entry != null ? entry.value() : null;
+                return ln.lookup(key);
             } else {
                 throw invalidElement(m);
             }

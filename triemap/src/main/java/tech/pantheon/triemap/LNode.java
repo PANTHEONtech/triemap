@@ -15,6 +15,8 @@
  */
 package tech.pantheon.triemap;
 
+import org.eclipse.jdt.annotation.Nullable;
+
 final class LNode<K, V> extends MainNode<K, V> {
     // Internally-linked single list of of entries
     private final LNodeEntries<K, V> entries;
@@ -29,6 +31,11 @@ final class LNode<K, V> extends MainNode<K, V> {
     LNode(final SNode<K, V> first, final SNode<K, V> second) {
         entries = LNodeEntries.map(first.key(), first.value(), second.key(), second.value());
         size = 2;
+    }
+
+    @Nullable V lookup(final K key) {
+        final var entry = entries.findEntry(key);
+        return entry != null ? entry.value() : null;
     }
 
     LNode<K, V> insertChild(final K key, final V value) {
