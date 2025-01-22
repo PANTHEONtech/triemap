@@ -23,8 +23,8 @@ record SNode<K, V>(K key, V value, int hc) implements Branch, EntryNode<K, V> {
         return new TNode<>(prev, key, value, hc);
     }
 
-    @Nullable V lookup(final int hc, final K key) {
-        return matches(hc, key) ? value : null;
+    @Nullable V lookup(final int otherHc, final K otherKey) {
+        return matches(otherHc, otherKey) ? value : null;
     }
 
     boolean matches(final int otherHc, final Object otherKey) {

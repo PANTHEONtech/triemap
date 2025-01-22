@@ -110,7 +110,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
     }
 
-    private final Gen gen;
+    final Gen gen;
 
     @SuppressFBWarnings(value = "UUF_UNUSED_FIELD",
         justification = "https://github.com/spotbugs/spotbugs/issues/2749")
@@ -122,6 +122,10 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         this.gen = gen;
     }
 
+    INode(final INode<K, V> prev, final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
+        this(prev.gen, CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, prev.gen));
+    }
+
     @NonNull MainNode<K, V> gcasReadNonNull(final TrieMap<?, ?> ct) {
         return VerifyException.throwIfNull(gcasRead(ct));
     }
@@ -130,7 +134,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         return gcasComplete((MainNode<K, V>) MAIN_VH.getVolatile(this), ct);
     }
 
-    private boolean gcasWrite(final MainNode<K, V> next, final TrieMap<?, ?> ct) {
+    boolean gcasWrite(final MainNode<K, V> next, final TrieMap<?, ?> ct) {
         // note: plain read of 'next', i.e. take a look at what we are about to CAS-out
         if (MAIN_VH.compareAndSet(this, VerifyException.throwIfNull(PREV_VH.get(next)), next)) {
             // established as write, now try to complete it and report if we have succeeded
@@ -210,10 +214,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
     }
 
-    private INode<K, V> inode(final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
-        return new INode<>(gen, CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, gen));
-    }
-
     INode<K, V> copyToGen(final Gen ngen, final TrieMap<?, ?> ct) {
         return new INode<>(ngen, gcasRead(ct));
     }
@@ -258,14 +258,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
 
                         return false;
                     } else if (cnAtPos instanceof SNode) {
-                        @SuppressWarnings("unchecked")
-                        final var sn = (SNode<K, V>) cnAtPos;
-                        if (sn.matches(hc, key)) {
-                            return gcasWrite(cn.updatedAt(pos, key, val, hc, gen), ct);
-                        }
-
-                        final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-                        return gcasWrite(rn.updatedAt(pos, inode(sn, key, val, hc, lev), gen), ct);
+                        return cn.insert(this, pos, (SNode<K, V>) cnAtPos, key, val, hc, lev, ct);
                     } else {
                         throw CNode.invalidElement(cnAtPos);
                     }
@@ -293,7 +286,8 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     private @Nullable Result<V> insertDual(final TrieMap<K, V> ct, final CNode<K, V> cn, final int pos,
             final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
         final var rn = cn.gen == gen ? cn : cn.renewed(gen, ct);
-        return gcasWrite(rn.toUpdatedAt(cn, pos, inode(sn, key, val, hc, lev), gen), ct) ? Result.empty() : null;
+        return gcasWrite(rn.toUpdatedAt(cn, pos, new INode<>(this, sn, key, val, hc, lev), gen), ct)
+            ? Result.empty() : null;
     }
 
     /**
