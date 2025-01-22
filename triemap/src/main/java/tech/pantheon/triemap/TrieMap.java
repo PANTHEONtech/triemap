@@ -268,7 +268,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
                     // 2) singleton node
                     return ((SNode<K, V>) snode).lookup(hc, key);
                 } else {
-                    throw CNode.invalidElement(sub);
+                    throw invalidElement(sub);
                 }
             } else if (m instanceof TNode<K, V> tn) {
                 // 3) non-live node
@@ -277,14 +277,28 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
                     return tn.hc == hc && key.equals(tn.key) ? tn.value : null;
                 }
                 // read-write: perform some clean up and restart
-                current.clean(parent, this, lev - LEVEL_BITS);
+                clean(current, parent, lev - LEVEL_BITS);
                 return RESTART;
             } else if (m instanceof LNode<K, V> ln) {
                 // 5) an l-node
                 return ln.entries.lookup(key);
             } else {
-                throw INode.invalidElement(m);
+                throw invalidElement(m);
             }
         }
+    }
+
+    final void clean(final INode<K, V> current, final INode<K, V> parent, final int lev) {
+        if (parent.gcasRead(this) instanceof CNode<K, V> cn) {
+            parent.gcasWrite(cn.toCompressed(this, lev  - LEVEL_BITS, current.gen), this);
+        }
+    }
+
+    static final VerifyException invalidElement(final Branch elem) {
+        throw new VerifyException("A CNode can contain only INodes and SNodes, not " + elem);
+    }
+
+    static final VerifyException invalidElement(final MainNode<?, ?> elem) {
+        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 }

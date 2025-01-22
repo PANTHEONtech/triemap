@@ -24,7 +24,7 @@ import tech.pantheon.triemap.INode.FailedGcas;
 class INodeTest {
     @Test
     void testInvalidElement() {
-        assertThrows(VerifyException.class, () -> INode.invalidElement(null));
+        assertThrows(VerifyException.class, () -> TrieMap.invalidElement((INode<?, ?>) null));
     }
 
     @Test

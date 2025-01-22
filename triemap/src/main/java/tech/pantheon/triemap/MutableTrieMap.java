@@ -182,8 +182,67 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private void inserthc(final K key, final int hc, final V value) {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
-        if (!readRoot().recInsert(key, value, hc, 0, null, this)) {
+        if (!recInsert(readRoot(), key, value, hc)) {
             throw new VerifyException("Concurrent modification during serialization of map " + this);
+        }
+    }
+
+    /**
+     * Inserts a key value pair, overwriting the old pair if the keys match.
+     *
+     * @return true if successful, false otherwise
+     */
+    private boolean recInsert(final INode<K, V> first, final K key, final V val, final int hc) {
+        final var startGen = first.gen;
+        INode<K, V> parent = null;
+        var current = first;
+        int lev = 0;
+
+        while (true) {
+            final var m = current.gcasRead(this);
+
+            if (m instanceof CNode<K, V> cn) {
+                // 1) a multiway node
+                final int idx = hc >>> lev & 0x1f;
+                final int flag = 1 << idx;
+                final int bmp = cn.bitmap;
+                final int mask = flag - 1;
+                final int pos = Integer.bitCount(bmp & mask);
+
+                if ((bmp & flag) == 0) {
+                    final var gen = current.gen;
+                    final var rn = cn.gen == gen ? cn : cn.renewed(gen, this);
+                    return current.gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), this);
+                }
+
+                // 1a) insert below
+                final var cnAtPos = cn.array[pos];
+                if (cnAtPos instanceof INode) {
+                    @SuppressWarnings("unchecked")
+                    final var in = (INode<K, V>) cnAtPos;
+                    // renew if needed
+                    if (startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
+                        return false;
+                    }
+
+                    // enter next level
+                    parent = current;
+                    current = in;
+                    lev += LEVEL_BITS;
+                    continue;
+                } else if (cnAtPos instanceof SNode) {
+                    return cn.insert(this, current, pos, (SNode<K, V>) cnAtPos, key, val, hc, lev);
+                } else {
+                    throw invalidElement(cnAtPos);
+                }
+            } else if (m instanceof TNode) {
+                clean(current, parent, lev);
+                return false;
+            } else if (m instanceof LNode<K, V> ln) {
+                return ln.entries.insert(this, current, ln, key, val);
+            } else {
+                throw invalidElement(m);
+            }
         }
     }
 
@@ -253,16 +312,16 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 } else if (cnAtPos instanceof SNode<?, ?> sn) {
                     return cn.insertIf(this, current, pos, sn, key, val, hc, cond, lev);
                 } else {
-                    throw CNode.invalidElement(cnAtPos);
+                    throw invalidElement(cnAtPos);
                 }
             } else if (m instanceof TNode) {
-                current.clean(parent, this, lev - LEVEL_BITS);
+                clean(current, parent, lev);
                 return null;
             } else if (m instanceof LNode<K, V> ln) {
                 // 3) an l-node
                 return ln.entries.insertIf(this, current, ln, key, val, cond);
             } else {
-                throw INode.invalidElement(m);
+                throw invalidElement(m);
             }
         }
     }
@@ -326,15 +385,15 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                     }
                     return res;
                 } else {
-                    throw CNode.invalidElement(sub);
+                    throw invalidElement(sub);
                 }
             } else if (m instanceof TNode) {
-                current.clean(parent, this, lev - LEVEL_BITS);
+                clean(current, parent, lev);
                 return null;
             } else if (m instanceof LNode<K, V> ln) {
                 return ln.entries.remove(this, current, ln, key, cond, hc);
             } else {
-                throw INode.invalidElement(m);
+                throw invalidElement(m);
             }
         }
     }
