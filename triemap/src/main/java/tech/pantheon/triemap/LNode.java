@@ -38,6 +38,11 @@ final class LNode<K, V> extends MainNode<K, V> {
         return entry != null ? entry.value() : null;
     }
 
+    boolean insert(final INode<K, V> in, final K key, final V val, final TrieMap<K, V> ct) {
+        final var entry = get(key);
+        return in.gcasWrite(entry != null ? replaceChild(entry, val) : insertChild(key, val), ct);
+    }
+
     LNode<K, V> insertChild(final K key, final V value) {
         return new LNode<>(this, entries.insert(key, value), size + 1);
     }
