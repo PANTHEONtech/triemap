@@ -16,7 +16,7 @@
 package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
-import static tech.pantheon.triemap.LookupResult.RESTART;
+import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -38,6 +38,10 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         permits ImmutableTrieMap, MutableTrieMap {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
+
+    // Virtual result for lookup methods indicating that the lookup needs to be restarted. This is a faster version
+    // of throwing a checked exception to control restart.
+    private static final Object RESTART = new Object();
 
     private transient AbstractEntrySet<K, V, ?> entrySet;
     // Note: AbstractMap.keySet is something we do not have access to. At some point we should just not subclass
@@ -210,9 +214,77 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         Object res;
         do {
             // Keep looping as long as RESTART is being indicated
-            res = readRoot().recLookup(key, hc, 0, null, this);
+            res = recLookup(readRoot(), key, hc);
         } while (res == RESTART);
 
         return (V) res;
+    }
+
+    /**
+     * Looks up the value associated with the key.
+     *
+     * @param first root {@link INode}
+     * @param key the key
+     * @param the hash code
+     * @return null if no value has been found, RESTART if the operation was not successful, or any other value
+     *              otherwise
+     */
+    private Object recLookup(final INode<K, V> first, final K key, final int hc) {
+        final var startGen = first.gen;
+        INode<K, V> parent = null;
+        var current = first;
+        int lev = 0;
+
+        while (true) {
+            final var m = current.gcasRead(this);
+
+            if (m instanceof CNode<K, V> cn) {
+                // 1) a multinode
+                final int idx = hc >>> lev & 0x1f;
+                final int flag = 1 << idx;
+
+                final int bmp = cn.bitmap;
+                if ((bmp & flag) == 0) {
+                    // 1a) bitmap shows no binding
+                    return null;
+                }
+
+                // 1b) bitmap contains a value - descend
+                final int pos = bmp == 0xffffffff ? idx : Integer.bitCount(bmp & flag - 1);
+                final var sub = cn.array[pos];
+                if (sub instanceof INode<?, ?> inode) {
+                    @SuppressWarnings("unchecked")
+                    final var in = (INode<K, V>) inode;
+                    // try to renew if needed
+                    if (!isReadOnly() && startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
+                        return RESTART;
+                    }
+
+                    // enter next level
+                    parent = current;
+                    current = in;
+                    lev += LEVEL_BITS;
+                } else if (sub instanceof SNode<?, ?> snode) {
+                    // 2) singleton node
+                    return ((SNode<K, V>) snode).lookup(hc, key);
+                } else {
+                    throw CNode.invalidElement(sub);
+                }
+            } else if (m instanceof TNode<K, V> tn) {
+                // 3) non-live node
+                if (isReadOnly()) {
+                    // read-only side does not clean up
+                    return tn.hc == hc && key.equals(tn.key) ? tn.value : null;
+                }
+                // read-write: perform some clean up and restart
+                current.clean(parent, this, lev - LEVEL_BITS);
+                return RESTART;
+            } else if (m instanceof LNode<K, V> ln) {
+                // 5) an l-node
+                return ln.entries.lookup(key);
+            } else {
+                throw INode.invalidElement(m);
+            }
+        }
     }
 }

@@ -17,7 +17,6 @@ package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
-import static tech.pantheon.triemap.LookupResult.RESTART;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -350,76 +349,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
     }
 
     /**
-     * Looks up the value associated with the key.
-     *
-     * @return null if no value has been found, RESTART if the operation
-     *         wasn't successful, or any other value otherwise
-     */
-    Object recLookup(final K key, final int hc, final int lev, final INode<K, V> parent, final TrieMap<K, V> ct) {
-        return recLookup(key, hc, lev, parent, gen, ct);
-    }
-
-    private Object recLookup(final K key, final int hc, final int lev, final INode<K, V> parent, final Gen startgen,
-            final TrieMap<K, V> ct) {
-        while (true) {
-            final var m = gcasRead(ct);
-
-            if (m instanceof CNode<K, V> cn) {
-                // 1) a multinode
-                final int idx = hc >>> lev & 0x1f;
-                final int flag = 1 << idx;
-                final int bmp = cn.bitmap;
-
-                if ((bmp & flag) == 0) {
-                    // 1a) bitmap shows no binding
-                    return null;
-                }
-
-                // 1b) bitmap contains a value - descend
-                final int pos = bmp == 0xffffffff ? idx : Integer.bitCount(bmp & flag - 1);
-                final var sub = cn.array[pos];
-                if (sub instanceof INode) {
-                    @SuppressWarnings("unchecked")
-                    final var in = (INode<K, V>) sub;
-                    if (ct.isReadOnly() || startgen == in.gen) {
-                        return in.recLookup(key, hc, lev + LEVEL_BITS, this, startgen, ct);
-                    }
-
-                    if (gcasWrite(cn.renewed(startgen, ct), ct)) {
-                        // Tail recursion: return rec_lookup(k, hc, lev, parent, startgen, ct);
-                        continue;
-                    }
-
-                    return RESTART;
-                } else if (sub instanceof SNode) {
-                    // 2) singleton node
-                    return ((SNode<K, V>) sub).lookup(hc, key);
-                } else {
-                    throw CNode.invalidElement(sub);
-                }
-            } else if (m instanceof TNode<K, V> tn) {
-                // 3) non-live node
-                return cleanReadOnly(tn, lev, parent, ct, key, hc);
-            } else if (m instanceof LNode<K, V> ln) {
-                // 5) an l-node
-                return ln.entries.lookup(key);
-            } else {
-                throw invalidElement(m);
-            }
-        }
-    }
-
-    private Object cleanReadOnly(final TNode<K, V> tn, final int lev, final INode<K, V> parent,
-            final TrieMap<K, V> ct, final K key, final int hc) {
-        if (ct.isReadOnly()) {
-            return tn.hc == hc && key.equals(tn.key) ? tn.value : null;
-        }
-
-        clean(parent, ct, lev - LEVEL_BITS);
-        return RESTART;
-    }
-
-    /**
      * Removes the key associated with the given value.
      *
      * @param cond
@@ -520,7 +449,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
     }
 
-    private void clean(final INode<K, V> nd, final TrieMap<K, V> ct, final int lev) {
+    void clean(final INode<K, V> nd, final TrieMap<K, V> ct, final int lev) {
         if (nd.gcasRead(ct) instanceof CNode<?, ?> cnode) {
             @SuppressWarnings("unchecked")
             final var cn = (CNode<K, V>) cnode;
