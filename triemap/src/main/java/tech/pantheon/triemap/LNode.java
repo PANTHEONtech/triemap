@@ -44,10 +44,6 @@ final class LNode<K, V> extends MainNode<K, V> {
         size = 2;
     }
 
-    LNodeEntries<K, V> entries() {
-        return entries;
-    }
-
     @Override
     int trySize() {
         return size;
@@ -58,8 +54,8 @@ final class LNode<K, V> extends MainNode<K, V> {
         return size;
     }
 
-    LNodeEntry<K, V> get(final K key) {
-        return entries.findEntry(key);
+    LNodeEntries<K, V> entries() {
+        return entries;
     }
 
     @Nullable V lookup(final K key) {
@@ -87,15 +83,26 @@ final class LNode<K, V> extends MainNode<K, V> {
         return Result.empty();
     }
 
-    MainNode<K, V> removeChild(final LNodeEntry<K, V> entry, final int hc) {
+    @Nullable Result<V> remove(final INode<K, V> in, final K key, final Object cond, final int hc,
+            final TrieMap<K, V> ct) {
+        final var entry = entries.findEntry(key);
+        if (entry == null) {
+            // Key was not found, hence no modification is needed
+            return Result.empty();
+        }
+        if (cond != null && !cond.equals(entry.value())) {
+            // Value does not match
+            return Result.empty();
+        }
         // While remove() can return null, that case will never happen here, as we are starting off with two entries
         // so we cannot observe a null return here.
         final var map = VerifyException.throwIfNull(entries.remove(entry));
+        // If the returned LNode would have only one element, we turn it intoa TNode, so it can be turned into SNode on
+        // next lookup
+        final var next = size == 2
+            ? new TNode<>(this, map.key(), map.value(), hc)
+            : new LNode<>(this, map, size - 1);
 
-        // If the returned LNode would have only one element, we turn it into a TNode, hence above null return from
-        // remove() can never happen.
-        return size != 2 ? new LNode<>(this, map, size - 1)
-            // create it tombed so that it gets compressed on subsequent accesses
-            : new TNode<>(this, map.key(), map.value(), hc);
+        return in.gcasWrite(next, ct) ? entry.toResult() : null;
     }
 }

@@ -460,13 +460,13 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
             final INode<K, V> parent, final Gen startgen, final TrieMap<K, V> ct) {
         final var m = gcasRead(ct);
 
-        if (m instanceof CNode) {
-            return recRemove((CNode<K, V>) m, key, cond, hc, lev, parent, startgen, ct);
+        if (m instanceof CNode<K, V> cn) {
+            return recRemove(cn, key, cond, hc, lev, parent, startgen, ct);
         } else if (m instanceof TNode) {
             clean(parent, ct, lev - LEVEL_BITS);
             return null;
-        } else if (m instanceof LNode) {
-            return recRemove((LNode<K, V>) m, key, cond, hc, ct);
+        } else if (m instanceof LNode<K, V> ln) {
+            return ln.remove(this, key, cond, hc, ct);
         } else {
             throw invalidElement(m);
         }
@@ -516,22 +516,6 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
 
         return res;
-    }
-
-    private @Nullable Result<V> recRemove(final LNode<K, V> ln, final K key, final Object cond, final int hc,
-            final TrieMap<K, V> ct) {
-        final var entry = ln.get(key);
-        if (entry == null) {
-            // Key was not found, hence no modification is needed
-            return Result.empty();
-        }
-
-        if (cond != null && !cond.equals(entry.value())) {
-            // Value does not match
-            return Result.empty();
-        }
-
-        return gcasWrite(ln.removeChild(entry, hc), ct) ? entry.toResult() : null;
     }
 
     private void cleanParent(final TNode<?, ?> tn, final INode<K, V> parent, final TrieMap<K, V> ct, final int hc,
