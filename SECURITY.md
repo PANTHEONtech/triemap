@@ -1,6 +1,6 @@
 # Security Policy
 
-## Versioning 
+## Versioning
 
 We follow Semantic Versioning. Our APIs are expected to be extremely stable
 and therefore we do not expect to issue a major (2.0.0) version any time soon.
@@ -12,8 +12,8 @@ Patch versions are issued for bug and security fixes.
 
 ## Supported Versions
 
-Versions 1.3x (Java 17+), 1.2.x (Java 11+) and 1.1.x (Java 8+) are currently
-supported and are receiving any and all relevant bug fixes.
+Versions 1.4.x and 1.3.x (Java 17+), 1.2.x (Java 11+) and 1.1.x (Java 8+) are
+currently supported and are receiving any and all relevant bug fixes.
 
 ## Reporting a Vulnerability
 

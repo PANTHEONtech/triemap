@@ -58,6 +58,7 @@ There are multiple release trains of this library:
    * Versions 1.1.x require Java 8 or later
    * Versions 1.2.x require Java 11 or later
    * Versions 1.3.x require Java 17 or later
+   * Versions 1.4.x require Java 17 or later
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPantheonTechnologies%2Ftriemap?ref=badge_large)
