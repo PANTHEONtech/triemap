@@ -252,9 +252,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
                 // 1b) bitmap contains a value - descend
                 final int pos = bmp == 0xffffffff ? idx : Integer.bitCount(bmp & flag - 1);
                 final var sub = cn.array[pos];
-                if (sub instanceof INode<?, ?> inode) {
-                    @SuppressWarnings("unchecked")
-                    final var in = (INode<K, V>) inode;
+                if (sub instanceof INode<K, V> in) {
                     // try to renew if needed
                     if (!isReadOnly() && startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
                         return RESTART;
@@ -264,9 +262,9 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
                     parent = current;
                     current = in;
                     lev += LEVEL_BITS;
-                } else if (sub instanceof SNode<?, ?> snode) {
+                } else if (sub instanceof SNode<K, V> sn) {
                     // 2) singleton node
-                    return ((SNode<K, V>) snode).lookup(hc, key);
+                    return sn.lookup(hc, key);
                 } else {
                     throw invalidElement(sub);
                 }
@@ -294,7 +292,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         }
     }
 
-    static final VerifyException invalidElement(final Branch elem) {
+    static final VerifyException invalidElement(final Branch<?, ?> elem) {
         throw new VerifyException("A CNode can contain only INodes and SNodes, not " + elem);
     }
 

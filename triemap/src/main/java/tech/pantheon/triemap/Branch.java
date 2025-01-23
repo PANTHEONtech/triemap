@@ -18,6 +18,6 @@ package tech.pantheon.triemap;
 /**
  * A Branch: either an {@link INode} or an {@link SNode}.
  */
-sealed interface Branch permits INode, SNode {
+sealed interface Branch<K, V> permits INode, SNode {
     // Nothing else
 }

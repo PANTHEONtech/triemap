@@ -25,30 +25,33 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class CNode<K, V> extends MainNode<K, V> {
-    private static final Branch[] EMPTY_ARRAY = new Branch[0];
+    private static final Branch<?, ?>[] EMPTY_ARRAY = new Branch[0];
 
     final int bitmap;
-    final Branch[] array;
+    final Branch<K, V>[] array;
     final Gen gen;
 
     // Since concurrent computation should lead to same results we can update this field without any synchronization.
     private volatile int csize = NO_SIZE;
 
-    private CNode(final CNode<K, V> prev, final Gen gen, final int bitmap, final Branch... array) {
+    @SafeVarargs
+    private CNode(final CNode<K, V> prev, final Gen gen, final int bitmap, final Branch<K, V>... array) {
         super(prev);
         this.bitmap = bitmap;
         this.array = array;
         this.gen = gen;
     }
 
-    private CNode(final Gen gen, final int bitmap, final Branch... array) {
+    @SafeVarargs
+    private CNode(final Gen gen, final int bitmap, final Branch<K, V>... array) {
         this.bitmap = bitmap;
         this.array = array;
         this.gen = gen;
     }
 
+    @SuppressWarnings("unchecked")
     CNode(final Gen gen) {
-        this(gen, 0, EMPTY_ARRAY);
+        this(gen, 0, (Branch<K, V>[]) EMPTY_ARRAY);
     }
 
     boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final SNode<K, V> sn,
@@ -64,9 +67,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
-            final SNode<?, ?> snode, final K key, final V val, final int hc, final Object cond, final int lev) {
-        @SuppressWarnings("unchecked")
-        final var sn = (SNode<K, V>) snode;
+            final SNode<K, V> sn, final K key, final V val, final int hc, final Object cond, final int lev) {
         if (!sn.matches(hc, key)) {
             if (cond == null || cond == ABSENT) {
                 final var ngen = in.gen;
@@ -85,16 +86,14 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int flag, final int pos,
-            final SNode<?, ?> snode, final K key, final int hc, final Object cond, final int lev) {
-        @SuppressWarnings("unchecked")
-        final var sn = (SNode<K, V>) snode;
+            final SNode<K, V> sn, final K key, final int hc, final Object cond, final int lev) {
         if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
             return Result.empty();
         }
 
         final var arr = array;
         final int len = arr.length;
-        final var narr = new Branch[len - 1];
+        final var narr = newArray(len - 1);
         System.arraycopy(arr, 0, narr, 0, pos);
         System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
         final var onlySN = onlySNode(narr, lev);
@@ -177,7 +176,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         };
     }
 
-    private static int elementSize(final Branch elem, final ImmutableTrieMap<?, ?> ct) {
+    private static int elementSize(final Branch<?, ?> elem, final ImmutableTrieMap<?, ?> ct) {
         if (elem instanceof SNode) {
             return 1;
         } else if (elem instanceof INode<?, ?> inode) {
@@ -187,7 +186,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    CNode<K, V> updatedAt(final int pos, final Branch nn, final Gen ngen) {
+    CNode<K, V> updatedAt(final int pos, final Branch<K, V> nn, final Gen ngen) {
         return toUpdatedAt(this, pos, nn, ngen);
     }
 
@@ -198,16 +197,16 @@ final class CNode<K, V> extends MainNode<K, V> {
     CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag, final K key,
             final V value, final int hc) {
         final int len = array.length;
-        final var narr = new Branch[len + 1];
+        final var narr = newArray(len + 1);
         System.arraycopy(array, 0, narr, 0, pos);
         narr[pos] = new SNode<>(key, value, hc);
         System.arraycopy(array, pos, narr, pos + 1, len - pos);
         return new CNode<>(prev, ngen, bitmap | flag, narr);
     }
 
-    private CNode<K, V> toUpdatedAt(final CNode<K, V> prev, final int pos, final Branch nn, final Gen ngen) {
+    private CNode<K, V> toUpdatedAt(final CNode<K, V> prev, final int pos, final Branch<K, V> nn, final Gen ngen) {
         final int len = array.length;
-        final var narr = new Branch[len];
+        final var narr = newArray(len);
         System.arraycopy(array, 0, narr, 0, len);
         narr[pos] = nn;
         return new CNode<>(prev, ngen, bitmap, narr);
@@ -220,10 +219,10 @@ final class CNode<K, V> extends MainNode<K, V> {
     CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
         final var arr = array;
         final int len = arr.length;
-        final var narr = new Branch[len];
+        final var narr = newArray(len);
         for (int i = 0; i < len; i++) {
             final var tmp = arr[i];
-            narr[i] = tmp instanceof INode<?, ?> in ? in.copyToGen(ngen, ct) : tmp;
+            narr[i] = tmp instanceof INode<K, V> in ? in.copyToGen(ngen, ct) : tmp;
         }
         return new CNode<>(this, ngen, bitmap, narr);
     }
@@ -232,29 +231,33 @@ final class CNode<K, V> extends MainNode<K, V> {
     // - otherwise, if there is at least one non-null node below, returns the version of this node with at least some
     //   null-inodes removed (those existing when the op began)
     // - if there are only null-i-nodes below, returns null
-    MainNode<K, V> toCompressed(final TrieMap<?, ?> ct, final int lev, final Gen ngen) {
+    MainNode<K, V> toCompressed(final TrieMap<K, V> ct, final int lev, final Gen ngen) {
         final var arr = array;
         final int len = arr.length;
-        final var narr = new Branch[len];
+        final var narr = newArray(len);
         for (int i = 0; i < len; i++) {
             final var tmp = arr[i];
-            narr[i] = tmp instanceof INode<?, ?> in ? resurrect(in, ct) : tmp;
+            narr[i] = tmp instanceof INode<K, V> in ? resurrect(in, ct) : tmp;
         }
         final var sn = onlySNode(narr, lev);
         return sn != null ? sn.copyTombed(this) : new CNode<>(this, ngen, bitmap, narr);
     }
 
-    private static Branch resurrect(final INode<?, ?> in, final TrieMap<?, ?> ct) {
-        return in.gcasReadNonNull(ct) instanceof TNode<?, ?> tnode ? tnode.copyUntombed() : in;
-    }
-
-    @SuppressWarnings("unchecked")
-    private @Nullable SNode<K, V> onlySNode(final Branch[] arr, final int lev) {
-        return arr.length == 1 && lev > 0 && arr[0] instanceof SNode<?, ?> sn ? (SNode<K, V>) sn : null;
-    }
-
     @Override
     public String toString() {
         return "CNode";
+    }
+
+    @SuppressWarnings("unchecked")
+    private Branch<K, V>[] newArray(final int size) {
+        return new Branch[size];
+    }
+
+    private @Nullable SNode<K, V> onlySNode(final Branch<K, V>[] arr, final int lev) {
+        return arr.length == 1 && lev > 0 && arr[0] instanceof SNode<K, V> sn ? sn : null;
+    }
+
+    private static <K, V> Branch<K, V> resurrect(final INode<K, V> in, final TrieMap<K, V> ct) {
+        return in.gcasReadNonNull(ct) instanceof TNode<K, V> tnode ? tnode.copyUntombed() : in;
     }
 }
