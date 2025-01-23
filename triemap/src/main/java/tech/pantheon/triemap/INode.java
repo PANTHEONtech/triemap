@@ -24,7 +24,7 @@ import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
-final class INode<K, V> implements Branch, MutableTrieMap.Root {
+final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
     /**
      * A GCAS-protected {@link MainNode}. This can be effectively either a {@link FailedGcas} or a {@link MainNode}.
      */
@@ -210,7 +210,7 @@ final class INode<K, V> implements Branch, MutableTrieMap.Root {
         }
     }
 
-    INode<K, V> copyToGen(final Gen ngen, final TrieMap<?, ?> ct) {
+    INode<K, V> copyToGen(final Gen ngen, final TrieMap<K, V> ct) {
         return new INode<>(ngen, gcasRead(ct));
     }
 

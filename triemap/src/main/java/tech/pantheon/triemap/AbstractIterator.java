@@ -32,7 +32,8 @@ import java.util.NoSuchElementException;
  */
 abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
         permits ImmutableIterator, MutableIterator {
-    private final Branch[][] nodeStack = new Branch[MAX_DEPTH][];
+    @SuppressWarnings("unchecked")
+    private final Branch<K, V>[][] nodeStack = new Branch[MAX_DEPTH][];
     private final int[] positionStack = new int[MAX_DEPTH];
     private final ImmutableTrieMap<K, V> map;
 
@@ -103,7 +104,6 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void advance() {
         if (depth >= 0) {
             int npos = positionStack[depth] + 1;

@@ -50,7 +50,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     // Either an INode or a RDCSS_Descriptor
     @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace()")
-    private transient volatile Root root;
+    private transient volatile Root<K, V> root;
 
     MutableTrieMap() {
         this(newRootNode());
@@ -155,18 +155,15 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     INode<K, V> rdcssReadRoot(final boolean abort) {
         final var r = /* READ */ root;
-        final INode<?, ?> ret;
-        if (r instanceof INode<?, ?> inode) {
-            ret = inode;
-        } else if (r instanceof RDCSS_Descriptor<?, ?> desc) {
-            ret = rdcssComplete(desc, abort);
+        if (r instanceof INode<K, V> in) {
+            return in;
+        } else if (r instanceof RdcssDescriptor<K, V> desc) {
+            return rdcssComplete(desc, abort);
         } else {
             throw new VerifyException("Unhandled root " + r);
         }
-        return (INode<K, V>) ret;
     }
 
     void add(final K key, final V value) {
@@ -217,9 +214,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
                 // 1a) insert below
                 final var cnAtPos = cn.array[pos];
-                if (cnAtPos instanceof INode) {
-                    @SuppressWarnings("unchecked")
-                    final var in = (INode<K, V>) cnAtPos;
+                if (cnAtPos instanceof INode<K, V> in) {
                     // renew if needed
                     if (startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
                         return false;
@@ -230,8 +225,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                     current = in;
                     lev += LEVEL_BITS;
                     continue;
-                } else if (cnAtPos instanceof SNode) {
-                    return cn.insert(this, current, pos, (SNode<K, V>) cnAtPos, key, val, hc, lev);
+                } else if (cnAtPos instanceof SNode<K, V> sn) {
+                    return cn.insert(this, current, pos, sn, key, val, hc, lev);
                 } else {
                     throw invalidElement(cnAtPos);
                 }
@@ -298,9 +293,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
                 // 1a) insert below
                 final var cnAtPos = cn.array[pos];
-                if (cnAtPos instanceof INode<?, ?> inode) {
-                    @SuppressWarnings("unchecked")
-                    final var in = (INode<K, V>) inode;
+                if (cnAtPos instanceof INode<K, V> in) {
                     if (startgen != in.gen && !current.gcasWrite(cn.renewed(startgen, this), this)) {
                         return null;
                     }
@@ -309,7 +302,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                     parent = current;
                     current = in;
                     lev += LEVEL_BITS;
-                } else if (cnAtPos instanceof SNode<?, ?> sn) {
+                } else if (cnAtPos instanceof SNode<K, V> sn) {
                     return cn.insertIf(this, current, pos, sn, key, val, hc, cond, lev);
                 } else {
                     throw invalidElement(cnAtPos);
@@ -365,9 +358,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
                 final int pos = Integer.bitCount(bmp & flag - 1);
                 final var sub = cn.array[pos];
-                if (sub instanceof INode) {
-                    @SuppressWarnings("unchecked")
-                    final var in = (INode<K, V>) sub;
+                if (sub instanceof INode<K, V> in) {
                     // renew if needed
                     if (startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
                         return null;
@@ -376,11 +367,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                     parent = current;
                     current = in;
                     lev += LEVEL_BITS;
-                } else if (sub instanceof SNode<?, ?> sn) {
+                } else if (sub instanceof SNode<K, V> sn) {
                     final var res = cn.remove(this, current, flag, pos, sn, key, hc, cond, lev);
                     // never tomb at root
                     if (res != null && res.isPresent() && parent != null
-                        && current.gcasRead(this) instanceof TNode<?, ?> tn) {
+                        && current.gcasRead(this) instanceof TNode<K, V> tn) {
                         cleanParent(current, tn, parent, hc, lev, startGen);
                     }
                     return res;
@@ -398,7 +389,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    private void cleanParent(final INode<K, V> in, final TNode<?, ?> tn, final INode<K, V> parent, final int hc,
+    private void cleanParent(final INode<K, V> in, final TNode<K, V> tn, final INode<K, V> parent, final int hc,
             final int lev, final Gen startgen) {
         while (true) {
             if (!(parent.gcasRead(this) instanceof CNode<K, V> cn)) {
@@ -429,12 +420,12 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    private Root casRoot(final Root ov, final Root nv) {
-        return (Root) VH.compareAndExchange(this, ov, nv);
+    private Root<K, V> casRoot(final Root<K, V> prev, final Root<K, V> next) {
+        return (Root<K, V>) VH.compareAndExchange(this, prev, next);
     }
 
     private boolean rdcssRoot(final INode<K, V> ov, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
-        final var desc = new RDCSS_Descriptor<>(ov, expectedmain, nv);
+        final var desc = new RdcssDescriptor<>(ov, expectedmain, nv);
         final var witness = casRoot(ov, desc);
         if (witness == ov) {
             rdcssComplete(desc, false);
@@ -444,11 +435,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         return false;
     }
 
-    private INode<?, ?> rdcssComplete(final RDCSS_Descriptor<?, ?> initial, final boolean abort) {
+    private INode<K, V> rdcssComplete(final RdcssDescriptor<K, V> initial, final boolean abort) {
         var desc = initial;
 
         while (true) {
-            final Root next;
+            final Root<K, V> next;
 
             final var ov = desc.old;
             if (abort || ov.gcasRead(this) != desc.expectedmain) {
@@ -465,9 +456,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 }
             }
 
-            if (next instanceof INode<?, ?> inode) {
+            if (next instanceof INode<K, V> inode) {
                 return inode;
-            } else if (next instanceof RDCSS_Descriptor<?, ?> nextDesc) {
+            } else if (next instanceof RdcssDescriptor<K, V> nextDesc) {
                 // Tail recursion: return rdcssComplete(nextDesc, abort);
                 desc = nextDesc;
             } else {
@@ -476,12 +467,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    sealed interface Root permits INode, RDCSS_Descriptor {
+    sealed interface Root<K, V> permits INode, RdcssDescriptor {
         // Marker interface for classes which may appear as roots to a MutableTrieMap
     }
 
-    @SuppressWarnings("checkstyle:typeName")
-    private static final class RDCSS_Descriptor<K, V> implements Root {
+    private static final class RdcssDescriptor<K, V> implements Root<K, V> {
         final INode<K, V> old;
         final MainNode<K, V> expectedmain;
         final INode<K, V> nv;
@@ -489,7 +479,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         // TODO: GH-60: can we use getAcquire()/setRelease() here?
         private volatile boolean committed;
 
-        RDCSS_Descriptor(final INode<K, V> old, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
+        RdcssDescriptor(final INode<K, V> old, final MainNode<K, V> expectedmain, final INode<K, V> nv) {
             this.old = old;
             this.expectedmain = expectedmain;
             this.nv = nv;
