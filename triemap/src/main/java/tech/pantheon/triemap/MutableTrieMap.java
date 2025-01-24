@@ -207,9 +207,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 final int pos = Integer.bitCount(bmp & mask);
 
                 if ((bmp & flag) == 0) {
-                    final var gen = current.gen;
-                    final var rn = cn.gen == gen ? cn : cn.renewed(gen, this);
-                    return current.gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), this);
+                    return cn.insert(this, current, pos, flag, key, val, hc);
                 }
 
                 // 1a) insert below
@@ -281,14 +279,8 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
                 if ((bmp & flag) == 0) {
                     // not found
-                    if (cond == null || cond == ABSENT) {
-                        final var gen = current.gen;
-                        final var rn = cn.gen == gen ? cn : cn.renewed(gen, this);
-                        if (!current.gcasWrite(rn.toInsertedAt(cn, gen, pos, flag, key, val, hc), this)) {
-                            return null;
-                        }
-                    }
-                    return Result.empty();
+                    return cond != null && cond != ABSENT || cn.insert(this, current, pos, flag, key, val, hc)
+                        ? Result.empty() : null;
                 }
 
                 // 1a) insert below
