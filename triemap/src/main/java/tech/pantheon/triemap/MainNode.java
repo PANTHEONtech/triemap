@@ -50,11 +50,10 @@ abstract sealed class MainNode<K, V> extends INode.TryGcas<K, V> permits CNode, 
     abstract int trySize();
 
     /**
-     * Return the number of entries in this node, traversing it if need be. This method should be invoked only
-     * on immutable snapshots.
+     * Return the number of entries in this node, traversing it if need be.
      *
      * @param ct TrieMap reference
      * @return The actual number of entries.
      */
-    abstract int size(ImmutableTrieMap<?, ?> ct);
+    abstract int size(ImmutableTrieMap<K, V> ct);
 }

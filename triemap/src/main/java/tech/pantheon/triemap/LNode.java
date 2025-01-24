@@ -37,7 +37,7 @@ final class LNode<K, V> extends MainNode<K, V> {
     }
 
     @Override
-    int size(final ImmutableTrieMap<?, ?> ct) {
+    int size(final ImmutableTrieMap<K, V> ct) {
         return size;
     }
 }

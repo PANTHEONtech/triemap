@@ -19,5 +19,11 @@ package tech.pantheon.triemap;
  * A Branch: either an {@link INode} or an {@link SNode}.
  */
 sealed interface Branch<K, V> permits INode, SNode {
-    // Nothing else
+    /**
+     * Return the number of entries for the purposes of {@link CNode#size(ImmutableTrieMap)}.
+     *
+     * @param ct TrieMap reference
+     * @return The actual number of entries
+     */
+    int elementSize(ImmutableTrieMap<K, V> ct);
 }

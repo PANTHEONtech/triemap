@@ -284,43 +284,61 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     @Override
-    int size(final ImmutableTrieMap<?, ?> ct) {
+    int size(final ImmutableTrieMap<K, V> ct) {
         int sz;
         return (sz = csize) != NO_SIZE ? sz : (csize = computeSize(ct));
     }
 
-    // lends itself towards being parallelizable by choosing
-    // a random starting offset in the array
-    // => if there are concurrent size computations, they start
-    // at different positions, so they are more likely to
-    // to be independent
-    private int computeSize(final ImmutableTrieMap<?, ?> ct) {
+    private int computeSize(final ImmutableTrieMap<K, V> ct) {
         final int len = array.length;
         return switch (len) {
             case 0 -> 0;
-            case 1 -> elementSize(ct, array[0]);
-            default -> {
-                final int offset = ThreadLocalRandom.current().nextInt(len);
-                int sz = 0;
-                for (int i = offset; i < len; ++i) {
-                    sz += elementSize(ct, array[i]);
-                }
-                for (int i = 0; i < offset; ++i) {
-                    sz += elementSize(ct, array[i]);
-                }
-                yield sz;
-            }
+            case 1 -> array[0].elementSize(ct);
+            default -> computeSize(ct, array, len);
         };
     }
 
-    private static int elementSize(final ImmutableTrieMap<?, ?> ct, final Branch<?, ?> elem) {
-        if (elem instanceof SNode) {
-            return 1;
-        } else if (elem instanceof INode<?, ?> inode) {
-            return inode.readSize(ct);
-        } else {
-            throw invalidElement(elem);
+    // Lends itself towards being parallelizable by choosing a random starting offset in the array: if there are
+    // concurrent size computations, they start at different positions, so they are more likely to be independent
+    private static <K, V> int computeSize(final ImmutableTrieMap<K, V> ct, final Branch<K, V>[] array, final int len) {
+        // TODO: The other side of this argument is that array is 2-32 items long, i.e. on OpenJDK 21 on x64 the array
+        //       ends up being 16 + (2-32) * (4/8) == 24-144 / 32-272 bytes each.
+        //
+        //       When traversing we do not dereference SNodes, but each INode either returns a cached value or goes off
+        //       and branches (via a 16-byte object) branch to (eventually) this code in some other CNode. We also know
+        //       we have at least 2 entries to traverse.
+        //
+        //       Taking into consideration a modern CPU, with:
+        //         - 12 physical cores: 4 P-cores (2 threads each), 8 E-cores (1 thread each)
+        //         - 64 byte cache line size
+        //         - L1d
+        //           - 48KiB L1d per P-core
+        //           - 32KiB L1d per E-core
+        //         - L2 unified
+        //           - 1.25MiB per P-core
+        //           - 2MiB for each 4 E-cores
+        //         - L3 unified 12MiB
+        //       it would seam that all things being optimal, each thread is using 24-32KiB L1d, 512-1024KiB L2 and
+        //       about 769KiB of L3.
+        //
+        //       So three things:
+        //         0) We really would like to prevent L1d bounces, so threads on different cores should be touching
+        //            different cachelines. We are looking at traversing 3-5 linear cache lines.
+        //         1) Would it make sense to inline the loops below, for example by counting odds and evens into
+        //            separate variables, striding by 2 and then combining the two counters?
+        //         2) On the other hand, doesn't JIT already take care of this? Is there something we can do better,
+        //            like making sure the starting offset is aligned just by taking less random entropy?
+        //
+        // Note: len >= 2 is enforced by the sole caller
+        final int offset = ThreadLocalRandom.current().nextInt(len);
+        int sz = 0;
+        for (int i = offset; i < len; ++i) {
+            sz += array[i].elementSize(ct);
         }
+        for (int i = 0; i < offset; ++i) {
+            sz += array[i].elementSize(ct);
+        }
+        return sz;
     }
 
     private CNode<K, V> updatedAt(final int pos, final Branch<K, V> nn, final Gen ngen) {
