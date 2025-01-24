@@ -141,7 +141,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         INode<K, V> localRoot;
         do {
             localRoot = readRoot();
-        } while (!rdcssRoot(localRoot, localRoot.gcasRead(this), localRoot.copyToGen(new Gen(), this)));
+        } while (!rdcssRoot(localRoot, localRoot.gcasRead(this), localRoot.copyToGen(this, new Gen())));
 
         return localRoot;
     }
@@ -153,7 +153,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public MutableTrieMap<K, V> mutableSnapshot() {
-        return new MutableTrieMap<>(snapshot().copyToGen(new Gen(), this));
+        return new MutableTrieMap<>(snapshot().copyToGen(this, new Gen()));
     }
 
     @Override

@@ -109,7 +109,7 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public MutableTrieMap<K, V> mutableSnapshot() {
-        return new MutableTrieMap<>(root.copyToGen(new Gen(), this));
+        return new MutableTrieMap<>(root.copyToGen(this, new Gen()));
     }
 
     @Override

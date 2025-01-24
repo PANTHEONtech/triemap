@@ -128,20 +128,20 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
     }
 
     MainNode<K, V> gcasRead(final TrieMap<?, ?> ct) {
-        return gcasComplete((MainNode<K, V>) MAIN_VH.getVolatile(this), ct);
+        return gcasComplete(ct, (MainNode<K, V>) MAIN_VH.getVolatile(this));
     }
 
-    boolean gcasWrite(final MainNode<K, V> next, final TrieMap<?, ?> ct) {
+    boolean gcasWrite(final TrieMap<?, ?> ct, final MainNode<K, V> next) {
         // note: plain read of 'next', i.e. take a look at what we are about to CAS-out
         if (MAIN_VH.compareAndSet(this, VerifyException.throwIfNull(PREV_VH.get(next)), next)) {
             // established as write, now try to complete it and report if we have succeeded
-            gcasComplete(next, ct);
+            gcasComplete(ct, next);
             return PREV_VH.getVolatile(next) == null;
         }
         return false;
     }
 
-    private MainNode<K, V> gcasComplete(final MainNode<K, V> firstMain, final TrieMap<?, ?> ct) {
+    private MainNode<K, V> gcasComplete(final TrieMap<?, ?> ct, final MainNode<K, V> firstMain) {
         // complete the GCAS starting at firstMain
         var currentMain = firstMain;
 
@@ -211,7 +211,7 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
         }
     }
 
-    INode<K, V> copyToGen(final Gen ngen, final TrieMap<K, V> ct) {
+    INode<K, V> copyToGen(final TrieMap<K, V> ct, final Gen ngen) {
         return new INode<>(ngen, gcasRead(ct));
     }
 
@@ -329,8 +329,14 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
 
     private void clean(final TrieMap<K, V> ct, final INode<K, V> parent, final int lev) {
         if (parent.gcasRead(ct) instanceof CNode<K, V> cn) {
-            parent.gcasWrite(cn.toCompressed(ct, gen, lev - LEVEL_BITS), ct);
+            parent.gcasWrite(ct, cn.toCompressed(ct, gen, lev - LEVEL_BITS));
         }
+    }
+
+    // gcasRead() and if it is a TNode convert it to an SNode instead. Called indirectly via cn.toCompressed() from
+    // clean() just above
+    Branch<K, V> resurrect(final TrieMap<K, V> ct) {
+        return gcasReadNonNull(ct) instanceof TNode<K, V> tn ? new SNode<>(tn) : this;
     }
 
     private void cleanParent(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final TNode<K, V> tn,
@@ -357,7 +363,7 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
             }
 
             // retry while we make progress and the tree is does not move to next generation
-            if (parent.gcasWrite(cn.toContracted(gen, pos, tn, lev - LEVEL_BITS), ct)
+            if (parent.gcasWrite(ct, cn.toContracted(gen, pos, tn, lev - LEVEL_BITS))
                 || ct.readRoot().gen != startGen) {
                 return;
             }

@@ -144,19 +144,19 @@ final class CNode<K, V> extends MainNode<K, V> {
             final K key, final V val, final int hc, final int lev) {
         final CNode<K, V> next;
         if (!sn.matches(hc, key)) {
-            final var rn = gen == in.gen ? this : renewed(gen, ct);
+            final var rn = gen == in.gen ? this : renewed(ct, gen);
             next = rn.updatedAt(pos, new INode<>(in, sn, key, val, hc, lev), gen);
         } else {
             next = updatedAt(pos, key, val, hc, gen);
         }
-        return in.gcasWrite(next, ct);
+        return in.gcasWrite(ct, next);
     }
 
     boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final int flag, final K key,
             final V val, final int hc) {
         final var ngen = in.gen;
-        final var rn = gen == ngen ? this : renewed(ngen, ct);
-        return in.gcasWrite(rn.toInsertedAt(this, ngen, pos, flag, key, val, hc), ct);
+        final var rn = gen == ngen ? this : renewed(ct, ngen);
+        return in.gcasWrite(ct, rn.toInsertedAt(this, ngen, pos, flag, key, val, hc));
     }
 
     @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
@@ -194,8 +194,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         if (!sn.matches(hc, key)) {
             if (cond == null || cond == ABSENT) {
                 final var ngen = in.gen;
-                final var rn = gen == ngen ? this : renewed(ngen, ct);
-                return in.gcasWrite(rn.toUpdatedAt(this, pos, new INode<>(in, sn, key, val, hc, lev), ngen), ct)
+                final var rn = gen == ngen ? this : renewed(ct, ngen);
+                return in.gcasWrite(ct, rn.toUpdatedAt(this, pos, new INode<>(in, sn, key, val, hc, lev), ngen))
                     ? Result.empty() : null;
             }
             return Result.empty();
@@ -203,7 +203,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         if (cond == ABSENT) {
             return sn.toResult();
         } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
-            return in.gcasWrite(updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
+            return in.gcasWrite(ct, updatedAt(pos, key, val, hc, gen)) ? sn.toResult() : null;
         }
         return Result.empty();
     }
@@ -226,7 +226,7 @@ final class CNode<K, V> extends MainNode<K, V> {
             if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
                 return Result.empty();
             }
-            return parent.gcasWrite(toRemoved(ct, flag, pos, lev), ct) ? sn.toResult() : null;
+            return parent.gcasWrite(ct, toRemoved(ct, flag, pos, lev)) ? sn.toResult() : null;
         } else {
             throw invalidElement(sub);
         }
@@ -252,7 +252,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         final var narr = newArray(len);
         for (int i = 0; i < len; i++) {
             final var tmp = arr[i];
-            narr[i] = tmp instanceof INode<K, V> in ? resurrect(in, ct) : tmp;
+            narr[i] = tmp instanceof INode<K, V> in ? in.resurrect(ct) : tmp;
         }
 
         return toUpdated(ngen, lev, narr, bitmap);
@@ -275,7 +275,7 @@ final class CNode<K, V> extends MainNode<K, V> {
 
     // tries to gcasWrite() a copy of this CNode renewed to ngen
     private boolean renew(final TrieMap<K, V> ct, final INode<K, V> in, final Gen ngen) {
-        return in.gcasWrite(renewed(ngen, ct), ct);
+        return in.gcasWrite(ct, renewed(ct, ngen));
     }
 
     @Override
@@ -298,22 +298,22 @@ final class CNode<K, V> extends MainNode<K, V> {
         final int len = array.length;
         return switch (len) {
             case 0 -> 0;
-            case 1 ->  elementSize(array[0], ct);
+            case 1 -> elementSize(ct, array[0]);
             default -> {
                 final int offset = ThreadLocalRandom.current().nextInt(len);
                 int sz = 0;
                 for (int i = offset; i < len; ++i) {
-                    sz += elementSize(array[i], ct);
+                    sz += elementSize(ct, array[i]);
                 }
                 for (int i = 0; i < offset; ++i) {
-                    sz += elementSize(array[i], ct);
+                    sz += elementSize(ct, array[i]);
                 }
                 yield sz;
             }
         };
     }
 
-    private static int elementSize(final Branch<?, ?> elem, final ImmutableTrieMap<?, ?> ct) {
+    private static int elementSize(final ImmutableTrieMap<?, ?> ct, final Branch<?, ?> elem) {
         if (elem instanceof SNode) {
             return 1;
         } else if (elem instanceof INode<?, ?> inode) {
@@ -353,13 +353,13 @@ final class CNode<K, V> extends MainNode<K, V> {
      * Returns a copy of this cnode such that all the i-nodes below it are copied to the specified generation
      * {@code ngen}.
      */
-    private CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
+    private CNode<K, V> renewed(final TrieMap<K, V> ct, final Gen ngen) {
         final var arr = array;
         final int len = arr.length;
         final var narr = newArray(len);
         for (int i = 0; i < len; i++) {
             final var tmp = arr[i];
-            narr[i] = tmp instanceof INode<K, V> in ? in.copyToGen(ngen, ct) : tmp;
+            narr[i] = tmp instanceof INode<K, V> in ? in.copyToGen(ct, ngen) : tmp;
         }
         return new CNode<>(this, ngen, bitmap, narr);
     }
@@ -372,10 +372,6 @@ final class CNode<K, V> extends MainNode<K, V> {
     @SuppressWarnings("unchecked")
     private Branch<K, V>[] newArray(final int size) {
         return new Branch[size];
-    }
-
-    private static <K, V> Branch<K, V> resurrect(final INode<K, V> in, final TrieMap<K, V> ct) {
-        return in.gcasReadNonNull(ct) instanceof TNode<K, V> tn ? new SNode<>(tn) : in;
     }
 
     // Visible for testing

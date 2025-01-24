@@ -86,19 +86,19 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
     final boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
             final V val) {
         final var entry = findEntry(key);
-        return in.gcasWrite(entry == null ? toInserted(ln, key, val) : toReplaced(ln, entry, val), ct);
+        return in.gcasWrite(ct, entry == null ? toInserted(ln, key, val) : toReplaced(ln, entry, val));
     }
 
     @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
             final V val, final Object cond) {
         final var entry = findEntry(key);
         if (entry == null) {
-            return cond != null && cond != ABSENT || in.gcasWrite(toInserted(ln, key, val), ct) ? Result.empty() : null;
+            return cond != null && cond != ABSENT || in.gcasWrite(ct, toInserted(ln, key, val)) ? Result.empty() : null;
         }
         if (cond == ABSENT) {
             return entry.toResult();
         } else if (cond == null || cond == PRESENT || cond.equals(entry.value())) {
-            return in.gcasWrite(toReplaced(ln, entry, val), ct) ? entry.toResult() : null;
+            return in.gcasWrite(ct, toReplaced(ln, entry, val)) ? entry.toResult() : null;
         }
         return Result.empty();
     }
@@ -124,7 +124,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         final var size = ln.size;
         final var next = size == 2 ? new TNode<>(ln, map.key(), map.value(), hc) : new LNode<>(ln, map, size - 1);
 
-        return in.gcasWrite(next, ct) ? entry.toResult() : null;
+        return in.gcasWrite(ct, next) ? entry.toResult() : null;
     }
 
     private LNode<K, V> toInserted(final LNode<K, V> ln, final K key, final V val) {
