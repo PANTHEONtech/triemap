@@ -120,7 +120,8 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         // Keep looping as long as RESTART is being returned
         Object res;
         do {
-            res = readRoot().lookup(this, hc, k);
+            final var root = readRoot();
+            res = root.lookup(this, root.gen, hc, k, 0, null);
         } while (res == RESTART);
 
         return (V) res;
