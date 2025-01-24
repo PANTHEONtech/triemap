@@ -70,6 +70,13 @@ final class CNode<K, V> extends MainNode<K, V> {
         return in.gcasWrite(next, ct);
     }
 
+    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final int flag, final K key,
+            final V val, final int hc) {
+        final var ngen = in.gen;
+        final var rn = gen == ngen ? this : renewed(ngen, ct);
+        return in.gcasWrite(rn.toInsertedAt(this, ngen, pos, flag, key, val, hc), ct);
+    }
+
     @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
             final SNode<K, V> sn, final K key, final V val, final int hc, final Object cond, final int lev) {
         if (!sn.matches(hc, key)) {
@@ -198,7 +205,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         return updatedAt(pos, new SNode<>(key, val, hc), ngen);
     }
 
-    CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag, final K key,
+    private CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag, final K key,
             final V value, final int hc) {
         final int len = array.length;
         final var narr = newArray(len + 1);
@@ -220,7 +227,7 @@ final class CNode<K, V> extends MainNode<K, V> {
      * Returns a copy of this cnode such that all the i-nodes below it are copied to the specified generation
      * {@code ngen}.
      */
-    CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
+    private CNode<K, V> renewed(final Gen ngen, final TrieMap<K, V> ct) {
         final var arr = array;
         final int len = arr.length;
         final var narr = newArray(len);
