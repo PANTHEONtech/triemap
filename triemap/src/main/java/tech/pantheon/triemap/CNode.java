@@ -54,6 +54,32 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, (Branch<K, V>[]) EMPTY_ARRAY);
     }
 
+    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final int lev,
+            final INode<K, V> parent) {
+        // 1) a multinode
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+
+        if ((bitmap & flag) == 0) {
+            // 1a) bitmap shows no binding
+            return null;
+        }
+
+        // 1b) bitmap contains a value - descend
+        final int pos = bitmap == 0xffffffff ? idx : Integer.bitCount(bitmap & flag - 1);
+        final var sub = array[pos];
+        if (sub instanceof INode<K, V> in) {
+            // try to renew if needed and enter next level
+            return ct.isReadOnly() || startGen == in.gen || renew(ct, parent, startGen)
+                ? in.lookup(ct, startGen, hc, key, lev + LEVEL_BITS, parent) : TrieMap.RESTART;
+        } else if (sub instanceof SNode<K, V> sn) {
+            // 2) singleton node
+            return sn.lookup(hc, key);
+        } else {
+            throw TrieMap.invalidElement(sub);
+        }
+    }
+
     boolean renew(final TrieMap<K, V> ct, final INode<K, V> in, final Gen ngen) {
         return in.gcasWrite(renewed(ngen, ct), ct);
     }
