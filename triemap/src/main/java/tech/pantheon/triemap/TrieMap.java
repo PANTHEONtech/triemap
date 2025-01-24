@@ -254,7 +254,7 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
                 final var sub = cn.array[pos];
                 if (sub instanceof INode<K, V> in) {
                     // try to renew if needed
-                    if (!isReadOnly() && startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
+                    if (!isReadOnly() && startGen != in.gen && !cn.renew(this, current, startGen)) {
                         return RESTART;
                     }
 
