@@ -23,6 +23,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.eclipse.jdt.annotation.Nullable;
 
 final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
     /**
@@ -239,6 +240,67 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
             return ln.entries.lookup(key);
         } else {
             throw TrieMap.invalidElement(m);
+        }
+    }
+
+    /**
+     * Removes the key associated with the given value.
+     *
+     * @param cond
+     *            if null, will remove the key regardless of the value;
+     *            otherwise removes only if binding contains that exact key
+     *            and value
+     * @return null if not successful, an Result indicating the previous
+     *         value otherwise
+     */
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
+            final Object cond, final int lev, final INode<K, V> parent) {
+        final var m = gcasRead(ct);
+        if (m instanceof CNode<K, V> cn) {
+            final var res = cn.remove(ct, startGen, hc, key, cond, lev, this);
+            // never tomb at root
+            if (res != null && res.isPresent() && parent != null && parent.gcasRead(ct) instanceof TNode<K, V> tn) {
+                cleanParent(ct, startGen, hc, tn, parent, lev);
+            }
+            return res;
+        } else if (m instanceof TNode) {
+            ct.clean(this, parent, lev);
+            return null;
+        } else if (m instanceof LNode<K, V> ln) {
+            return ln.entries.remove(ct, this, ln, key, cond, hc);
+        } else {
+            throw TrieMap.invalidElement(m);
+        }
+    }
+
+    private void cleanParent(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final TNode<K, V> tn,
+            final INode<K, V> parent, final int lev) {
+        while (true) {
+            if (!(parent.gcasRead(ct) instanceof CNode<K, V> cn)) {
+                // parent is no longer a cnode, we're done
+                return;
+            }
+
+            final int idx = hc >>> lev - LEVEL_BITS & 0x1f;
+            final int bmp = cn.bitmap;
+            final int flag = 1 << idx;
+            if ((bmp & flag) == 0) {
+                // somebody already removed this i-node, we're done
+                return;
+            }
+
+            final int pos = Integer.bitCount(bmp & flag - 1);
+            final var sub = cn.array[pos];
+            if (sub != this) {
+                // some other range is occupying our slot, we're done
+                return;
+            }
+
+            // retry while we make progress and the tree is does not move to next generation
+            if (parent.gcasWrite(cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(cn, lev - LEVEL_BITS), ct)
+                || ct.readRoot().gen != startGen) {
+                return;
+            }
         }
     }
 
