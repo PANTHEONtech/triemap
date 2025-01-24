@@ -104,12 +104,12 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public int size() {
-        return root.size(this);
+        return root.readSize(this);
     }
 
     @Override
     public MutableTrieMap<K, V> mutableSnapshot() {
-        return new MutableTrieMap<>(new INode<>(new Gen(), root.gcasRead(this)));
+        return new MutableTrieMap<>(root.copyToGen(new Gen(), this));
     }
 
     @Override

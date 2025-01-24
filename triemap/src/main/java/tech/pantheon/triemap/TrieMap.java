@@ -16,7 +16,6 @@
 package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
-import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -214,21 +213,5 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
     // FIXME: abort = false by default
     final INode<K, V> readRoot(final boolean abort) {
         return rdcssReadRoot(abort);
-    }
-
-    /* private implementation methods */
-
-    final void clean(final INode<K, V> current, final INode<K, V> parent, final int lev) {
-        if (parent.gcasRead(this) instanceof CNode<K, V> cn) {
-            parent.gcasWrite(cn.toCompressed(this, lev  - LEVEL_BITS, current.gen), this);
-        }
-    }
-
-    static final VerifyException invalidElement(final Branch<?, ?> elem) {
-        throw new VerifyException("A CNode can contain only INodes and SNodes, not " + elem);
-    }
-
-    static final VerifyException invalidElement(final MainNode<?, ?> elem) {
-        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 }

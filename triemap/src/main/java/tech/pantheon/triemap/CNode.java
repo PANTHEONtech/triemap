@@ -29,7 +29,7 @@ final class CNode<K, V> extends MainNode<K, V> {
 
     final int bitmap;
     final Branch<K, V>[] array;
-    final Gen gen;
+    private final Gen gen;
 
     // Since concurrent computation should lead to same results we can update this field without any synchronization.
     private volatile int csize = NO_SIZE;
@@ -54,118 +54,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, (Branch<K, V>[]) EMPTY_ARRAY);
     }
 
-    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final int lev,
-            final INode<K, V> parent) {
-        // 1) a multinode
-        final int idx = hc >>> lev & 0x1f;
-        final int flag = 1 << idx;
-
-        if ((bitmap & flag) == 0) {
-            // 1a) bitmap shows no binding
-            return null;
-        }
-
-        // 1b) bitmap contains a value - descend
-        final int pos = bitmap == 0xffffffff ? idx : Integer.bitCount(bitmap & flag - 1);
-        final var sub = array[pos];
-        if (sub instanceof INode<K, V> in) {
-            // try to renew if needed and enter next level
-            return ct.isReadOnly() || startGen == in.gen || renew(ct, parent, startGen)
-                ? in.lookup(ct, startGen, hc, key, lev + LEVEL_BITS, parent) : TrieMap.RESTART;
-        } else if (sub instanceof SNode<K, V> sn) {
-            // 2) singleton node
-            return sn.lookup(hc, key);
-        } else {
-            throw TrieMap.invalidElement(sub);
-        }
-    }
-
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
-            final Object cond, final int lev, final INode<K, V> parent) {
-        final int idx = hc >>> lev & 0x1f;
-        final int flag = 1 << idx;
-        if ((bitmap & flag) == 0) {
-            return Result.empty();
-        }
-
-        final int pos = Integer.bitCount(bitmap & flag - 1);
-        final var sub = array[pos];
-        if (sub instanceof INode<K, V> in) {
-            // renew if needed
-            return startGen != in.gen && !renew(ct, parent, startGen)
-                ? null : in.remove(ct, startGen, hc, key, cond, lev + LEVEL_BITS, parent);
-        } else if (sub instanceof SNode<K, V> sn) {
-            return remove(ct, parent, flag, pos, sn, key, hc, cond, lev);
-        } else {
-            throw TrieMap.invalidElement(sub);
-        }
-    }
-
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int flag, final int pos,
-            final SNode<K, V> sn, final K key, final int hc, final Object cond, final int lev) {
-        if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
-            return Result.empty();
-        }
-
-        final var arr = array;
-        final int len = arr.length;
-        final var narr = newArray(len - 1);
-        System.arraycopy(arr, 0, narr, 0, pos);
-        System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
-        final var onlySN = onlySNode(narr, lev);
-        return in.gcasWrite(onlySN != null ? onlySN.copyTombed(this) : new CNode<>(this, gen, bitmap ^ flag, narr), ct)
-            ? sn.toResult() : null;
-    }
-
-    boolean renew(final TrieMap<K, V> ct, final INode<K, V> in, final Gen ngen) {
-        return in.gcasWrite(renewed(ngen, ct), ct);
-    }
-
-    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final SNode<K, V> sn,
-            final K key, final V val, final int hc, final int lev) {
-        final CNode<K, V> next;
-        if (!sn.matches(hc, key)) {
-            final var rn = gen == in.gen ? this : renewed(gen, ct);
-            next = rn.updatedAt(pos, new INode<>(in, sn, key, val, hc, lev), gen);
-        } else {
-            next = updatedAt(pos, key, val, hc, gen);
-        }
-        return in.gcasWrite(next, ct);
-    }
-
-    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final int flag, final K key,
-            final V val, final int hc) {
-        final var ngen = in.gen;
-        final var rn = gen == ngen ? this : renewed(ngen, ct);
-        return in.gcasWrite(rn.toInsertedAt(this, ngen, pos, flag, key, val, hc), ct);
-    }
-
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
-            final SNode<K, V> sn, final K key, final V val, final int hc, final Object cond, final int lev) {
-        if (!sn.matches(hc, key)) {
-            if (cond == null || cond == ABSENT) {
-                final var ngen = in.gen;
-                final var rn = gen == ngen ? this : renewed(ngen, ct);
-                return in.gcasWrite(rn.toUpdatedAt(this, pos, new INode<>(in, sn, key, val, hc, lev), ngen), ct)
-                    ? Result.empty() : null;
-            }
-            return Result.empty();
-        }
-        if (cond == ABSENT) {
-            return sn.toResult();
-        } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
-            return in.gcasWrite(updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
-        }
-        return Result.empty();
-    }
-
-    MainNode<K, V> toContracted(final CNode<K, V> prev, final int lev) {
-        final var sn = onlySNode(array, lev);
-        return sn == null ? new CNode<>(prev, gen, bitmap, array) : sn.copyTombed(prev);
-    }
-
     static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
-            final int initLev, final Gen gen) {
+        final int initLev, final Gen gen) {
         final var second = new SNode<>(key, value, hc);
         final var fhc = first.hc();
 
@@ -197,6 +87,195 @@ final class CNode<K, V> extends MainNode<K, V> {
             }
             return deepest;
         }
+    }
+
+    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final int lev,
+            final INode<K, V> parent) {
+        // 1) a multinode
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+
+        if ((bitmap & flag) == 0) {
+            // 1a) bitmap shows no binding
+            return null;
+        }
+
+        // 1b) bitmap contains a value - descend
+        final int pos = bitmap == 0xffffffff ? idx : Integer.bitCount(bitmap & flag - 1);
+        final var sub = array[pos];
+        if (sub instanceof INode<K, V> in) {
+            // try to renew if needed and enter next level
+            return ct.isReadOnly() || startGen == in.gen || renew(ct, parent, startGen)
+                ? in.lookup(ct, startGen, hc, key, lev + LEVEL_BITS, parent) : TrieMap.RESTART;
+        } else if (sub instanceof SNode<K, V> sn) {
+            // 2) singleton node
+            return sn.lookup(hc, key);
+        } else {
+            throw invalidElement(sub);
+        }
+    }
+
+    boolean insert(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final V val,
+            final int lev, final INode<K, V> parent) {
+        // 1) a multiway node
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+        final int mask = flag - 1;
+        final int pos = Integer.bitCount(bitmap & mask);
+
+        if ((bitmap & flag) == 0) {
+            return insert(ct, parent, pos, flag, key, val, hc);
+        }
+
+        // 1a) insert below
+        final var cnAtPos = array[pos];
+        if (cnAtPos instanceof INode<K, V> in) {
+            // try to renew if needed and enter next level
+            return (startGen == in.gen || renew(ct, parent, startGen))
+                && in.insert(ct, startGen, hc, key, val, lev + LEVEL_BITS, parent);
+        } else if (cnAtPos instanceof SNode<K, V> sn) {
+            return insert(ct, parent, pos, sn, key, val, hc, lev);
+        } else {
+            throw invalidElement(cnAtPos);
+        }
+    }
+
+    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final SNode<K, V> sn,
+            final K key, final V val, final int hc, final int lev) {
+        final CNode<K, V> next;
+        if (!sn.matches(hc, key)) {
+            final var rn = gen == in.gen ? this : renewed(gen, ct);
+            next = rn.updatedAt(pos, new INode<>(in, sn, key, val, hc, lev), gen);
+        } else {
+            next = updatedAt(pos, key, val, hc, gen);
+        }
+        return in.gcasWrite(next, ct);
+    }
+
+    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final int flag, final K key,
+            final V val, final int hc) {
+        final var ngen = in.gen;
+        final var rn = gen == ngen ? this : renewed(ngen, ct);
+        return in.gcasWrite(rn.toInsertedAt(this, ngen, pos, flag, key, val, hc), ct);
+    }
+
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
+            final V val, final Object cond, final int lev, final INode<K, V> parent) {
+        // 1) a multiway node
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+        final int bmp = bitmap;
+        final int mask = flag - 1;
+        final int pos = Integer.bitCount(bmp & mask);
+
+        if ((bmp & flag) == 0) {
+            // not found
+            return cond != null && cond != ABSENT || insert(ct, parent, pos, flag, key, val, hc)
+                ? Result.empty() : null;
+        }
+
+        // 1a) insert below
+        final var cnAtPos = array[pos];
+        if (cnAtPos instanceof INode<K, V> in) {
+            // enter next level
+            if (startGen != in.gen && !renew(ct, parent, startGen)) {
+                return null;
+            }
+            return in.insertIf(ct, startGen, hc, key, val, cond, lev + LEVEL_BITS, parent);
+        } else if (cnAtPos instanceof SNode<K, V> sn) {
+            return insertIf(ct, parent, pos, sn, key, val, hc, cond, lev);
+        } else {
+            throw invalidElement(cnAtPos);
+        }
+    }
+
+    private @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
+            final SNode<K, V> sn, final K key, final V val, final int hc, final Object cond, final int lev) {
+        if (!sn.matches(hc, key)) {
+            if (cond == null || cond == ABSENT) {
+                final var ngen = in.gen;
+                final var rn = gen == ngen ? this : renewed(ngen, ct);
+                return in.gcasWrite(rn.toUpdatedAt(this, pos, new INode<>(in, sn, key, val, hc, lev), ngen), ct)
+                    ? Result.empty() : null;
+            }
+            return Result.empty();
+        }
+        if (cond == ABSENT) {
+            return sn.toResult();
+        } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
+            return in.gcasWrite(updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
+        }
+        return Result.empty();
+    }
+
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
+            final Object cond, final int lev, final INode<K, V> parent) {
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+        if ((bitmap & flag) == 0) {
+            return Result.empty();
+        }
+
+        final int pos = Integer.bitCount(bitmap & flag - 1);
+        final var sub = array[pos];
+        if (sub instanceof INode<K, V> in) {
+            // renew if needed
+            return startGen != in.gen && !renew(ct, parent, startGen)
+                ? null : in.remove(ct, startGen, hc, key, cond, lev + LEVEL_BITS, parent);
+        } else if (sub instanceof SNode<K, V> sn) {
+            if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
+                return Result.empty();
+            }
+            return parent.gcasWrite(toRemoved(ct, flag, pos, lev), ct) ? sn.toResult() : null;
+        } else {
+            throw invalidElement(sub);
+        }
+    }
+
+    private MainNode<K, V> toRemoved(final MutableTrieMap<K, V> ct, final int flag, final int pos, final int lev) {
+        final var arr = array;
+        final int len = arr.length;
+        final var narr = newArray(len - 1);
+        System.arraycopy(arr, 0, narr, 0, pos);
+        System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
+
+        return toUpdated(gen, lev, narr, bitmap ^ flag);
+    }
+
+    // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
+    // - otherwise, if there is at least one non-null node below, returns the version of this node with at least some
+    //   null-inodes removed (those existing when the op began)
+    // - if there are only null-i-nodes below, returns null
+    MainNode<K, V> toCompressed(final TrieMap<K, V> ct, final Gen ngen, final int lev) {
+        final var arr = array;
+        final int len = arr.length;
+        final var narr = newArray(len);
+        for (int i = 0; i < len; i++) {
+            final var tmp = arr[i];
+            narr[i] = tmp instanceof INode<K, V> in ? resurrect(in, ct) : tmp;
+        }
+
+        return toUpdated(ngen, lev, narr, bitmap);
+    }
+
+    MainNode<K, V> toContracted(final Gen ngen, final int pos, final TNode<K, V> tn, final int lev) {
+        final int len = array.length;
+        final var narr = newArray(len);
+        System.arraycopy(array, 0, narr, 0, len);
+        narr[pos] = new SNode<>(tn);
+
+        return toUpdated(ngen, lev, narr, bitmap);
+    }
+
+    private MainNode<K, V> toUpdated(final Gen ngen, final int lev, final Branch<K, V>[] arr, final int bmp) {
+        // Note: special-case for root, so we always have a ct.root.main is always a CNode
+        return lev > 0 && arr.length == 1 && arr[0] instanceof SNode<K, V> sn
+            ? new TNode<>(this, sn) : new CNode<>(this, ngen, bmp, arr);
+    }
+
+    // tries to gcasWrite() a copy of this CNode renewed to ngen
+    private boolean renew(final TrieMap<K, V> ct, final INode<K, V> in, final Gen ngen) {
+        return in.gcasWrite(renewed(ngen, ct), ct);
     }
 
     @Override
@@ -238,13 +317,13 @@ final class CNode<K, V> extends MainNode<K, V> {
         if (elem instanceof SNode) {
             return 1;
         } else if (elem instanceof INode<?, ?> inode) {
-            return inode.size(ct);
+            return inode.readSize(ct);
         } else {
-            throw TrieMap.invalidElement(elem);
+            throw invalidElement(elem);
         }
     }
 
-    CNode<K, V> updatedAt(final int pos, final Branch<K, V> nn, final Gen ngen) {
+    private CNode<K, V> updatedAt(final int pos, final Branch<K, V> nn, final Gen ngen) {
         return toUpdatedAt(this, pos, nn, ngen);
     }
 
@@ -285,22 +364,6 @@ final class CNode<K, V> extends MainNode<K, V> {
         return new CNode<>(this, ngen, bitmap, narr);
     }
 
-    // - if the branching factor is 1 for this CNode, and the child is a tombed SNode, returns its tombed version
-    // - otherwise, if there is at least one non-null node below, returns the version of this node with at least some
-    //   null-inodes removed (those existing when the op began)
-    // - if there are only null-i-nodes below, returns null
-    MainNode<K, V> toCompressed(final TrieMap<K, V> ct, final int lev, final Gen ngen) {
-        final var arr = array;
-        final int len = arr.length;
-        final var narr = newArray(len);
-        for (int i = 0; i < len; i++) {
-            final var tmp = arr[i];
-            narr[i] = tmp instanceof INode<K, V> in ? resurrect(in, ct) : tmp;
-        }
-        final var sn = onlySNode(narr, lev);
-        return sn != null ? sn.copyTombed(this) : new CNode<>(this, ngen, bitmap, narr);
-    }
-
     @Override
     public String toString() {
         return "CNode";
@@ -311,11 +374,12 @@ final class CNode<K, V> extends MainNode<K, V> {
         return new Branch[size];
     }
 
-    private @Nullable SNode<K, V> onlySNode(final Branch<K, V>[] arr, final int lev) {
-        return arr.length == 1 && lev > 0 && arr[0] instanceof SNode<K, V> sn ? sn : null;
+    private static <K, V> Branch<K, V> resurrect(final INode<K, V> in, final TrieMap<K, V> ct) {
+        return in.gcasReadNonNull(ct) instanceof TNode<K, V> tn ? new SNode<>(tn) : in;
     }
 
-    private static <K, V> Branch<K, V> resurrect(final INode<K, V> in, final TrieMap<K, V> ct) {
-        return in.gcasReadNonNull(ct) instanceof TNode<K, V> tnode ? tnode.copyUntombed() : in;
+    // Visible for testing
+    static VerifyException invalidElement(final Branch<?, ?> elem) {
+        throw new VerifyException("A CNode can contain only INodes and SNodes, not " + elem);
     }
 }
