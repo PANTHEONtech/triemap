@@ -19,6 +19,7 @@ import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 import static tech.pantheon.triemap.Result.RESTART;
 
+import java.util.function.Function;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -84,6 +85,17 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
     final @Nullable V lookup(final @NonNull K key) {
         final var entry = findEntry(key);
         return entry != null ? entry.value() : null;
+    }
+
+    @Nullable Object computeIfAbsent(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
+            final @NonNull K key, final @NonNull Function<? super K, ? extends V> fn) {
+        final var entry = findEntry(key);
+        if (entry != null) {
+            return entry.value();
+        }
+
+        final var val = fn.apply(key);
+        return val == null || in.gcasWrite(ct, toInserted(ln, key, val)) ? val : RESTART;
     }
 
     final boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,

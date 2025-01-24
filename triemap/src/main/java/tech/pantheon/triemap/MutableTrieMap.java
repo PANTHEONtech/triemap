@@ -23,6 +23,7 @@ import static tech.pantheon.triemap.Result.RESTART;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.function.Function;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -133,6 +134,24 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
             // Keep looping as long as we do not get a reply
             final var r = readRoot();
             res = r.remove(this, r.gen, hc, key, cond, 0, null);
+        } while (res == RESTART);
+
+        return (V) res;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public V computeIfAbsent(final K key, final Function<? super K, ? extends V> mappingFunction) {
+        final var k = requireNonNull(key);
+        final int hc = computeHash(key);
+        final var fn = requireNonNull(mappingFunction);
+
+        // Keep looping as long as RESTART is being returned
+        Object res;
+        do {
+            // Keep looping as long as we do not get a reply
+            final var r = readRoot();
+            res = r.computeIfAbsent(this, r.gen, hc, k, fn, 0, null);
         } while (res == RESTART);
 
         return (V) res;

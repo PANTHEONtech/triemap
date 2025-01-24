@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 /**
  * This is a port of Scala's TrieMap class from the Scala Collections library. This implementation does not support
@@ -143,6 +144,9 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
 
     @Override
     public abstract V replace(K key, V value);
+
+    @Override
+    public abstract V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction);
 
     @Override
     public abstract int size();

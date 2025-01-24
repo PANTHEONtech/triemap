@@ -23,6 +23,7 @@ import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 import static tech.pantheon.triemap.Result.RESTART;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -89,6 +90,47 @@ final class CNode<K, V> extends MainNode<K, V> {
             }
             return deepest;
         }
+    }
+
+    @Nullable Object computeIfAbsent(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc,
+            final @NonNull K key, final @NonNull Function<? super K, ? extends V> fn, final int lev,
+            final INode<K, V> parent) {
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+        final int mask = flag - 1;
+        final int pos = Integer.bitCount(bitmap & mask);
+
+        if ((bitmap & flag) == 0) {
+            final var val = fn.apply(key);
+            return val == null || insert(ct, parent, pos, flag, key, val, hc) ? val : RESTART;
+        }
+
+        // 1a) insert below
+        final var cnAtPos = array[pos];
+        if (cnAtPos instanceof INode<K, V> in) {
+            // try to renew if needed and enter next level
+            return startGen != in.gen && !renew(ct, parent, startGen)
+                ? RESTART : in.computeIfAbsent(ct, startGen, hc, key, fn, lev + LEVEL_BITS, parent);
+        } else if (cnAtPos instanceof SNode<K, V> sn) {
+            return computeIfAbsent(ct, parent, pos, sn, key, fn, hc, lev);
+        } else {
+            throw invalidElement(cnAtPos);
+        }
+    }
+
+    private @Nullable Object computeIfAbsent(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
+            final SNode<K, V> sn, final @NonNull K key, final @NonNull Function<? super K, ? extends V> fn,
+            final int hc, final int lev) {
+        if (sn.matches(hc, key)) {
+            return sn.value();
+        }
+        final var val = fn.apply(key);
+        if (val == null) {
+            return null;
+        }
+
+        final var rn = gen == in.gen ? this : renewed(ct, gen);
+        return in.gcasWrite(ct, rn.updatedAt(pos, new INode<>(in, sn, key, val, hc, lev), gen)) ? val : RESTART;
     }
 
     @Nullable Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
