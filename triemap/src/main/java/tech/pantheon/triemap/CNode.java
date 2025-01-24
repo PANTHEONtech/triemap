@@ -20,6 +20,7 @@ import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import static tech.pantheon.triemap.Constants.MAX_DEPTH;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
+import static tech.pantheon.triemap.Result.RESTART;
 
 import java.util.concurrent.ThreadLocalRandom;
 import org.eclipse.jdt.annotation.NonNull;
@@ -90,8 +91,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key, final int lev,
-            final INode<K, V> parent) {
+    @Nullable Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final int lev, final INode<K, V> parent) {
         // 1) a multinode
         final int idx = hc >>> lev & 0x1f;
         final int flag = 1 << idx;
@@ -107,7 +108,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         if (sub instanceof INode<K, V> in) {
             // try to renew if needed and enter next level
             return ct.isReadOnly() || startGen == in.gen || renew(ct, parent, startGen)
-                ? in.lookup(ct, startGen, hc, key, lev + LEVEL_BITS, parent) : TrieMap.RESTART;
+                ? in.lookup(ct, startGen, hc, key, lev + LEVEL_BITS, parent) : RESTART;
         } else if (sub instanceof SNode<K, V> sn) {
             // 2) singleton node
             return sn.lookup(hc, key);
@@ -160,7 +161,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         return in.gcasWrite(ct, rn.toInsertedAt(this, ngen, pos, flag, key, val, hc));
     }
 
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+    @Nullable Object insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
             final @NonNull V val, final @Nullable Object cond, final int lev, final INode<K, V> parent) {
         // 1) a multiway node
         final int idx = hc >>> lev & 0x1f;
@@ -171,8 +172,7 @@ final class CNode<K, V> extends MainNode<K, V> {
 
         if ((bmp & flag) == 0) {
             // not found
-            return cond != null && cond != ABSENT || insert(ct, parent, pos, flag, key, val, hc)
-                ? Result.empty() : null;
+            return cond != null && cond != ABSENT || insert(ct, parent, pos, flag, key, val, hc) ? null : RESTART;
         }
 
         // 1a) insert below
@@ -180,7 +180,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         if (cnAtPos instanceof INode<K, V> in) {
             // enter next level
             if (startGen != in.gen && !renew(ct, parent, startGen)) {
-                return null;
+                return RESTART;
             }
             return in.insertIf(ct, startGen, hc, key, val, cond, lev + LEVEL_BITS, parent);
         } else if (cnAtPos instanceof SNode<K, V> sn) {
@@ -190,7 +190,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    private @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
+    private @Nullable Object insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
             final SNode<K, V> sn, final @NonNull K key, final @NonNull V val, final int hc, final @Nullable Object cond,
             final int lev) {
         if (!sn.matches(hc, key)) {
@@ -198,24 +198,24 @@ final class CNode<K, V> extends MainNode<K, V> {
                 final var ngen = in.gen;
                 final var rn = gen == ngen ? this : renewed(ct, ngen);
                 return in.gcasWrite(ct, rn.toUpdatedAt(this, pos, new INode<>(in, sn, key, val, hc, lev), ngen))
-                    ? Result.empty() : null;
+                    ? null : RESTART;
             }
-            return Result.empty();
+            return null;
         }
         if (cond == ABSENT) {
-            return sn.toResult();
+            return sn.value();
         } else if (cond == null || cond == PRESENT || cond.equals(sn.value())) {
-            return in.gcasWrite(ct, updatedAt(pos, key, val, hc, gen)) ? sn.toResult() : null;
+            return in.gcasWrite(ct, updatedAt(pos, key, val, hc, gen)) ? sn.value() : RESTART;
         }
-        return Result.empty();
+        return null;
     }
 
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+    @Nullable Object remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
             final @Nullable Object cond, final int lev, final INode<K, V> parent) {
         final int idx = hc >>> lev & 0x1f;
         final int flag = 1 << idx;
         if ((bitmap & flag) == 0) {
-            return Result.empty();
+            return null;
         }
 
         final int pos = Integer.bitCount(bitmap & flag - 1);
@@ -223,12 +223,12 @@ final class CNode<K, V> extends MainNode<K, V> {
         if (sub instanceof INode<K, V> in) {
             // renew if needed
             return startGen != in.gen && !renew(ct, parent, startGen)
-                ? null : in.remove(ct, startGen, hc, key, cond, lev + LEVEL_BITS, parent);
+                ? RESTART : in.remove(ct, startGen, hc, key, cond, lev + LEVEL_BITS, parent);
         } else if (sub instanceof SNode<K, V> sn) {
             if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
-                return Result.empty();
+                return null;
             }
-            return parent.gcasWrite(ct, toRemoved(ct, flag, pos, lev)) ? sn.toResult() : null;
+            return parent.gcasWrite(ct, toRemoved(ct, flag, pos, lev)) ? sn.value() : RESTART;
         } else {
             throw invalidElement(sub);
         }

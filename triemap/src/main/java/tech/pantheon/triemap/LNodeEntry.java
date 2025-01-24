@@ -44,8 +44,4 @@ abstract sealed class LNodeEntry<K, V> extends AbstractEntry<K, V> permits LNode
     public final V value() {
         return value;
     }
-
-    final @NonNull Result<V> toResult() {
-        return new Result<>(value);
-    }
 }

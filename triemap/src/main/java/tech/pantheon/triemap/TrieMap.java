@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
+import static tech.pantheon.triemap.Result.RESTART;
 
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -37,10 +38,6 @@ public abstract sealed class TrieMap<K, V> extends AbstractMap<K, V> implements 
         permits ImmutableTrieMap, MutableTrieMap {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
-
-    // Virtual result for lookup methods indicating that the lookup needs to be restarted. This is a faster version
-    // of throwing a checked exception to control restart.
-    static final Object RESTART = new Object();
 
     private transient AbstractEntrySet<K, V, ?> entrySet;
     // Note: AbstractMap.keySet is something we do not have access to. At some point we should just not subclass
