@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -38,7 +39,7 @@ class TestConcurrentMapComputeIfAbsent {
         for (int i = 0; i < COUNT; i++) {
             map.put(i, Integer.toString(i));
             assertEquals(Integer.toString(i), map.computeIfAbsent(i,
-                    (ignored) -> fail("Should not have called function")));
+                    ignored -> fail("Should not have called function")));
         }
     }
 
@@ -62,5 +63,12 @@ class TestConcurrentMapComputeIfAbsent {
         assertSame(v3, map.computeIfAbsent(k3, k -> v3));
         // Check with equivalent key
         assertSame(v3, map.computeIfAbsent(k3dup, k -> v3));
+    }
+
+    @Test
+    void testComputeNull() {
+        final var map = TrieMap.create();
+        assertNull(map.computeIfAbsent("key", k -> null));
+        assertEquals("{}", map.toString());
     }
 }

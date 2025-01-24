@@ -22,6 +22,7 @@ import static tech.pantheon.triemap.Result.RESTART;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.function.Function;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -249,6 +250,22 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
         } else if (m instanceof LNode<K, V> ln) {
             // 5) an l-node
             return ln.entries.lookup(key);
+        } else {
+            throw invalidElement(m);
+        }
+    }
+
+    @Nullable Object computeIfAbsent(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc,
+            final @NonNull K key, final @NonNull Function<? super K, ? extends V> fn, final int lev,
+            final INode<K, V> parent) {
+        final var m = gcasRead(ct);
+        if (m instanceof CNode<K, V> cn) {
+            return cn.computeIfAbsent(ct, startGen, hc, key, fn, lev, this);
+        } else if (m instanceof TNode) {
+            clean(ct, parent, lev);
+            return RESTART;
+        } else if (m instanceof LNode<K, V> ln) {
+            return ln.entries.computeIfAbsent(ct, this, ln, key, fn);
         } else {
             throw invalidElement(m);
         }
