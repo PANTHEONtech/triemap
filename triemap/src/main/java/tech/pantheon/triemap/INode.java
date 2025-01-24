@@ -210,6 +210,76 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
         }
     }
 
+    Object lookup(final TrieMap<K, V> ct, final int hc, final K key) {
+        return recLookup(ct, this, hc, key);
+    }
+
+    /**
+     * Looks up the value associated with the key.
+     *
+     * @param first root {@link INode}
+     * @param hc the hash code
+     * @param key the key
+     * @return null if no value has been found, RESTART if the operation was not successful, or any other value
+     *         otherwise
+     */
+    private static <K, V> Object recLookup(final TrieMap<K, V> ct, final INode<K, V> first, final int hc, final K key) {
+        final var startGen = first.gen;
+        INode<K, V> parent = null;
+        var current = first;
+        int lev = 0;
+
+        while (true) {
+            final var m = current.gcasRead(ct);
+
+            if (m instanceof CNode<K, V> cn) {
+                // 1) a multinode
+                final int idx = hc >>> lev & 0x1f;
+                final int flag = 1 << idx;
+
+                final int bmp = cn.bitmap;
+                if ((bmp & flag) == 0) {
+                    // 1a) bitmap shows no binding
+                    return null;
+                }
+
+                // 1b) bitmap contains a value - descend
+                final int pos = bmp == 0xffffffff ? idx : Integer.bitCount(bmp & flag - 1);
+                final var sub = cn.array[pos];
+                if (sub instanceof INode<K, V> in) {
+                    // try to renew if needed
+                    if (!ct.isReadOnly() && startGen != in.gen && !cn.renew(ct, current, startGen)) {
+                        return TrieMap.RESTART;
+                    }
+
+                    // enter next level
+                    parent = current;
+                    current = in;
+                    lev += LEVEL_BITS;
+                } else if (sub instanceof SNode<K, V> sn) {
+                    // 2) singleton node
+                    return sn.lookup(hc, key);
+                } else {
+                    throw TrieMap.invalidElement(sub);
+                }
+            } else if (m instanceof TNode<K, V> tn) {
+                // 3) non-live node
+                if (ct.isReadOnly()) {
+                    // read-only side does not clean up
+                    return tn.hc == hc && key.equals(tn.key) ? tn.value : null;
+                }
+                // read-write: perform some clean up and restart
+                ct.clean(current, parent, lev - LEVEL_BITS);
+                return TrieMap.RESTART;
+            } else if (m instanceof LNode<K, V> ln) {
+                // 5) an l-node
+                return ln.entries.lookup(key);
+            } else {
+                throw TrieMap.invalidElement(m);
+            }
+        }
+    }
+
     INode<K, V> copyToGen(final Gen ngen, final TrieMap<K, V> ct) {
         return new INode<>(ngen, gcasRead(ct));
     }
