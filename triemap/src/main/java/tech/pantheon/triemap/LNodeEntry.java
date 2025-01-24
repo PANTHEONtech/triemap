@@ -27,10 +27,10 @@ import org.eclipse.jdt.annotation.NonNull;
  * @param <V> the type of value
  */
 abstract sealed class LNodeEntry<K, V> extends AbstractEntry<K, V> permits LNodeEntries {
-    private final K key;
-    private final V value;
+    private final @NonNull K key;
+    private final @NonNull V value;
 
-    LNodeEntry(final K key, final V value) {
+    LNodeEntry(final @NonNull K key, final @NonNull V value) {
         this.key = key;
         this.value = value;
     }

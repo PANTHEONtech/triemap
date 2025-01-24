@@ -119,7 +119,8 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
         this.gen = gen;
     }
 
-    INode(final INode<K, V> prev, final SNode<K, V> sn, final K key, final V val, final int hc, final int lev) {
+    INode(final INode<K, V> prev, final SNode<K, V> sn, final @NonNull K key, final @NonNull V val, final int hc,
+            final int lev) {
         this(prev.gen, CNode.dual(sn, key, val, hc, lev + LEVEL_BITS, prev.gen));
     }
 
@@ -229,7 +230,7 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      * @return null if no value has been found, RESTART if the operation was not successful, or any other value
      *         otherwise
      */
-    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final int lev,
+    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key, final int lev,
             final INode<K, V> parent) {
         final var m = gcasRead(ct);
 
@@ -257,8 +258,8 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      *
      * @return true if successful, false otherwise
      */
-    boolean insert(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final V val,
-            final int lev, final INode<K, V> parent) {
+    boolean insert(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final @NonNull V val, final int lev, final INode<K, V> parent) {
         final var m = gcasRead(ct);
         if (m instanceof CNode<K, V> cn) {
             return cn.insert(ct, startGen, hc, key, val, lev, this);
@@ -282,8 +283,8 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      *            other value `val` - key must be bound to `val`
      * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
      */
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
-            final V val, final Object cond, final int lev, final INode<K, V> parent) {
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final @NonNull V val, final Object cond, final int lev, final INode<K, V> parent) {
         final var m = gcasRead(ct);
         if (m instanceof CNode<K, V> cn) {
             return cn.insertIf(ct, startGen, hc, key, val, cond, lev, this);
@@ -308,8 +309,8 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      * @return null if not successful, an Result indicating the previous
      *         value otherwise
      */
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
-            final Object cond, final int lev, final INode<K, V> parent) {
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final @Nullable Object cond, final int lev, final INode<K, V> parent) {
         final var m = gcasRead(ct);
         if (m instanceof CNode<K, V> cn) {
             final var res = cn.remove(ct, startGen, hc, key, cond, lev, this);

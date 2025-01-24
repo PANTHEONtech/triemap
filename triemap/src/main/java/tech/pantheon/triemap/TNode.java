@@ -15,13 +15,15 @@
  */
 package tech.pantheon.triemap;
 
+import org.eclipse.jdt.annotation.NonNull;
+
 final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
-    final K key;
-    final V value;
+    final @NonNull K key;
+    final @NonNull V value;
     final int hc;
 
     // Visible for testing
-    TNode(final CNode<K, V> prev, final K key, final V value, final int hc) {
+    TNode(final CNode<K, V> prev, final @NonNull K key, final @NonNull V value, final int hc) {
         super(prev);
         this.key = key;
         this.value = value;
@@ -32,7 +34,7 @@ final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
         this(prev, sn.key(), sn.value(), sn.hc());
     }
 
-    TNode(final LNode<K, V> prev, final K key, final V value, final int hc) {
+    TNode(final LNode<K, V> prev, final @NonNull K key, final @NonNull V value, final int hc) {
         super(prev);
         this.key = key;
         this.value = value;

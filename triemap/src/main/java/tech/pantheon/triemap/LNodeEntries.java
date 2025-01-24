@@ -18,6 +18,7 @@ package tech.pantheon.triemap;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
@@ -32,7 +33,7 @@ import org.eclipse.jdt.annotation.Nullable;
 abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
     // Visible for testing
     static final class Single<K, V> extends LNodeEntries<K, V> {
-        Single(final K key, final V value) {
+        Single(final @NonNull K key, final @NonNull V value) {
             super(key, value);
         }
 
@@ -51,7 +52,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
             this(entry.key(), entry.value(), null);
         }
 
-        Multiple(final K key, final V value, final LNodeEntries<K, V> next) {
+        Multiple(final @NonNull K key, final @NonNull V value, final LNodeEntries<K, V> next) {
             super(key, value);
             this.next = next;
         }
@@ -62,11 +63,12 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         }
     }
 
-    LNodeEntries(final K key, final V value) {
+    LNodeEntries(final @NonNull K key, final @NonNull V value) {
         super(key, value);
     }
 
-    static <K,V> LNodeEntries<K, V> of(final K k1, final V v1, final K k2, final V v2) {
+    static <K,V> LNodeEntries<K, V> of(final @NonNull K k1, final @NonNull V v1,
+            final @NonNull K k2, final @NonNull V v2) {
         return new Multiple<>(k1, v1, new Single<>(k2, v2));
     }
 
@@ -78,19 +80,19 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
      */
     abstract LNodeEntries<K, V> next();
 
-    final @Nullable V lookup(final K key) {
+    final @Nullable V lookup(final @NonNull K key) {
         final var entry = findEntry(key);
         return entry != null ? entry.value() : null;
     }
 
-    final boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
-            final V val) {
+    final boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
+            final @NonNull K key, final @NonNull V val) {
         final var entry = findEntry(key);
         return in.gcasWrite(ct, entry == null ? toInserted(ln, key, val) : toReplaced(ln, entry, val));
     }
 
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
-            final V val, final Object cond) {
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
+            final @NonNull K key, final @NonNull V val, final Object cond) {
         final var entry = findEntry(key);
         if (entry == null) {
             return cond != null && cond != ABSENT || in.gcasWrite(ct, toInserted(ln, key, val)) ? Result.empty() : null;
@@ -103,8 +105,8 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         return Result.empty();
     }
 
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln, final K key,
-            final Object cond, final int hc) {
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
+            final @NonNull K key, final @Nullable Object cond, final int hc) {
         final var entry = findEntry(key);
         if (entry == null) {
             // Key was not found, hence no modification is needed
@@ -127,22 +129,22 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         return in.gcasWrite(ct, next) ? entry.toResult() : null;
     }
 
-    private LNode<K, V> toInserted(final LNode<K, V> ln, final K key, final V val) {
+    private LNode<K, V> toInserted(final LNode<K, V> ln, final @NonNull K key, final @NonNull V val) {
         return new LNode<>(ln, insertEntry(key, val), ln.size + 1);
     }
 
-    private LNode<K, V> toReplaced(final LNode<K, V> ln, final LNodeEntry<K, V> entry, final V val) {
+    private LNode<K, V> toReplaced(final LNode<K, V> ln, final LNodeEntry<K, V> entry, final @NonNull V val) {
         return new LNode<>(ln, replace(entry, val), ln.size);
     }
 
     // Visible for testing
-    final LNodeEntries<K, V> replace(final LNodeEntry<K, V> entry, final V value) {
+    final LNodeEntries<K, V> replace(final LNodeEntry<K, V> entry, final @NonNull V value) {
         final var removed = removeEntry(entry);
         return removed == null ? new Single<>(entry.key(), value) : new Multiple<>(entry.key(), value, removed);
     }
 
     // Visible for testing
-    final @Nullable LNodeEntry<K, V> findEntry(final K key) {
+    final @Nullable LNodeEntry<K, V> findEntry(final @NonNull K key) {
         // We do not perform recursion on purpose here, so we do not run out of stack if the key hashing fails.
         var entry = this;
         do {
@@ -157,7 +159,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
     }
 
     // Visible for testing
-    final LNodeEntries<K, V> insertEntry(final K key, final V value) {
+    final LNodeEntries<K, V> insertEntry(final @NonNull K key, final @NonNull V value) {
         return new Multiple<>(key, value, this);
     }
 

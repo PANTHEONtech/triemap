@@ -23,6 +23,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * A mutable TrieMap.
@@ -106,7 +107,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         return insertIf(k, requireNonNull(value), PRESENT).orNull();
     }
 
-    private @NonNull Result<V> insertIf(final K key, final V value, final Object cond) {
+    private @NonNull Result<V> insertIf(final @NonNull K key, final @NonNull V value, final @Nullable Object cond) {
         final int hc = computeHash(key);
 
         Result<V> res;
@@ -119,7 +120,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         return res;
     }
 
-    private @NonNull Result<V> removeIf(final K key, final Object cond) {
+    private @NonNull Result<V> removeIf(final @NonNull K key, final @Nullable Object cond) {
         final int hc = computeHash(key);
 
         Result<V> res;
