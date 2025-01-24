@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
+import static tech.pantheon.triemap.Result.RESTART;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -91,30 +92,30 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         return in.gcasWrite(ct, entry == null ? toInserted(ln, key, val) : toReplaced(ln, entry, val));
     }
 
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
+    @Nullable Object insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
             final @NonNull K key, final @NonNull V val, final Object cond) {
         final var entry = findEntry(key);
         if (entry == null) {
-            return cond != null && cond != ABSENT || in.gcasWrite(ct, toInserted(ln, key, val)) ? Result.empty() : null;
+            return cond != null && cond != ABSENT || in.gcasWrite(ct, toInserted(ln, key, val)) ? null : RESTART;
         }
         if (cond == ABSENT) {
-            return entry.toResult();
+            return entry.value();
         } else if (cond == null || cond == PRESENT || cond.equals(entry.value())) {
-            return in.gcasWrite(ct, toReplaced(ln, entry, val)) ? entry.toResult() : null;
+            return in.gcasWrite(ct, toReplaced(ln, entry, val)) ? entry.value() : RESTART;
         }
-        return Result.empty();
+        return null;
     }
 
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
+    @Nullable Object remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final LNode<K, V> ln,
             final @NonNull K key, final @Nullable Object cond, final int hc) {
         final var entry = findEntry(key);
         if (entry == null) {
             // Key was not found, hence no modification is needed
-            return Result.empty();
+            return null;
         }
         if (cond != null && !cond.equals(entry.value())) {
             // Value does not match
-            return Result.empty();
+            return null;
         }
 
         // While remove() can return null, that case will never happen here, as we are starting off with two entries
@@ -126,7 +127,7 @@ abstract sealed class LNodeEntries<K, V> extends LNodeEntry<K, V> {
         final var size = ln.size;
         final var next = size == 2 ? new TNode<>(ln, map.key(), map.value(), hc) : new LNode<>(ln, map, size - 1);
 
-        return in.gcasWrite(ct, next) ? entry.toResult() : null;
+        return in.gcasWrite(ct, next) ? entry.value() : RESTART;
     }
 
     private LNode<K, V> toInserted(final LNode<K, V> ln, final @NonNull K key, final @NonNull V val) {

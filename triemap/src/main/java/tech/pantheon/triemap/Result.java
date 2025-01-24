@@ -15,24 +15,10 @@
  */
 package tech.pantheon.triemap;
 
-import org.eclipse.jdt.annotation.NonNull;
-
 /**
- * Insertion result, similar to {@link java.util.Optional}, except heavily customized for our use.
++ * Virtual result for lookup/insert methods indicating that the lookup needs to be restarted. This is a faster version
++ * of throwing a checked exception to control restart.
  */
-record Result<T>(T value) {
-    private static final @NonNull Result<?> EMPTY = new Result<>(null);
-
-    @SuppressWarnings("unchecked")
-    static <T> @NonNull Result<T> empty() {
-        return (Result<T>) EMPTY;
-    }
-
-    boolean isPresent() {
-        return value != null;
-    }
-
-    T orNull() {
-        return value;
-    }
+enum Result {
+    RESTART;
 }

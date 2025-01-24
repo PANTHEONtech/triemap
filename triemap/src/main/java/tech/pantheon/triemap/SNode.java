@@ -31,10 +31,6 @@ record SNode<K, V>(@NonNull K key, @NonNull V value, int hc) implements Branch<K
         return hc == otherHc && otherKey.equals(key);
     }
 
-    @NonNull Result<V> toResult() {
-        return new Result<>(value);
-    }
-
     @Override
     public int elementSize(final ImmutableTrieMap<K, V> ct) {
         return 1;

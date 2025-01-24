@@ -18,6 +18,7 @@ package tech.pantheon.triemap;
 import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
+import static tech.pantheon.triemap.Result.RESTART;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
@@ -68,22 +69,23 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     }
 
     @Override
+    @SuppressWarnings("null")
     public V put(final K key, final V value) {
         final var k = requireNonNull(key);
-        return insertIf(k, requireNonNull(value), null).orNull();
+        return insertIf(k, requireNonNull(value), null);
     }
 
     @Override
+    @SuppressWarnings("null")
     public V putIfAbsent(final K key, final V value) {
         final var k = requireNonNull(key);
-        return insertIf(k, requireNonNull(value), ABSENT).orNull();
+        return insertIf(k, requireNonNull(value), ABSENT);
     }
 
     @Override
+    @SuppressWarnings({ "null", "unchecked" })
     public V remove(final Object key) {
-        @SuppressWarnings("unchecked")
-        final var k = (K) requireNonNull(key);
-        return removeIf(k, null).orNull();
+        return removeIf(requireNonNull((K) key), null);
     }
 
     @SuppressFBWarnings(value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE",
@@ -92,45 +94,48 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     public boolean remove(final Object key, final Object value) {
         @SuppressWarnings("unchecked")
         final var k = (K) requireNonNull(key);
-        return removeIf(k, requireNonNull(value)).isPresent();
+        return removeIf(k, requireNonNull(value)) != null;
     }
 
     @Override
     public boolean replace(final K key, final V oldValue, final V newValue) {
         final var k = requireNonNull(key);
-        return insertIf(k, requireNonNull(newValue), requireNonNull(oldValue)).isPresent();
+        return insertIf(k, requireNonNull(newValue), requireNonNull(oldValue)) != null;
     }
 
     @Override
+    @SuppressWarnings("null")
     public V replace(final K key, final V value) {
         final var k = requireNonNull(key);
-        return insertIf(k, requireNonNull(value), PRESENT).orNull();
+        return insertIf(k, requireNonNull(value), PRESENT);
     }
 
-    private @NonNull Result<V> insertIf(final @NonNull K key, final @NonNull V value, final @Nullable Object cond) {
+    @SuppressWarnings("unchecked")
+    private @Nullable V insertIf(final @NonNull K key, final @NonNull V value, final @Nullable Object cond) {
         final int hc = computeHash(key);
 
-        Result<V> res;
+        Object res;
         do {
             // Keep looping as long as we do not get a reply
             final var r = readRoot();
             res = r.insertIf(this, r.gen, hc, key, value, cond, 0, null);
-        } while (res == null);
+        } while (res == RESTART);
 
-        return res;
+        return (V) res;
     }
 
-    private @NonNull Result<V> removeIf(final @NonNull K key, final @Nullable Object cond) {
+    @SuppressWarnings("unchecked")
+    private @Nullable V removeIf(final @NonNull K key, final @Nullable Object cond) {
         final int hc = computeHash(key);
 
-        Result<V> res;
+        Object res;
         do {
             // Keep looping as long as we do not get a reply
             final var r = readRoot();
             res = r.remove(this, r.gen, hc, key, cond, 0, null);
-        } while (res == null);
+        } while (res == RESTART);
 
-        return res;
+        return (V) res;
     }
 
     @Override

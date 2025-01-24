@@ -17,6 +17,7 @@ package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
 import static tech.pantheon.triemap.Constants.LEVEL_BITS;
+import static tech.pantheon.triemap.Result.RESTART;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
@@ -230,8 +231,8 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      * @return null if no value has been found, RESTART if the operation was not successful, or any other value
      *         otherwise
      */
-    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key, final int lev,
-            final INode<K, V> parent) {
+    @Nullable Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final int lev, final INode<K, V> parent) {
         final var m = gcasRead(ct);
 
         if (m instanceof CNode<K, V> cn) {
@@ -244,7 +245,7 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
             }
             // read-write: perform some clean up and restart
             clean(ct, parent, lev);
-            return TrieMap.RESTART;
+            return RESTART;
         } else if (m instanceof LNode<K, V> ln) {
             // 5) an l-node
             return ln.entries.lookup(key);
@@ -281,9 +282,9 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      *            KEY_ABSENT - key wasn't there
      *            KEY_PRESENT - key was there
      *            other value `val` - key must be bound to `val`
-     * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
+     * @return RESTART if unsuccessful, previous value bound to the key otherwise
      */
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+    @Nullable Object insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
             final @NonNull V val, final Object cond, final int lev, final INode<K, V> parent) {
         final var m = gcasRead(ct);
         if (m instanceof CNode<K, V> cn) {
@@ -306,22 +307,21 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
      *            if null, will remove the key regardless of the value;
      *            otherwise removes only if binding contains that exact key
      *            and value
-     * @return null if not successful, an Result indicating the previous
-     *         value otherwise
+     * @return RESTART if not successful, or the previous value otherwise
      */
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+    @Nullable Object remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
             final @Nullable Object cond, final int lev, final INode<K, V> parent) {
         final var m = gcasRead(ct);
         if (m instanceof CNode<K, V> cn) {
             final var res = cn.remove(ct, startGen, hc, key, cond, lev, this);
             // never tomb at root
-            if (res != null && res.isPresent() && parent != null && parent.gcasRead(ct) instanceof TNode<K, V> tn) {
+            if (res != null && res != RESTART && parent != null && parent.gcasRead(ct) instanceof TNode<K, V> tn) {
                 cleanParent(ct, startGen, hc, tn, parent, lev);
             }
             return res;
         } else if (m instanceof TNode) {
             clean(ct, parent, lev);
-            return null;
+            return RESTART;
         } else if (m instanceof LNode<K, V> ln) {
             return ln.entries.remove(ct, this, ln, key, cond, hc);
         } else {
