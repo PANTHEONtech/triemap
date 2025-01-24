@@ -80,6 +80,43 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
+            final Object cond, final int lev, final INode<K, V> parent) {
+        final int idx = hc >>> lev & 0x1f;
+        final int flag = 1 << idx;
+        if ((bitmap & flag) == 0) {
+            return Result.empty();
+        }
+
+        final int pos = Integer.bitCount(bitmap & flag - 1);
+        final var sub = array[pos];
+        if (sub instanceof INode<K, V> in) {
+            // renew if needed
+            return startGen != in.gen && !renew(ct, parent, startGen)
+                ? null : in.remove(ct, startGen, hc, key, cond, lev + LEVEL_BITS, parent);
+        } else if (sub instanceof SNode<K, V> sn) {
+            return remove(ct, parent, flag, pos, sn, key, hc, cond, lev);
+        } else {
+            throw TrieMap.invalidElement(sub);
+        }
+    }
+
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int flag, final int pos,
+            final SNode<K, V> sn, final K key, final int hc, final Object cond, final int lev) {
+        if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
+            return Result.empty();
+        }
+
+        final var arr = array;
+        final int len = arr.length;
+        final var narr = newArray(len - 1);
+        System.arraycopy(arr, 0, narr, 0, pos);
+        System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
+        final var onlySN = onlySNode(narr, lev);
+        return in.gcasWrite(onlySN != null ? onlySN.copyTombed(this) : new CNode<>(this, gen, bitmap ^ flag, narr), ct)
+            ? sn.toResult() : null;
+    }
+
     boolean renew(final TrieMap<K, V> ct, final INode<K, V> in, final Gen ngen) {
         return in.gcasWrite(renewed(ngen, ct), ct);
     }
@@ -120,22 +157,6 @@ final class CNode<K, V> extends MainNode<K, V> {
             return in.gcasWrite(updatedAt(pos, key, val, hc, gen), ct) ? sn.toResult() : null;
         }
         return Result.empty();
-    }
-
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int flag, final int pos,
-            final SNode<K, V> sn, final K key, final int hc, final Object cond, final int lev) {
-        if (!sn.matches(hc, key) || cond != null && !cond.equals(sn.value())) {
-            return Result.empty();
-        }
-
-        final var arr = array;
-        final int len = arr.length;
-        final var narr = newArray(len - 1);
-        System.arraycopy(arr, 0, narr, 0, pos);
-        System.arraycopy(arr, pos + 1, narr, pos, len - pos - 1);
-        final var onlySN = onlySNode(narr, lev);
-        return in.gcasWrite(onlySN != null ? onlySN.copyTombed(this) : new CNode<>(this, gen, bitmap ^ flag, narr), ct)
-            ? sn.toResult() : null;
     }
 
     MainNode<K, V> toContracted(final CNode<K, V> prev, final int lev) {

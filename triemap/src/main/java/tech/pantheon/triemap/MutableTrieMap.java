@@ -315,101 +315,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Result<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = recRemove(readRoot(), key, cond, hc);
+            final var r = readRoot();
+            res = r.remove(this, r.gen, hc, key, cond, 0, null);
         } while (res == null);
 
         return res;
-    }
-
-    /**
-     * Removes the key associated with the given value.
-     *
-     * @param cond
-     *            if null, will remove the key regardless of the value;
-     *            otherwise removes only if binding contains that exact key
-     *            and value
-     * @return null if not successful, an Result indicating the previous
-     *         value otherwise
-     */
-    private @Nullable Result<V> recRemove(final INode<K, V> first, final K key, final Object cond, final int hc) {
-        final var startGen = first.gen;
-        INode<K, V> parent = null;
-        var current = first;
-        int lev = 0;
-
-        while (true) {
-            final var m = current.gcasRead(this);
-
-            if (m instanceof CNode<K, V> cn) {
-                final int idx = hc >>> lev & 0x1f;
-                final int bmp = cn.bitmap;
-                final int flag = 1 << idx;
-                if ((bmp & flag) == 0) {
-                    return Result.empty();
-                }
-
-                final int pos = Integer.bitCount(bmp & flag - 1);
-                final var sub = cn.array[pos];
-                if (sub instanceof INode<K, V> in) {
-                    // renew if needed
-                    if (startGen != in.gen && !cn.renew(this, current, startGen)) {
-                        return null;
-                    }
-
-                    parent = current;
-                    current = in;
-                    lev += LEVEL_BITS;
-                } else if (sub instanceof SNode<K, V> sn) {
-                    final var res = cn.remove(this, current, flag, pos, sn, key, hc, cond, lev);
-                    // never tomb at root
-                    if (res != null && res.isPresent() && parent != null
-                        && current.gcasRead(this) instanceof TNode<K, V> tn) {
-                        cleanParent(current, tn, parent, hc, lev, startGen);
-                    }
-                    return res;
-                } else {
-                    throw invalidElement(sub);
-                }
-            } else if (m instanceof TNode) {
-                clean(current, parent, lev);
-                return null;
-            } else if (m instanceof LNode<K, V> ln) {
-                return ln.entries.remove(this, current, ln, key, cond, hc);
-            } else {
-                throw invalidElement(m);
-            }
-        }
-    }
-
-    private void cleanParent(final INode<K, V> in, final TNode<K, V> tn, final INode<K, V> parent, final int hc,
-            final int lev, final Gen startgen) {
-        while (true) {
-            if (!(parent.gcasRead(this) instanceof CNode<K, V> cn)) {
-                // parent is no longer a cnode, we're done
-                return;
-            }
-
-            final int idx = hc >>> lev - LEVEL_BITS & 0x1f;
-            final int bmp = cn.bitmap;
-            final int flag = 1 << idx;
-            if ((bmp & flag) == 0) {
-                // somebody already removed this i-node, we're done
-                return;
-            }
-
-            final int pos = Integer.bitCount(bmp & flag - 1);
-            final var sub = cn.array[pos];
-            if (sub != in) {
-                // some other range is occupying our slot, we're done
-                return;
-            }
-
-            if (parent.gcasWrite(cn.updatedAt(pos, tn.copyUntombed(), in.gen).toContracted(cn, lev - LEVEL_BITS), this)
-                || readRoot().gen != startgen) {
-                // (mumble-mumble) and we're done
-                return;
-            }
-        }
     }
 
     private Root<K, V> casRoot(final Root<K, V> prev, final Root<K, V> next) {
