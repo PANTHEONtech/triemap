@@ -36,6 +36,11 @@ record SNode<K, V>(K key, V value, int hc) implements Branch<K, V>, EntryNode<K,
     }
 
     @Override
+    public int elementSize(final ImmutableTrieMap<K, V> ct) {
+        return 1;
+    }
+
+    @Override
     public int hashCode() {
         return AbstractEntry.hashCode(key, value);
     }

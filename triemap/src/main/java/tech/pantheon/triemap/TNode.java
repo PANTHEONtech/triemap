@@ -56,7 +56,7 @@ final class TNode<K, V> extends MainNode<K, V> implements EntryNode<K, V> {
     }
 
     @Override
-    int size(final ImmutableTrieMap<?, ?> ct) {
+    int size(final ImmutableTrieMap<K, V> ct) {
         return 1;
     }
 

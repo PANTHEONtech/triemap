@@ -215,7 +215,8 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
         return new INode<>(ngen, gcasRead(ct));
     }
 
-    int readSize(final ImmutableTrieMap<?, ?> ct) {
+    @Override
+    public int elementSize(final ImmutableTrieMap<K, V> ct) {
         return gcasReadNonNull(ct).size(ct);
     }
 

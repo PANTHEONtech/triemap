@@ -104,7 +104,7 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @Override
     public int size() {
-        return root.readSize(this);
+        return root.elementSize(this);
     }
 
     @Override
