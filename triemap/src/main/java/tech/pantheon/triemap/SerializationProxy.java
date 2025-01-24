@@ -75,7 +75,12 @@ final class SerializationProxy implements Externalizable {
         }
 
         for (int i = 0; i < size; ++i) {
-            tmp.add(in.readObject(), in.readObject());
+            final var k = requireNonNull(in.readObject());
+            final var v = requireNonNull(in.readObject());
+            final var r = tmp.readRoot();
+            if (!r.insert(tmp, r.gen, TrieMap.computeHash(k), k, v, 0, null)) {
+                throw new VerifyException("Concurrent modification during serialization");
+            }
         }
 
         map = in.readBoolean() ? tmp.immutableSnapshot() : tmp;

@@ -69,20 +69,20 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     @Override
     public V put(final K key, final V value) {
         final var k = requireNonNull(key);
-        return insertifhc(k, computeHash(k), requireNonNull(value), null).orNull();
+        return insertIf(k, requireNonNull(value), null).orNull();
     }
 
     @Override
     public V putIfAbsent(final K key, final V value) {
         final var k = requireNonNull(key);
-        return insertifhc(k, computeHash(k), requireNonNull(value), ABSENT).orNull();
+        return insertIf(k, requireNonNull(value), ABSENT).orNull();
     }
 
     @Override
     public V remove(final Object key) {
         @SuppressWarnings("unchecked")
         final var k = (K) requireNonNull(key);
-        return removehc(k, null, computeHash(k)).orNull();
+        return removeIf(k, null).orNull();
     }
 
     @SuppressFBWarnings(value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE",
@@ -91,19 +91,45 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     public boolean remove(final Object key, final Object value) {
         @SuppressWarnings("unchecked")
         final var k = (K) requireNonNull(key);
-        return removehc(k, requireNonNull(value), computeHash(k)).isPresent();
+        return removeIf(k, requireNonNull(value)).isPresent();
     }
 
     @Override
     public boolean replace(final K key, final V oldValue, final V newValue) {
         final var k = requireNonNull(key);
-        return insertifhc(k, computeHash(k), requireNonNull(newValue), requireNonNull(oldValue)).isPresent();
+        return insertIf(k, requireNonNull(newValue), requireNonNull(oldValue)).isPresent();
     }
 
     @Override
     public V replace(final K key, final V value) {
         final var k = requireNonNull(key);
-        return insertifhc(k, computeHash(k), requireNonNull(value), PRESENT).orNull();
+        return insertIf(k, requireNonNull(value), PRESENT).orNull();
+    }
+
+    private @NonNull Result<V> insertIf(final K key, final V value, final Object cond) {
+        final int hc = computeHash(key);
+
+        Result<V> res;
+        do {
+            // Keep looping as long as we do not get a reply
+            final var r = readRoot();
+            res = r.insertIf(this, r.gen, hc, key, value, cond, 0, null);
+        } while (res == null);
+
+        return res;
+    }
+
+    private @NonNull Result<V> removeIf(final K key, final Object cond) {
+        final int hc = computeHash(key);
+
+        Result<V> res;
+        do {
+            // Keep looping as long as we do not get a reply
+            final var r = readRoot();
+            res = r.remove(this, r.gen, hc, key, cond, 0, null);
+        } while (res == null);
+
+        return res;
     }
 
     @Override
@@ -164,45 +190,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         }
     }
 
-    void add(final K key, final V value) {
-        final K k = requireNonNull(key);
-        inserthc(k, computeHash(k), requireNonNull(value));
-    }
-
     private static <K, V> INode<K, V> newRootNode() {
         final var gen = new Gen();
         return new INode<>(gen, new CNode<>(gen));
-    }
-
-    private void inserthc(final K key, final int hc, final V value) {
-        // TODO: this is called from serialization only, which means we should not be observing any races,
-        //       hence we should not need to pass down the entire tree, just equality (I think).
-        final var r = readRoot();
-        if (!r.insert(this, r.gen, hc, key, value, 0, null)) {
-            throw new VerifyException("Concurrent modification during serialization of map " + this);
-        }
-    }
-
-    private @NonNull Result<V> insertifhc(final K key, final int hc, final V value, final Object cond) {
-        Result<V> res;
-        do {
-            // Keep looping as long as we do not get a reply
-            final var r = readRoot();
-            res = r.insertIf(this, r.gen, hc, key, value, cond, 0, null);
-        } while (res == null);
-
-        return res;
-    }
-
-    private @NonNull Result<V> removehc(final K key, final Object cond, final int hc) {
-        Result<V> res;
-        do {
-            // Keep looping as long as we do not get a reply
-            final var r = readRoot();
-            res = r.remove(this, r.gen, hc, key, cond, 0, null);
-        } while (res == null);
-
-        return res;
     }
 
     private Root<K, V> casRoot(final Root<K, V> prev, final Root<K, V> next) {
