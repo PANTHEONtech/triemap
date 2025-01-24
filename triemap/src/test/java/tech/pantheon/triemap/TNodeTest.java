@@ -30,7 +30,7 @@ class TNodeTest {
 
     @Test
     void testCopyUntombed() {
-        final var snode = tnode.copyUntombed();
+        final var snode = new SNode<>(tnode);
         assertEquals(tnode.hashCode(), snode.hashCode());
         assertSame(tnode.key(), snode.key());
         assertSame(tnode.value(), snode.value());

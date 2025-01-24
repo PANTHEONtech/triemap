@@ -16,7 +16,6 @@
 package tech.pantheon.triemap;
 
 import static java.util.Objects.requireNonNull;
-import static tech.pantheon.triemap.Constants.LEVEL_BITS;
 import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
@@ -24,7 +23,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * A mutable TrieMap.
@@ -179,63 +177,9 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
     private void inserthc(final K key, final int hc, final V value) {
         // TODO: this is called from serialization only, which means we should not be observing any races,
         //       hence we should not need to pass down the entire tree, just equality (I think).
-        if (!recInsert(readRoot(), key, value, hc)) {
+        final var r = readRoot();
+        if (!r.insert(this, r.gen, hc, key, value, 0, null)) {
             throw new VerifyException("Concurrent modification during serialization of map " + this);
-        }
-    }
-
-    /**
-     * Inserts a key value pair, overwriting the old pair if the keys match.
-     *
-     * @return true if successful, false otherwise
-     */
-    private boolean recInsert(final INode<K, V> first, final K key, final V val, final int hc) {
-        final var startGen = first.gen;
-        INode<K, V> parent = null;
-        var current = first;
-        int lev = 0;
-
-        while (true) {
-            final var m = current.gcasRead(this);
-
-            if (m instanceof CNode<K, V> cn) {
-                // 1) a multiway node
-                final int idx = hc >>> lev & 0x1f;
-                final int flag = 1 << idx;
-                final int bmp = cn.bitmap;
-                final int mask = flag - 1;
-                final int pos = Integer.bitCount(bmp & mask);
-
-                if ((bmp & flag) == 0) {
-                    return cn.insert(this, current, pos, flag, key, val, hc);
-                }
-
-                // 1a) insert below
-                final var cnAtPos = cn.array[pos];
-                if (cnAtPos instanceof INode<K, V> in) {
-                    // renew if needed
-                    if (startGen != in.gen && !cn.renew(this, current, startGen)) {
-                        return false;
-                    }
-
-                    // enter next level
-                    parent = current;
-                    current = in;
-                    lev += LEVEL_BITS;
-                    continue;
-                } else if (cnAtPos instanceof SNode<K, V> sn) {
-                    return cn.insert(this, current, pos, sn, key, val, hc, lev);
-                } else {
-                    throw invalidElement(cnAtPos);
-                }
-            } else if (m instanceof TNode) {
-                clean(current, parent, lev);
-                return false;
-            } else if (m instanceof LNode<K, V> ln) {
-                return ln.entries.insert(this, current, ln, key, val);
-            } else {
-                throw invalidElement(m);
-            }
         }
     }
 
@@ -243,72 +187,11 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
         Result<V> res;
         do {
             // Keep looping as long as we do not get a reply
-            res = recInsertIf(readRoot(), key, value, hc, cond);
+            final var r = readRoot();
+            res = r.insertIf(this, r.gen, hc, key, value, cond, 0, null);
         } while (res == null);
 
         return res;
-    }
-
-    /**
-     * Inserts a new key value pair, given that a specific condition is met.
-     *
-     * @param cond
-     *            null - don't care if the key was there
-     *            KEY_ABSENT - key wasn't there
-     *            KEY_PRESENT - key was there
-     *            other value `val` - key must be bound to `val`
-     * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
-     */
-    private @Nullable Result<V> recInsertIf(final INode<K, V> first, final K key, final V val, final int hc,
-            final Object cond) {
-        final var startgen = first.gen;
-        INode<K, V> parent = null;
-        var current = first;
-        int lev = 0;
-
-        while (true) {
-            final var m = current.gcasRead(this);
-
-            if (m instanceof CNode<K, V> cn) {
-                // 1) a multiway node
-                final int idx = hc >>> lev & 0x1f;
-                final int flag = 1 << idx;
-                final int bmp = cn.bitmap;
-                final int mask = flag - 1;
-                final int pos = Integer.bitCount(bmp & mask);
-
-                if ((bmp & flag) == 0) {
-                    // not found
-                    return cond != null && cond != ABSENT || cn.insert(this, current, pos, flag, key, val, hc)
-                        ? Result.empty() : null;
-                }
-
-                // 1a) insert below
-                final var cnAtPos = cn.array[pos];
-                if (cnAtPos instanceof INode<K, V> in) {
-                    if (startgen != in.gen && !cn.renew(this, current, startgen)) {
-                        return null;
-                    }
-
-                    // enter next level
-                    parent = current;
-                    current = in;
-                    lev += LEVEL_BITS;
-                } else if (cnAtPos instanceof SNode<K, V> sn) {
-                    return cn.insertIf(this, current, pos, sn, key, val, hc, cond, lev);
-                } else {
-                    throw invalidElement(cnAtPos);
-                }
-            } else if (m instanceof TNode) {
-                clean(current, parent, lev);
-                return null;
-            } else if (m instanceof LNode<K, V> ln) {
-                // 3) an l-node
-                return ln.entries.insertIf(this, current, ln, key, val, cond);
-            } else {
-                throw invalidElement(m);
-            }
-        }
     }
 
     private @NonNull Result<V> removehc(final K key, final Object cond, final int hc) {

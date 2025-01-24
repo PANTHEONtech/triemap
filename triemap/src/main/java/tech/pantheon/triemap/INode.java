@@ -211,6 +211,14 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
         }
     }
 
+    INode<K, V> copyToGen(final Gen ngen, final TrieMap<K, V> ct) {
+        return new INode<>(ngen, gcasRead(ct));
+    }
+
+    int readSize(final ImmutableTrieMap<?, ?> ct) {
+        return gcasReadNonNull(ct).size(ct);
+    }
+
     /**
      * Looks up the value associated with the key.
      *
@@ -233,13 +241,59 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
                 return tn.hc == hc && key.equals(tn.key) ? tn.value : null;
             }
             // read-write: perform some clean up and restart
-            ct.clean(this, parent, lev - LEVEL_BITS);
+            clean(ct, parent, lev);
             return TrieMap.RESTART;
         } else if (m instanceof LNode<K, V> ln) {
             // 5) an l-node
             return ln.entries.lookup(key);
         } else {
-            throw TrieMap.invalidElement(m);
+            throw invalidElement(m);
+        }
+    }
+
+    /**
+     * Inserts a key value pair, overwriting the old pair if the keys match.
+     *
+     * @return true if successful, false otherwise
+     */
+    boolean insert(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final V val,
+            final int lev, final INode<K, V> parent) {
+        final var m = gcasRead(ct);
+        if (m instanceof CNode<K, V> cn) {
+            return cn.insert(ct, startGen, hc, key, val, lev, this);
+        } else if (m instanceof TNode) {
+            clean(ct, parent, lev);
+            return false;
+        } else if (m instanceof LNode<K, V> ln) {
+            return ln.entries.insert(ct, this, ln, key, val);
+        } else {
+            throw invalidElement(m);
+        }
+    }
+
+    /**
+     * Inserts a new key value pair, given that a specific condition is met.
+     *
+     * @param cond
+     *            null - don't care if the key was there
+     *            KEY_ABSENT - key wasn't there
+     *            KEY_PRESENT - key was there
+     *            other value `val` - key must be bound to `val`
+     * @return null if unsuccessful, Result(V) otherwise (indicating previous value bound to the key)
+     */
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
+            final V val, final Object cond, final int lev, final INode<K, V> parent) {
+        final var m = gcasRead(ct);
+        if (m instanceof CNode<K, V> cn) {
+            return cn.insertIf(ct, startGen, hc, key, val, cond, lev, this);
+        } else if (m instanceof TNode) {
+            clean(ct, parent, lev);
+            return null;
+        } else if (m instanceof LNode<K, V> ln) {
+            // 3) an l-node
+            return ln.entries.insertIf(ct, this, ln, key, val, cond);
+        } else {
+            throw invalidElement(m);
         }
     }
 
@@ -264,12 +318,18 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
             }
             return res;
         } else if (m instanceof TNode) {
-            ct.clean(this, parent, lev);
+            clean(ct, parent, lev);
             return null;
         } else if (m instanceof LNode<K, V> ln) {
             return ln.entries.remove(ct, this, ln, key, cond, hc);
         } else {
-            throw TrieMap.invalidElement(m);
+            throw invalidElement(m);
+        }
+    }
+
+    private void clean(final TrieMap<K, V> ct, final INode<K, V> parent, final int lev) {
+        if (parent.gcasRead(ct) instanceof CNode<K, V> cn) {
+            parent.gcasWrite(cn.toCompressed(ct, gen, lev - LEVEL_BITS), ct);
         }
     }
 
@@ -297,18 +357,15 @@ final class INode<K, V> implements Branch<K, V>, MutableTrieMap.Root<K, V> {
             }
 
             // retry while we make progress and the tree is does not move to next generation
-            if (parent.gcasWrite(cn.updatedAt(pos, tn.copyUntombed(), gen).toContracted(cn, lev - LEVEL_BITS), ct)
+            if (parent.gcasWrite(cn.toContracted(gen, pos, tn, lev - LEVEL_BITS), ct)
                 || ct.readRoot().gen != startGen) {
                 return;
             }
         }
     }
 
-    INode<K, V> copyToGen(final Gen ngen, final TrieMap<K, V> ct) {
-        return new INode<>(ngen, gcasRead(ct));
-    }
-
-    int size(final ImmutableTrieMap<?, ?> ct) {
-        return gcasReadNonNull(ct).size(ct);
+    // Visible for testing
+    static VerifyException invalidElement(final MainNode<?, ?> elem) {
+        throw new VerifyException("An INode can host only a CNode, a TNode or an LNode, not " + elem);
     }
 }
