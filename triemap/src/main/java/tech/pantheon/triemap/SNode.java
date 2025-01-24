@@ -18,7 +18,7 @@ package tech.pantheon.triemap;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
-record SNode<K, V>(K key, V value, int hc) implements Branch<K, V>, EntryNode<K, V> {
+record SNode<K, V>(@NonNull K key, @NonNull V value, int hc) implements Branch<K, V>, EntryNode<K, V> {
     SNode(final TNode<K, V> tn) {
         this(tn.key, tn.value, tn.hc);
     }

@@ -22,6 +22,7 @@ import static tech.pantheon.triemap.PresencePredicate.ABSENT;
 import static tech.pantheon.triemap.PresencePredicate.PRESENT;
 
 import java.util.concurrent.ThreadLocalRandom;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
 final class CNode<K, V> extends MainNode<K, V> {
@@ -54,8 +55,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, (Branch<K, V>[]) EMPTY_ARRAY);
     }
 
-    static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final K key, final V value, final int hc,
-        final int initLev, final Gen gen) {
+    static <K, V> MainNode<K, V> dual(final SNode<K, V> first, final @NonNull K key, final @NonNull V value,
+            final int hc, final int initLev, final Gen gen) {
         final var second = new SNode<>(key, value, hc);
         final var fhc = first.hc();
 
@@ -89,7 +90,7 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final int lev,
+    Object lookup(final TrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key, final int lev,
             final INode<K, V> parent) {
         // 1) a multinode
         final int idx = hc >>> lev & 0x1f;
@@ -115,8 +116,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         }
     }
 
-    boolean insert(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key, final V val,
-            final int lev, final INode<K, V> parent) {
+    boolean insert(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final @NonNull V val, final int lev, final INode<K, V> parent) {
         // 1) a multiway node
         final int idx = hc >>> lev & 0x1f;
         final int flag = 1 << idx;
@@ -141,7 +142,7 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final SNode<K, V> sn,
-            final K key, final V val, final int hc, final int lev) {
+            final @NonNull K key, final @NonNull V val, final int hc, final int lev) {
         final CNode<K, V> next;
         if (!sn.matches(hc, key)) {
             final var rn = gen == in.gen ? this : renewed(ct, gen);
@@ -152,15 +153,15 @@ final class CNode<K, V> extends MainNode<K, V> {
         return in.gcasWrite(ct, next);
     }
 
-    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final int flag, final K key,
-            final V val, final int hc) {
+    boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final int flag,
+            final @NonNull K key, final @NonNull V val, final int hc) {
         final var ngen = in.gen;
         final var rn = gen == ngen ? this : renewed(ct, ngen);
         return in.gcasWrite(ct, rn.toInsertedAt(this, ngen, pos, flag, key, val, hc));
     }
 
-    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
-            final V val, final Object cond, final int lev, final INode<K, V> parent) {
+    @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final @NonNull V val, final @Nullable Object cond, final int lev, final INode<K, V> parent) {
         // 1) a multiway node
         final int idx = hc >>> lev & 0x1f;
         final int flag = 1 << idx;
@@ -190,7 +191,8 @@ final class CNode<K, V> extends MainNode<K, V> {
     }
 
     private @Nullable Result<V> insertIf(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos,
-            final SNode<K, V> sn, final K key, final V val, final int hc, final Object cond, final int lev) {
+            final SNode<K, V> sn, final @NonNull K key, final @NonNull V val, final int hc, final @Nullable Object cond,
+            final int lev) {
         if (!sn.matches(hc, key)) {
             if (cond == null || cond == ABSENT) {
                 final var ngen = in.gen;
@@ -208,8 +210,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         return Result.empty();
     }
 
-    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final K key,
-            final Object cond, final int lev, final INode<K, V> parent) {
+    @Nullable Result<V> remove(final MutableTrieMap<K, V> ct, final Gen startGen, final int hc, final @NonNull K key,
+            final @Nullable Object cond, final int lev, final INode<K, V> parent) {
         final int idx = hc >>> lev & 0x1f;
         final int flag = 1 << idx;
         if ((bitmap & flag) == 0) {
@@ -345,12 +347,13 @@ final class CNode<K, V> extends MainNode<K, V> {
         return toUpdatedAt(this, pos, nn, ngen);
     }
 
-    private CNode<K, V> updatedAt(final int pos, final K key, final V val, final int hc, final Gen ngen) {
+    private CNode<K, V> updatedAt(final int pos, final @NonNull K key, final @NonNull V val, final int hc,
+            final Gen ngen) {
         return updatedAt(pos, new SNode<>(key, val, hc), ngen);
     }
 
-    private CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag, final K key,
-            final V value, final int hc) {
+    private CNode<K, V> toInsertedAt(final CNode<K, V> prev, final Gen ngen, final int pos, final int flag,
+            final @NonNull K key, final @NonNull V value, final int hc) {
         final int len = array.length;
         final var narr = newArray(len + 1);
         System.arraycopy(array, 0, narr, 0, pos);

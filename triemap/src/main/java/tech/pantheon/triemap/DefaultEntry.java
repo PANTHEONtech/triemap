@@ -16,6 +16,7 @@
 package tech.pantheon.triemap;
 
 import java.util.Map.Entry;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * Our {@link Entry} implementations are immutable by default.
@@ -27,7 +28,7 @@ import java.util.Map.Entry;
  */
 sealed interface DefaultEntry<K, V> extends Entry<K, V> permits AbstractEntry, EntryNode {
 
-    K key();
+    @NonNull K key();
 
     @Override
     @Deprecated
@@ -35,7 +36,7 @@ sealed interface DefaultEntry<K, V> extends Entry<K, V> permits AbstractEntry, E
         return key();
     }
 
-    V value();
+    @NonNull V value();
 
     @Override
     @Deprecated

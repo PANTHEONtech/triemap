@@ -83,7 +83,8 @@ final class MutableIterator<K, V> extends AbstractIterator<K, V> {
          */
         @Override
         public V value() {
-            return newValue != null ? newValue : delegate.value();
+            final var val = newValue;
+            return val != null ? val : delegate.value();
         }
 
         /**
