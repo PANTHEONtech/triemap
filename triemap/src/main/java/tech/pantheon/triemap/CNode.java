@@ -54,6 +54,10 @@ final class CNode<K, V> extends MainNode<K, V> {
         this(gen, 0, (Branch<K, V>[]) EMPTY_ARRAY);
     }
 
+    boolean renew(final TrieMap<K, V> ct, final INode<K, V> in, final Gen ngen) {
+        return in.gcasWrite(renewed(ngen, ct), ct);
+    }
+
     boolean insert(final MutableTrieMap<K, V> ct, final INode<K, V> in, final int pos, final SNode<K, V> sn,
             final K key, final V val, final int hc, final int lev) {
         final CNode<K, V> next;

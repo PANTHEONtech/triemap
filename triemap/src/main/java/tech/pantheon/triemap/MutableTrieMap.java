@@ -216,7 +216,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 final var cnAtPos = cn.array[pos];
                 if (cnAtPos instanceof INode<K, V> in) {
                     // renew if needed
-                    if (startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
+                    if (startGen != in.gen && !cn.renew(this, current, startGen)) {
                         return false;
                     }
 
@@ -294,7 +294,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 // 1a) insert below
                 final var cnAtPos = cn.array[pos];
                 if (cnAtPos instanceof INode<K, V> in) {
-                    if (startgen != in.gen && !current.gcasWrite(cn.renewed(startgen, this), this)) {
+                    if (startgen != in.gen && !cn.renew(this, current, startgen)) {
                         return null;
                     }
 
@@ -360,7 +360,7 @@ public final class MutableTrieMap<K, V> extends TrieMap<K, V> {
                 final var sub = cn.array[pos];
                 if (sub instanceof INode<K, V> in) {
                     // renew if needed
-                    if (startGen != in.gen && !current.gcasWrite(cn.renewed(startGen, this), this)) {
+                    if (startGen != in.gen && !cn.renew(this, current, startGen)) {
                         return null;
                     }
 
