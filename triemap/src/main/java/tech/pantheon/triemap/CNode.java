@@ -179,10 +179,8 @@ final class CNode<K, V> extends MainNode<K, V> {
         final var cnAtPos = array[pos];
         if (cnAtPos instanceof INode<K, V> in) {
             // enter next level
-            if (startGen != in.gen && !renew(ct, parent, startGen)) {
-                return RESTART;
-            }
-            return in.insertIf(ct, startGen, hc, key, val, cond, lev + LEVEL_BITS, parent);
+            return startGen != in.gen && !renew(ct, parent, startGen)
+                ? RESTART : in.insertIf(ct, startGen, hc, key, val, cond, lev + LEVEL_BITS, parent);
         } else if (cnAtPos instanceof SNode<K, V> sn) {
             return insertIf(ct, parent, pos, sn, key, val, hc, cond, lev);
         } else {
