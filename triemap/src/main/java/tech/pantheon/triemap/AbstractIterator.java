@@ -88,19 +88,17 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
      * @param in INode to be read.
      */
     private void readin(final INode<K, V> in) {
-        final var m = in.gcasRead(map);
-        if (m instanceof CNode<K, V> cn) {
-            // Enter the next level
-            depth++;
-            nodeStack[depth] = cn.array;
-            positionStack[depth] = -1;
-            advance();
-        } else if (m instanceof TNode<K, V> tn) {
-            current = tn;
-        } else if (m instanceof LNode<K, V> ln) {
-            lnode = ln.entries;
-        } else if (m == null) {
-            current = null;
+        switch (in.gcasRead(map)) {
+            case null -> current = null;
+            case CNode<K, V> cn -> {
+                // Enter the next level
+                depth++;
+                nodeStack[depth] = cn.array;
+                positionStack[depth] = -1;
+                advance();
+            }
+            case LNode<K, V> ln -> lnode = ln.entries;
+            case TNode<K, V> tn -> current = tn;
         }
     }
 
@@ -108,12 +106,10 @@ abstract sealed class AbstractIterator<K, V> implements Iterator<Entry<K, V>>
         if (depth >= 0) {
             int npos = positionStack[depth] + 1;
             if (npos < nodeStack[depth].length) {
-                positionStack [depth] = npos;
-                var elem = nodeStack[depth][npos];
-                if (elem instanceof SNode) {
-                    current = (SNode<K, V>) elem;
-                } else if (elem instanceof INode) {
-                    readin((INode<K, V>) elem);
+                positionStack[depth] = npos;
+                switch (nodeStack[depth][npos]) {
+                    case SNode<K, V> sn -> current = sn;
+                    case INode<K, V> in -> readin(in);
                 }
             } else {
                 depth -= 1;
