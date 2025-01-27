@@ -18,6 +18,7 @@ package tech.pantheon.triemap;
 import static java.util.Objects.requireNonNull;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -36,6 +37,12 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
 
     @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
     private final transient INode<K, V> root;
+
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
+    private transient int hashCode = -1;
+
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED", justification = "Handled through writeReplace")
+    private transient String stringRepresentation;
 
     ImmutableTrieMap(final INode<K, V> root) {
         this.root = requireNonNull(root);
@@ -110,6 +117,81 @@ public final class ImmutableTrieMap<K, V> extends TrieMap<K, V> {
     @Override
     public MutableTrieMap<K, V> mutableSnapshot() {
         return new MutableTrieMap<>(root.copyToGen(this, new Gen()));
+    }
+
+    @Override
+    public int hashCode() {
+        if (hashCode == -1) {
+            int hash = 0;
+            for (Entry<K, V> entry : entrySet()) {
+                hash += entry.hashCode();
+            }
+            hashCode = hash;
+        }
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object anObject) {
+        if (anObject == this) {
+            return true;
+        }
+
+        if (!(anObject instanceof Map<?, ?> aMap)) {
+            return false;
+        }
+        if (aMap.size() != size()) {
+            return false;
+        }
+
+        try {
+            for (Entry<K, V> entry : entrySet()) {
+                K key = entry.getKey();
+                V value = entry.getValue();
+                if (value == null) {
+                    if (!(aMap.get(key) == null && aMap.containsKey(key))) {
+                        return false;
+                    }
+                } else {
+                    if (!value.equals(aMap.get(key))) {
+                        return false;
+                    }
+                }
+            }
+        } catch (ClassCastException unused) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        if (stringRepresentation == null) {
+            if (isEmpty()) {
+                stringRepresentation = "{}";
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append('{');
+                Iterator<Entry<K,V>> it = entrySet().iterator();
+                for (;;) {
+                    Entry<K,V> entry = it.next();
+                    K key = entry.getKey();
+                    V value = entry.getValue();
+                    sb.append(key == this ? "(this Map)" : key);
+                    sb.append('=');
+                    sb.append(value == this ? "(this Map)" : value);
+                    if (it.hasNext()) {
+                        sb.append(',').append(' ');
+                    } else {
+                        sb.append('}');
+                        break;
+                    }
+                }
+                stringRepresentation = sb.toString();
+            }
+        }
+        return stringRepresentation;
     }
 
     @Override
